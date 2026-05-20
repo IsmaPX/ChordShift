@@ -1,0 +1,603 @@
+WDD_TECHNICAL.md
+Guía de ejecución técnica del proyecto WDD — Worship Piano App. Referencia diaria para el
+equipo de desarrollo. Versión derivada de 
+WDD_WorshipPiano_v1.0 . Toda decisión
+arquitectónica no cubierta aquí debe ser documentada como enmienda antes de
+implementarse.
+1. Stack Tecnológico Estricto
+Capa
+Tecnología
+Versión
+Framework UI
+React
+19.x
+Tipado
+TypeScript (strict)
+5.x
+Build Tool
+Vite
+6.x
+Estilos
+Tailwind CSS
+4.x
+Motor de Audio
+Tone.js
+15.x
+Backend / Auth / DB
+Supabase
+Cloud
+Desktop
+Tauri
+2.x
+Mobile
+Capacitor
+7.x
+2. Estructura de Directorios
+src/
+├
+── app/                        
+├
+── modules/
+│   
+├
+── practice/               
+│   
+├
+── ear-training/           
+│   
+├
+── encyclopedia/           
+│   └── retention/              
+├
+── platform/                   
+│   
+├
+── notifications.ts        
+# Rutas y layouts globales
+# Módulo 1: Práctica Estática
+# Módulo 2: Ear Training Engine
+# Módulo 3: Enciclopedia de Estilos
+# Módulo 4: Tips y Recordatorios
+# Abstracción por plataforma
+# Email (MVP) / Push nativo (V2)
+│   └── storage.ts              
+# LocalStorage (web) / Capacitor Storage (native)
+├
+── audio/
+│   
+├
+── AudioEngine.ts          
+│   
+├
+── ChordPlayer.ts          
+│   
+├
+── ExerciseGenerator.ts    
+│   └── types.ts                
+Exercise)
+├
+── db/
+│   
+├
+── supabase.ts             
+│   └── types.ts                
+├
+── components/                 
+etc.)
+└── hooks/                      
+# Singleton. Inicializa AudioContext.
+# API para reproducir acordes
+# Generación aleatoria de ejercicios
+# Tipos musicales exportados (Chord, Interval,
+# Cliente Supabase
+# Generados con `supabase gen types typescript`
+# UI compartida (ChordDisplay, FeedbackCanvas,
+# useAudio, useStreak, useTips
+3. Pipeline de Audio y Estado
+Cadena de señal Tone.js
+Se inicializa una sola vez al inicio de la sesión como singleton en 
+Tone.PolySynth (acordes)
+└─→ Tone.Sampler (samples piano Salamander)
+└─→ Tone.Reverb (wet: 0.3)
+└─→ Tone.Destination
+AudioEngine.ts .
+AudioContext.latencyHint = 'interactive'  // latencia objetivo ≤ 20ms
+Regla crítica iOS
+El 
+AudioContext solo puede iniciarse desde un gesto explícito del usuario (tap/click).
+Mostrar el componente 
+AudioGate antes de inicializar Tone.js.
+Gestionar en 
+AudioEngine.ts con el flag 
+isReady: boolean .
+Gestión de Estado
+Capa
+Solución
+Notas
+Estado global de
+sesión
+React Context + 
+useReducer
+Sin Redux
+Estado del servidor
+Supabase Realtime + queries
+directas
+Sin librerías de estado externas en MVP
+Capa
+Solución
+Notas
+Estado de audio
+Singleton 
+AudioEngine
+No exponer a React Context — evita re
+renders
+4. Directrices de UI — Tokens y Feedback
+4.1 Reglas de Diseño (irrenunciables)
+1. Minimalismo Extremo — Una sola función por pantalla. Sin menús secundarios visibles
+por defecto.
+2. Cero Esqueuomorfismo — Sin pianos 3D, teclas realistas ni texturas. Representación
+tipográfica o geométrica pura.
+3. Feedback Cinético sin texto — En Ear Training nunca se muestra "Correcto" / "Incorrecto".
+Solo feedback visual y animado.
+4. Respuesta < 100ms — Toda interacción produce respuesta visual en menos de 100ms.
+Estados de carga: skeletons, nunca spinners bloqueantes.
+4.2 Tokens de Diseño — 
+tailwind.config.ts
+Sin valores hardcodeados en componentes. Solo tokens.
+Modo oscuro es el modo primario. Modo claro es V2.
+Token
+Rol
+Valor (modo oscuro)
+color-bg-primary
+Fondo de pantalla #0a0a0a
+color-bg-secondary
+Fondo de cards / paneles #141414
+color-border
+Bordes sutiles
+rgba(255,255,255,0.08)
+color-text-primary
+Texto principal #f0f0f0
+color-text-secondary
+Texto de soporte / labels #888888
+color-accent
+Acción primaria / progreso #7c5cfc
+color-success
+Respuesta correcta #22c55e
+color-danger
+Respuesta incorrecta #ef4444
+4.3 Conceptos de Feedback Visual — 
+FeedbackCanvas
+Prop: 
+concept: 'pulse' | 'bar' | 'rings' . Default: 
+Implementación: 
+rings .
+<canvas> con 
+requestAnimationFrame . El usuario puede cambiar en Ajustes.
+Concepto
+Acierto
+Error
+Implementación
+pulse — Pulso
+Cromático
+Círculo central se
+expande
+Círculo vibra
+Estado: 
+radio ,
+radioObjetivo , 
+color
+bar — Barra de
+Precisión
+Línea horizontal
+crece
+Línea se contrae Estado: w, 
+targetW , 
+color
+rings — Anillos de
+Eco (default)
+Anillo se expande y
+desvanece
+Contracción breve
+hacia adentro
+Array de 
+{radius, alpha,
+color} por frame
+Lógica de anillos por frame:
+typescript
+interface FeedbackRing {
+radius: number;
+alpha: number;
+color: string;
+}
+// Por frame:
+ring.radius += 1.8;
+ring.alpha *= 0.93;
+// Eliminar cuando: ring.alpha < 0.01
+4.4 Componentes UI Requeridos (MVP) — 
+Componente
+Descripción
+/src/components/
+ChordDisplay
+Nombre del acorde en cifrado americano. Altura mínima: 48px.
+FeedbackCanvas
+Wrapper del canvas. Prop: 
+concept: 'pulse' | 'bar' | 'rings'
+StreakIndicator
+Racha actual. Solo geométrico, sin texto numérico por defecto.
+StyleCard
+Card enciclopedia. Nivel de dificultad visual (1–5 puntos) + lista técnicas.
+TipOverlay
+Overlay de tip. Slide-in desde abajo. Auto-dismiss 4s o por tap.
+Componente
+Descripción
+AudioGate
+Pantalla "toca para comenzar". Inicializa AudioContext en iOS.
+Todos documentados con PropTypes TypeScript.
+5. Esquema de Base de Datos
+Motor: PostgreSQL 15 via Supabase.
+Reglas globales: RLS habilitado en todas las tablas · PKs tipo 
+uuid · Campos flexibles en 
+· Sin triggers complejos en MVP.
+users
+Vinculada a 
+Campo
+auth.users via 
+id = auth.uid() .
+Tipo
+Restricciones
+Descripción
+jsonb
+id uuid PK, FK →
+auth.users
+Sincronizado con Supabase Auth
+email text UNIQUE, NOT
+NULL
+display_name
+text
+Nombre de pantalla
+settings
+jsonb
+DEFAULT 
+'{}'
+{ tempo_bpm, language,
+notifications_enabled,
+feedback_concept }
+created_at
+timestamptz DEFAULT
+now()
+RLS:
+SELECT , 
+UPDATE solo donde 
+id = auth.uid() .
+styles
+Catálogo admin-only. Sin RLS de usuario.
+Campo Tipo Restricciones Descripción
+id uuid PK
+name text NOT NULL Ej: "Worship Contemporáneo"
+difficulty int2 CHECK (1–5)
+theory_required jsonb ["acordes_7ma", "modos",
+"progresiones_ii_V_I"]
+techniques jsonb ["pad_sostenido", "arpegio_broken",
+"walking_bass"]
+description text Descripción editorial
+songs
+Campo Tipo Restricciones Descripción
+id uuid PK
+title text NOT NULL
+artist text
+style_id uuid FK → styles
+difficulty int2 CHECK (1–5)
+key_signature text "C", "G#m", "Bb"
+bpm int2 Tempo de referencia
+chord_data jsonb NOT NULL Ver estructura abajo
+is_published boolean DEFAULT false Control editorial
+Estructura de chord_data:
+json
+practice_sessions
+Campo Tipo Restricciones Descripción
+id uuid PK
+user_id uuid FK → users, NOT NULL
+song_id uuid FK → songs, NOT NULL
+started_at timestamptz DEFAULT now()
+duration_s int4 Segundos totales
+completed boolean DEFAULT false true si llegó al final
+RLS: CRUD solo donde user_id = auth.uid().
+{
+"sections": [
+{
+"name": "Intro",
+"chords": [
+{ "chord": "Cmaj7", "beat": 1, "duration": 2 },
+{ "chord": "Am7", "beat": 3, "duration": 2 },
+{ "chord": "Fmaj9", "beat": 5, "duration": 2 },
+{ "chord": "G", "beat": 7, "duration": 2 }
+]
+},
+{
+"name": "Verso",
+"chords": [ ]
+}
+]
+}
+ear_training_results
+Campo Tipo Restricciones Descripción
+id uuid PK
+user_id uuid FK → users, NOT
+NULL
+exercise_type text NOT NULL "interval" | "triad" |
+"seventh_chord"
+question jsonb { "notes": ["C4","E4","G4"],
+"root": "C" }
+answer_given text
+correct_answer text NOT NULL
+is_correct boolean
+response_ms int4 Tiempo de respuesta (usado en V2
+adaptativo)
+created_at timestamptz DEFAULT now()
+RLS: INSERT y SELECT solo donde user_id = auth.uid().
+tips
+Catálogo admin-only.
+Campo Tipo Restricciones Descripción
+id uuid PK
+content text NOT NULL Máx. 120 caracteres
+category text "teoría" | "técnica" | "mentalidad" |
+"worship"
+style_id uuid FK → styles,
+NULLABLE
+null = aplica a todos los estilos
+difficulty_min int2 DEFAULT 1 Solo mostrar si user.level >=
+difficulty_min
+notifications
+Campo Tipo Restricciones Descripción
+id uuid PK
+user_id uuid FK → users, NOT NULL
+type text NOT NULL "email" (MVP) | "push" (V2)
+message text
+scheduled_at timestamptz Cuándo debe enviarse
+sent_at timestamptz NULLABLE null si aún no enviado
+Relaciones
+users           ||--o{ practice_sessions    : "realiza"
+users           ||--o{ ear_training_results : "genera"
+users           ||--o{ notifications        : "recibe"
+songs           }o--|| styles               : "pertenece a"
+practice_sessions }o--|| songs              
+tips            
+}o--o| styles               
+: "practica"
+: "relacionado con (nullable)"
+6. Flujo de los 4 Módulos Core
+Módulo 1 — Práctica Estática
+Trigger: Usuario selecciona canción de la biblioteca.
+Estado
+Descripción
+idle
+Canción cargada, sin reproducción
+playing
+Avanzando por acordes según 
+chord_data
+paused
+Usuario pausó
+completed
+Fin de canción → mostrar resumen + botón "Practicar de nuevo"
+Flujo:
+1. Pantalla muestra: nombre, tonalidad, BPM, sección actual.
+2. Play → avanza acorde por acorde según 
+chord_data.sections[n].chords[n].duration .
+3. Acorde activo → 
+ChordDisplay a ≥ 48px. Siguiente acorde → opacity 40%.
+4. Al completar → INSERT en 
+practice_sessions con 
+completed: true .
+Audio (MVP): Reproducción via Tone.js es opcional y togglable. El foco es la visualización.
+Componentes:
+ChordDisplay , 
+StreakIndicator .
+Módulo 2 — Ear Training Engine
+Tipos de ejercicio (MVP):
+Tipo
+Descripción
+Opciones de respuesta
+interval
+Dos notas secuencial o
+simultáneas
+Tres notas simultáneas
+triad
+seventh_chord Cuatro notas simultáneas
+2da M, 3ra m, 3ra M, 4ta J, 5ta J, 6ta M, 7ma m,
+8va
+Mayor, Menor, Disminuida, Aumentada
+Maj7, m7, 7dom, m7b5
+Flujo de un ejercicio:
+1. 
+ExerciseGenerator.ts genera ejercicio (tipo + raíz aleatoria + notas).
+2. 
+ChordPlayer.ts reproduce via 
+Tone.PolySynth .
+3. Usuario selecciona respuesta (botones, sin texto de resultado visible).
+4. Confirmación → 
+FeedbackCanvas activa animación.
+5. INSERT en 
+ear_training_results con 
+response_ms .
+6. Siguiente ejercicio se genera automáticamente tras 1200ms.
+Generación de notas (
+ExerciseGenerator.ts ):
+typescript
+const ROOTS = ['C4','D4','E4','F4','G4','A4','B4'];
+const INTERVALS = {
+'major_2nd': 2, 'minor_3rd': 3, 'major_3rd': 4,
+'perfect_4th': 5,'perfect_5th': 7,'major_6th': 9,
+'minor_7th': 10, 'octave': 12
+};
+export function generateIntervalExercise(): Exercise {
+const root = ROOTS[Math.floor(Math.random() * ROOTS.length)];
+const [name, semitones] = Object.entries(INTERVALS)[
+Math.floor(Math.random() * Object.keys(INTERVALS).length)
+];
+const upper = Tone.Frequency(root).transpose(semitones).toNote();
+return { type: 'interval', notes: [root, upper], answer: name };
+}
+Sistema de racha y XP (MVP):
+Racha: React state. Incrementa con 
+is_correct: true , resetea con 
+is_correct: false .
+XP: 
++10 por respuesta correcta · 
++5 bonus si 
+response_ms < 3000 . Almacenado en
+users.settings.xp .
+Sin rankings globales en MVP.
+Módulo 3 — Enciclopedia de Estilos
+Renderizado: Data cargada desde 
+styles en Supabase al iniciar la app → cacheada en memoria.
+Sin paginación en MVP. Unidad de display: 
+StyleCard .
+8 fichas MVP:
+#
+Estilo
+1
+Worship Contemporáneo (Hillsong, Elevation)
+2
+Gospel Sureño (Southern Gospel)
+3
+Gospel Urbano / R&B Cristiano
+4
+Balada Pop Cristiana
+5
+Himno Tradicional Arreglado
+6
+Worship Latino / Iberoamericano
+7
+Gospel Coral (Mass Choir)
+8
+Soaking Worship (Contemplativo)
+Cada ficha incluye: Descripción editorial · Dificultad (1–5) · 
+Canciones de ejemplo del catálogo.
+theory_required · 
+techniques ·
+Módulo 4 — Retención y Tips
+Sub-sistema A — Tips Espontáneos
+Pool mínimo: ≥ 50 tips en tabla 
+tips .
+Trigger: navegación entre pantallas. Límite: máx. 1 cada 5 minutos de uso activo.
+Selección (cliente, sin llamada al servidor): filtra por 
+difficulty_min <= user.level y
+style_id IN user.recently_practiced_styles . Fallback: aleatorio del pool general.
+Display: 
+TipOverlay — slide-in desde abajo, fondo semitransparente, auto-dismiss 4s o
+tap.
+Sub-sistema B — Recordatorios por Email (MVP)
+Frecuencias configurables: 
+daily | 
+every_2_days | 
+weekly .
+Implementación: Supabase Edge Function
+/functions/send-reminder via cron.
+Lógica: consultar 
+users donde 
+settings.notifications_enabled = true y
+last_practice_date < now() - interval . Enviar via Resend.
+Registrar cada envío en tabla 
+notifications .
+Sub-sistema C — Push Notifications
+V2 únicamente. Requiere 
+@capacitor/push-notifications . No implementar en MVP.
+7. Roadmap de Ejecución
+Fase 1 — MVP Web + PWA (4–6 meses)
+Criterio de éxito: 40% retención a 7 días. El músico practica ≥ 3 días en su primera semana.
+Semanas Entregable
+1–2
+Setup: Vite + React 19 + TypeScript + Tailwind + Supabase. Auth funcional. Estructura de
+directorios.
+3–4
+Esquema de DB completo en Supabase. RLS configurado. Seed: 8 estilos, 20 canciones.
+5–6
+AudioEngine.ts + 
+ChordPlayer.ts . Inicialización Tone.js con 
+latencia en Chrome/Safari.
+AudioGate . Tests de
+7–9
+Módulo 1 — Práctica Estática completo: 
+ChordDisplay , reproductor, registro de sesiones.
+10–12
+Módulo 2 — Ear Training: 
+ExerciseGenerator , 
+FeedbackCanvas (3 conceptos), racha
+y XP.
+13–14
+Módulo 3 — Enciclopedia: 8 fichas completas, 
+StyleCard .
+15–16
+Módulo 4 — Retención: pool de 50 tips, 
+TipOverlay , recordatorios email via Edge
+Function.
+17–18
+PWA manifest, service worker (offline básico), ajustes de performance. Pruebas con usuarios
+reales.
+19–20
+Iteración por feedback. Corrección de bugs. Soft launch.
+Fase 2 — Apps Nativas + Desktop + Repetición Espaciada (3–4 meses post-MVP)
+Prerequisito: MVP con retención validada.
+Hito
+Descripción
+2.1
+Empaquetado
+Nativo
+Capacitor 7 para iOS/Android · Push nativas (
+@capacitor/push
+notifications ) · Tauri 2 para macOS/Windows · Actualizar
+platform/notifications.ts y 
+platform/storage.ts .
+2.2 Ear Training
+Adaptativo
+Algoritmo SM-2 sobre 
+ear_training_results . Calcula 
+easiness_factor y
+next_review_date . Dificultad sube al superar 85% de acierto en 3 sesiones
+consecutivas. Nueva tabla: 
+ear_training_schedule { exercise_type,
+next_review_at, easiness_factor, repetitions } .
+2.3 Práctica V2
+Transposición de tonalidad en tiempo real · BPM slider · Soporte MIDI (Web MIDI API
+en web, plugin Rust en Tauri).
+2.4 Tips
+Inteligentes
+Tips contextualizados por última canción + tipo de error frecuente en Ear Training.
+Lógica en Edge Function (no en cliente).
+2.5 Comunidad
+Básica
+Rankings de rachas (opt-in) · Compartir progreso semanal via 
+html2canvas .
+8. Convenciones de Código
+Componentes:
+PascalCase · Archivos: 
+Hooks: prefijo 
+ComponentName.tsx
+use · Archivos: 
+useHookName.ts
+Tipos musicales: exportar desde 
+/src/audio/types.ts · Prohibido 
+acordes o notas
+Commits: Conventional Commits — 
+feat: · 
+fix: · 
+any para datos de
+docs: · 
+refactor:
+Branches:
+main (producción) · 
+develop (integración) · 
+Tests: Vitest · 
+feature/nombre-feature
+ExerciseGenerator.ts y 
+ChordPlayer.ts requieren tests unitarios antes
+de cualquier deploy
+9. Variables de Entorno
+env
+# Cliente (expuestas via Vite)
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_APP_ENV=development|production
+# Supabase Edge Functions (secrets del proyecto — nunca exponer al cliente)
+SUPABASE_SERVICE_ROLE_KEY=
+RESEND_API_KEY=
