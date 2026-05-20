@@ -32,7 +32,7 @@ export function EarTrainingPage() {
   const [startTime, setStartTime] = useState<number | null>(null)
 
   const saveResult = useEarTrainingResult()
-  const addXP = useAddXP(10)
+  const addXP = useAddXP()
 
   const loadNewExercise = useCallback(() => {
     const newExercise = generateExercise(selectedType)

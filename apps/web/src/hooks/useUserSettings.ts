@@ -65,12 +65,12 @@ export function useUpdateSettings() {
   })
 }
 
-export function useAddXP(amount: number) {
+export function useAddXP() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (amount: number) => {
       if (!user) throw new Error('Not authenticated')
 
       const { data: current } = await supabase

@@ -1,15 +1,14 @@
-import { useState, useEffect, use } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useState, useEffect } from 'react'
+import { Link, useParams } from 'react-router'
 import { Play, Pause, RotateCcw, Loader2 } from 'lucide-react'
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
 import { useSong } from '@/hooks/useSongs'
 import { usePracticeSession } from '@/hooks/usePracticeSession'
-import type { Section } from '@/types/music'
 
 export function PracticePlayerPage() {
-  const { songId } = use<{ songId: string }>()
-  const navigate = useNavigate()
+  const params = useParams<{ songId: string }>()
+  const songId = params?.songId || ''
   const { data: song, isLoading, error } = useSong(songId)
   const createSession = usePracticeSession()
   
@@ -36,7 +35,7 @@ export function PracticePlayerPage() {
     if (!isPlaying || sections.length === 0) return
 
     const beatDuration = 60 / (song?.bpm || 120)
-    let chordTimer: NodeJS.Timeout
+    let chordTimer: ReturnType<typeof setInterval>
 
     const playCurrentChord = async () => {
       if (currentChord) {
