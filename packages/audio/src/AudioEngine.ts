@@ -97,4 +97,3 @@ export class AudioEngineClass {
 }
 
 export const AudioEngine = AudioEngineClass.getInstance()
-export type AudioEngineClass = AudioEngineClass
