@@ -1,7 +1,1 @@
 export { cn } from './utils'
-export { ChordDisplay } from './ChordDisplay'
-export { FeedbackCanvas } from './FeedbackCanvas'
-export { StreakIndicator } from './StreakIndicator'
-export { TipOverlay } from './TipOverlay'
-export { AudioGate } from './AudioGate'
-export { StyleCard } from './StyleCard'
