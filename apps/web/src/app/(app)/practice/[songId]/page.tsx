@@ -35,7 +35,7 @@ export function PracticePlayerPage() {
     if (!isPlaying || sections.length === 0) return
 
     const beatDuration = 60 / (song?.bpm || 120)
-    const chordTimer: ReturnType<typeof setInterval>
+    let chordTimer: ReturnType<typeof setInterval> | undefined
 
     const playCurrentChord = async () => {
       if (currentChord) {
