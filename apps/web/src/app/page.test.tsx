@@ -6,7 +6,7 @@ import { LandingPage } from './page'
 describe('LandingPage', () => {
   it('renders the main heading', () => {
     renderWithProviders(<LandingPage />)
-    expect(screen.getByText('Practica. Entrena. Adora.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Practica. Entrena. Adora.')
   })
 
   it('renders register and login links', () => {
