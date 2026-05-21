@@ -1,0 +1,24 @@
+import { describe, it, expect } from 'vitest'
+import { cn } from './utils'
+
+describe('cn', () => {
+  it('joins multiple class names', () => {
+    expect(cn('foo', 'bar')).toBe('foo bar')
+  })
+
+  it('filters out falsy values', () => {
+    expect(cn('foo', false, null, undefined, '', 'bar')).toBe('foo bar')
+  })
+
+  it('returns empty string for no truthy values', () => {
+    expect(cn(false, null, undefined, '')).toBe('')
+  })
+
+  it('returns empty string for no arguments', () => {
+    expect(cn()).toBe('')
+  })
+
+  it('handles single class name', () => {
+    expect(cn('foo')).toBe('foo')
+  })
+})
