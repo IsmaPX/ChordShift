@@ -1,65 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useEarTrainingResult, useEarTrainingStats } from './useEarTrainingResult'
 import { createTestQueryClient } from '@/test/utils'
-
-const { mockData, mockGetSession, mockOnAuth } = vi.hoisted(() => ({
-  mockData: vi.fn(),
-  mockGetSession: vi.fn(),
-  mockOnAuth: vi.fn(),
-}))
-
-function createThenable() {
-  const p = Promise.resolve().then(() => mockData())
-  const t = p as Promise<unknown> & Record<string, ReturnType<typeof vi.fn>>
-  t.eq = vi.fn(() => t)
-  t.order = vi.fn(() => t)
-  t.limit = vi.fn(() => t)
-  t.select = vi.fn(() => t)
-  t.single = vi.fn(() => t)
-  t.insert = vi.fn(() => t)
-  return t
-}
-
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn(() => createThenable()),
-    auth: {
-      getSession: mockGetSession,
-      onAuthStateChange: mockOnAuth,
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
-    },
-  })),
-}))
+import { db, DEFAULT_SETTINGS } from '@/lib/db'
 
 function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={createTestQueryClient()}>{children}</QueryClientProvider>
 }
 
-beforeEach(() => {
-  mockData.mockReset()
-  mockGetSession.mockReset()
-  mockOnAuth.mockReset()
-  mockGetSession.mockResolvedValue({
-    data: { session: { user: { id: 'u1', email: 'a@b.com', user_metadata: {} } } },
-    error: null,
-  })
-  mockOnAuth.mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
-})
+async function seedUser() {
+  const id = crypto.randomUUID()
+  await db.users.add({ id, display_name: 'Test', pin_hash: null, settings: DEFAULT_SETTINGS, created_at: new Date().toISOString(), last_active: null })
+  localStorage.setItem('worship_piano_active_profile', id)
+  return id
+}
 
 describe('useEarTrainingResult', () => {
   it('inserts a result successfully', async () => {
-    const inserted = { id: 'r1', exercise_type: 'interval', is_correct: true }
-    mockData.mockResolvedValue({ data: inserted, error: null })
+    await seedUser()
 
     const { result } = renderHook(() => useEarTrainingResult(), { wrapper })
-    // flush microtasks so useAuth resolves the user
     await act(async () => {})
-    act(() => {
+    await act(async () => {})
+    await act(async () => {
       result.current.mutate({
         exercise_type: 'interval',
         question: { notes: ['C4', 'E4'], root: 'C4' },
@@ -69,29 +34,33 @@ describe('useEarTrainingResult', () => {
         response_ms: 1500,
       })
     })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    await waitFor(() => expect(result.current.isSuccess).toBe(true), { timeout: 5000 })
+
+    const all = await db.ear_training_results.toArray()
+    expect(all).toHaveLength(1)
+    expect(all[0].is_correct).toBe(true)
   })
 })
 
 describe('useEarTrainingStats', () => {
   it('computes stats from results', async () => {
-    const results = [
-      { is_correct: true, response_ms: 1000 },
-      { is_correct: true, response_ms: 2000 },
-      { is_correct: false, response_ms: 1500 },
-    ]
-    mockData.mockResolvedValue({ data: results, error: null })
+    const userId = await seedUser()
+    await db.ear_training_results.bulkAdd([
+      { id: 'r1', user_id: userId, exercise_type: 'interval', question: { notes: ['C4', 'E4'], root: 'C4' }, answer_given: 'major_3rd', correct_answer: 'major_3rd', is_correct: true, response_ms: 1000, created_at: new Date().toISOString() },
+      { id: 'r2', user_id: userId, exercise_type: 'interval', question: { notes: ['C4', 'E4'], root: 'C4' }, answer_given: 'major_3rd', correct_answer: 'major_3rd', is_correct: true, response_ms: 2000, created_at: new Date().toISOString() },
+      { id: 'r3', user_id: userId, exercise_type: 'interval', question: { notes: ['C4', 'Eb4'], root: 'C4' }, answer_given: 'major_3rd', correct_answer: 'minor_3rd', is_correct: false, response_ms: 1500, created_at: new Date().toISOString() },
+    ])
 
     const { result } = renderHook(() => useEarTrainingStats(), { wrapper })
-    // flush microtasks so useAuth resolves the user
+    await act(async () => {})
     await act(async () => {})
     act(() => { result.current.mutate() })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    await waitFor(() => expect(result.current.isSuccess).toBe(true), { timeout: 5000 })
     expect(result.current.data).toMatchObject({
       total: 3,
       correct: 2,
       avgResponseMs: 1500,
     })
-    expect((result.current.data as { accuracy: number }).accuracy).toBeCloseTo(66.67, 1)
+    expect(result.current.data!.accuracy).toBeCloseTo(66.67, 1)
   })
 })

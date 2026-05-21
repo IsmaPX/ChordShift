@@ -1,45 +1,42 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/hooks/useAuth'
-import { Music2, Music3 } from 'lucide-react'
-
-const registerSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
-  display_name: z.string().min(2, 'Mínimo 2 caracteres'),
-})
-
-type RegisterForm = z.infer<typeof registerSchema>
+import { Music2, Music3, Eye, EyeOff } from 'lucide-react'
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { signUp, isAuthenticated, isLoading } = useAuth()
+  const { createProfile, isAuthenticated } = useAuth()
+  const [displayName, setDisplayName] = useState('')
+  const [pin, setPin] = useState('')
+  const [showPin, setShowPin] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-  })
+  if (isAuthenticated) {
+    navigate('/practice')
+    return null
+  }
 
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate('/practice')
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (displayName.trim().length < 2) {
+      setError('El nombre debe tener al menos 2 caracteres')
+      return
     }
-  }, [isAuthenticated, isLoading, navigate])
+    if (pin && (pin.length < 4 || pin.length > 6)) {
+      setError('El PIN debe tener entre 4 y 6 dígitos')
+      return
+    }
 
-  const onSubmit = async (data: RegisterForm) => {
+    setIsSubmitting(true)
+    setError(null)
     try {
-      setError(null)
-      await signUp(data.email, data.password, data.display_name)
+      await createProfile(displayName.trim(), pin || undefined)
       navigate('/practice')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear cuenta')
+      setError(err instanceof Error ? err.message : 'Error al crear perfil')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -56,31 +53,18 @@ export function RegisterPage() {
       </div>
 
       <header className="relative z-10 p-6">
-        <a href="/" className="flex items-center gap-3">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-accent"
-          >
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-          </svg>
+        <Link to="/" className="flex items-center gap-3">
           <span className="text-text-primary font-semibold tracking-tight">
             <span className="text-gradient-green">Worship</span> Piano
           </span>
-        </a>
+        </Link>
       </header>
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-6">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-gradient-green mb-2">Crear Cuenta</h1>
+          <h1 className="text-3xl font-bold text-gradient-green mb-2">Crear Perfil</h1>
           <p className="text-text-secondary mb-8">
-            Únete a la comunidad de músicos de adoración
+            Crea tu perfil local para comenzar a practicar
           </p>
 
           {error && (
@@ -89,69 +73,60 @@ export function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="display_name" className="block text-text-primary text-sm mb-2">
                 Nombre
               </label>
               <input
-                {...register('display_name')}
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
                 type="text"
                 id="display_name"
                 className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
                 placeholder="Tu nombre"
+                autoFocus
               />
-              {errors.display_name && (
-                <p className="text-danger text-sm mt-1">{errors.display_name.message}</p>
-              )}
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-text-primary text-sm mb-2">
-                Email
+              <label htmlFor="pin" className="block text-text-primary text-sm mb-2">
+                PIN opcional (4-6 dígitos)
               </label>
-              <input
-                {...register('email')}
-                type="email"
-                id="email"
-                className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
-                placeholder="tu@email.com"
-              />
-              {errors.email && (
-                <p className="text-danger text-sm mt-1">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-text-primary text-sm mb-2">
-                Contraseña
-              </label>
-              <input
-                {...register('password')}
-                type="password"
-                id="password"
-                className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
-                placeholder="Mínimo 6 caracteres"
-              />
-              {errors.password && (
-                <p className="text-danger text-sm mt-1">{errors.password.message}</p>
-              )}
+              <div className="relative">
+                <input
+                  value={pin}
+                  onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  type={showPin ? 'text' : 'password'}
+                  inputMode="numeric"
+                  id="pin"
+                  className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
+                  placeholder="Sin PIN"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+                >
+                  {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting}
               className="w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Creando...' : 'Crear Cuenta'}
+              {isSubmitting ? 'Creando...' : 'Crear Perfil'}
             </button>
           </form>
 
           <p className="text-text-secondary text-center mt-6">
-            ¿Ya tienes cuenta?{' '}
-            <a href="/login" className="text-accent hover:underline font-medium">
-              Inicia sesión
-            </a>
+            ¿Ya tienes perfil?{' '}
+            <Link to="/login" className="text-accent hover:underline font-medium">
+              Seleccionar perfil
+            </Link>
           </p>
         </div>
       </main>

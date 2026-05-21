@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/db'
 import type { Tip } from '@/types/music'
 
 interface UseTipsOptions {
@@ -12,26 +12,21 @@ export function useTips(options: UseTipsOptions = {}) {
   return useQuery({
     queryKey: ['tips', options],
     queryFn: async () => {
-      let query = supabase
-        .from('tips')
-        .select('*')
-        .order('created_at', { ascending: false })
+      let results = await db.tips.toArray()
 
       if (options.category) {
-        query = query.eq('category', options.category)
+        results = results.filter(t => t.category === options.category)
       }
 
       if (options.styleId) {
-        query = query.eq('style_id', options.styleId)
+        results = results.filter(t => t.style_id === options.styleId)
       }
 
       if (options.limit) {
-        query = query.limit(options.limit)
+        results = results.slice(0, options.limit)
       }
 
-      const { data, error } = await query
-      if (error) throw error
-      return data as Tip[]
+      return results
     },
   })
 }
@@ -40,16 +35,13 @@ export function useRandomTip(difficultyMin: number = 1) {
   return useQuery({
     queryKey: ['tip', 'random', difficultyMin],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tips')
-        .select('*')
-        .gte('difficulty_min', difficultyMin)
-        .limit(50)
+      const data = await db.tips
+        .filter(t => t.difficulty_min <= difficultyMin)
+        .toArray()
 
-      if (error) throw error
-      
-      const randomIndex = Math.floor(Math.random() * (data?.length || 0))
-      return data?.[randomIndex] as Tip | null
+      if (data.length === 0) return null
+      const randomIndex = Math.floor(Math.random() * data.length)
+      return data[randomIndex] as Tip
     },
   })
 }

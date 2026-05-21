@@ -1,45 +1,53 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/hooks/useAuth'
-import { Music2, Headphones } from 'lucide-react'
-
-const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
-})
-
-type LoginForm = z.infer<typeof loginSchema>
+import { Music2, Headphones, User, Lock, Loader2, LogIn } from 'lucide-react'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { signIn, isAuthenticated, isLoading } = useAuth()
+  const { profiles, login, isLoading: authLoading } = useAuth()
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null)
+  const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-  })
-
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate('/practice')
+  const handleSelectProfile = async (profileId: string) => {
+    const profile = profiles.find(p => p.id === profileId)
+    if (profile?.pin_hash) {
+      setSelectedProfile(profileId)
+      return
     }
-  }, [isAuthenticated, isLoading, navigate])
-
-  const onSubmit = async (data: LoginForm) => {
+    setLoading(true)
     try {
-      setError(null)
-      await signIn(data.email, data.password)
+      await login(profileId)
       navigate('/practice')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
+      setError(err instanceof Error ? err.message : 'Error al seleccionar perfil')
+    } finally {
+      setLoading(false)
     }
+  }
+
+  const handlePinSubmit = async () => {
+    if (!selectedProfile) return
+    setLoading(true)
+    setError(null)
+    try {
+      await login(selectedProfile, pin)
+      navigate('/practice')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'PIN incorrecto')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <Loader2 className="animate-spin text-accent" size={32} />
+      </div>
+    )
   }
 
   return (
@@ -55,87 +63,104 @@ export function LoginPage() {
       </div>
 
       <header className="relative z-10 p-6">
-        <a href="/" className="flex items-center gap-3">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-accent"
-          >
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-          </svg>
+        <Link to="/" className="flex items-center gap-3">
           <span className="text-text-primary font-semibold tracking-tight">
             <span className="text-gradient-green">Worship</span> Piano
           </span>
-        </a>
+        </Link>
       </header>
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-6">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-gradient-green mb-2">Iniciar Sesión</h1>
-          <p className="text-text-secondary mb-8">
-            Accede a tu cuenta para continuar practicando
-          </p>
+          {selectedProfile ? (
+            <>
+              <h1 className="text-3xl font-bold text-gradient-green mb-2">Ingresar PIN</h1>
+              <p className="text-text-secondary mb-8">Ingresa tu PIN para acceder al perfil</p>
 
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">
-              {error}
-            </div>
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">{error}</div>
+              )}
+
+              <div className="space-y-4">
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pin}
+                  onChange={e => setPin(e.target.value)}
+                  className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors text-center text-2xl tracking-widest"
+                  placeholder="• • • • • •"
+                  autoFocus
+                />
+                <button
+                  onClick={handlePinSubmit}
+                  disabled={loading || pin.length < 4}
+                  className="w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Verificando...' : 'Acceder'}
+                </button>
+                <button
+                  onClick={() => setSelectedProfile(null)}
+                  className="w-full py-2 text-text-secondary hover:text-text-primary transition-colors text-sm"
+                >
+                  Volver a perfiles
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-gradient-green mb-2">Seleccionar Perfil</h1>
+              <p className="text-text-secondary mb-8">Elige un perfil para continuar</p>
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">{error}</div>
+              )}
+
+              {profiles.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-text-secondary mb-6">No hay perfiles creados</p>
+                  <Link
+                    to="/register"
+                    className="inline-block w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl text-center hover:bg-accent-hover glow-green transition-all"
+                  >
+                    Crear Perfil
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {profiles.map((profile) => (
+                    <button
+                      key={profile.id}
+                      onClick={() => handleSelectProfile(profile.id)}
+                      disabled={loading}
+                      className="w-full flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl hover:border-accent/50 transition-all text-left disabled:opacity-50"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                        {profile.pin_hash ? (
+                          <Lock className="text-accent" size={20} />
+                        ) : (
+                          <User className="text-accent" size={20} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-primary font-medium truncate">{profile.display_name}</p>
+                        <p className="text-text-secondary text-sm">
+                          {profile.settings?.xp || 0} XP
+                        </p>
+                      </div>
+                      <LogIn className="text-text-secondary shrink-0" size={20} />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 text-center">
+                <Link to="/register" className="text-accent hover:underline font-medium">
+                  Crear nuevo perfil
+                </Link>
+              </div>
+            </>
           )}
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-text-primary text-sm mb-2">
-                Email
-              </label>
-              <input
-                {...register('email')}
-                type="email"
-                id="email"
-                className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
-                placeholder="tu@email.com"
-              />
-              {errors.email && (
-                <p className="text-danger text-sm mt-1">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-text-primary text-sm mb-2">
-                Contraseña
-              </label>
-              <input
-                {...register('password')}
-                type="password"
-                id="password"
-                className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="text-danger text-sm mt-1">{errors.password.message}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting || isLoading}
-              className="w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all disabled:opacity-50"
-            >
-              {isSubmitting ? 'Iniciando...' : 'Iniciar Sesión'}
-            </button>
-          </form>
-
-          <p className="text-text-secondary text-center mt-6">
-            ¿No tienes cuenta?{' '}
-            <a href="/register" className="text-accent hover:underline font-medium">
-              Regístrate
-            </a>
-          </p>
         </div>
       </main>
     </div>

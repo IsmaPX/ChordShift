@@ -1,13 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/db'
 import { useAuth } from './useAuth'
+import type { EarTrainingResult } from '@/lib/db'
 
 interface EarTrainingResultInput {
   exercise_type: 'interval' | 'triad' | 'seventh_chord'
-  question: {
-    notes: string[]
-    root: string
-  }
+  question: { notes: string[]; root: string }
   answer_given: string
   correct_answer: string
   is_correct: boolean
@@ -22,17 +20,15 @@ export function useEarTrainingResult() {
     mutationFn: async (result: EarTrainingResultInput) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error } = await supabase
-        .from('ear_training_results')
-        .insert({
-          ...result,
-          user_id: user.id,
-        })
-        .select()
-        .single()
+      const entry: EarTrainingResult = {
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        ...result,
+        created_at: new Date().toISOString(),
+      }
 
-      if (error) throw error
-      return data
+      await db.ear_training_results.add(entry)
+      return entry
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ear-training-results'] })
@@ -47,20 +43,18 @@ export function useEarTrainingStats() {
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error } = await supabase
-        .from('ear_training_results')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(100)
+      const data = await db.ear_training_results
+        .where('user_id')
+        .equals(user.id)
+        .toArray()
 
-      if (error) throw error
+      data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      const recent = data.slice(0, 100)
 
-      // Calculate stats
-      const total = data.length
-      const correct = data.filter(r => r.is_correct).length
-      const avgResponseMs = total > 0 
-        ? data.reduce((sum, r) => sum + (r.response_ms || 0), 0) / total 
+      const total = recent.length
+      const correct = recent.filter(r => r.is_correct).length
+      const avgResponseMs = total > 0
+        ? recent.reduce((sum, r) => sum + (r.response_ms || 0), 0) / total
         : 0
 
       return {

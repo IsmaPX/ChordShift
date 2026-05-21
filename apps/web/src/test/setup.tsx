@@ -1,40 +1,34 @@
 import '@testing-library/jest-dom'
-import { vi, afterEach } from 'vitest'
+import { vi, afterEach, beforeAll, beforeEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import 'fake-indexeddb/auto'
+import { db } from '@/lib/db'
+
+beforeAll(() => {
+  if (!globalThis.structuredClone) {
+    globalThis.structuredClone = (val) => JSON.parse(JSON.stringify(val))
+  }
+  if (!globalThis.crypto.randomUUID) {
+    globalThis.crypto.randomUUID = (() => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+    })) as typeof globalThis.crypto.randomUUID
+  }
+  globalThis.crypto.subtle.digest = vi.fn().mockResolvedValue(new ArrayBuffer(32))
+})
+
+beforeEach(async () => {
+  await Promise.all(db.tables.map(t => t.clear()))
+  // Seed a minimal set so useAuth's seedIfEmpty is a no-op
+  await db.styles.add({ id: 'test-style', name: 'Test', difficulty: 1, theory_required: [], techniques: [], description: '' })
+  await db.tips.add({ id: 'test-tip', content: 'Test', category: 'teoría', style_id: null, difficulty_min: 1 })
+  await db.songs.add({ id: 'test-song', title: 'Test', artist: 'T', style_id: 'test-style', difficulty: 1, key_signature: 'C', bpm: 120, chord_data: { sections: [] }, is_published: true, created_at: '2024-01-01' })
+})
 
 afterEach(() => {
   cleanup()
 })
-
-const mockAuth = {
-  getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-  onAuthStateChange: vi.fn(() => ({
-    data: { subscription: { unsubscribe: vi.fn() } },
-  })),
-  signInWithPassword: vi.fn(),
-  signUp: vi.fn(),
-  signOut: vi.fn().mockResolvedValue({ error: null }),
-  resetPasswordForEmail: vi.fn(),
-  getUser: vi.fn(),
-  updateUser: vi.fn(),
-}
-
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
-      single: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-    })),
-    auth: mockAuth,
-  })),
-}))
 
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('framer-motion')

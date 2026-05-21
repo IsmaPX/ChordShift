@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/db'
 import { useAuth } from './useAuth'
+import type { PracticeSession } from '@/types/music'
 
 interface PracticeSessionInput {
   song_id: string
@@ -16,17 +17,17 @@ export function usePracticeSession() {
     mutationFn: async (session: PracticeSessionInput) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error } = await supabase
-        .from('practice_sessions')
-        .insert({
-          ...session,
-          user_id: user.id,
-        })
-        .select()
-        .single()
+      const newSession: PracticeSession = {
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        song_id: session.song_id,
+        started_at: new Date().toISOString(),
+        duration_s: session.duration_s || 0,
+        completed: session.completed || false,
+      }
 
-      if (error) throw error
-      return data
+      await db.practice_sessions.add(newSession)
+      return newSession
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['practice-sessions'] })
@@ -43,18 +44,23 @@ export function usePracticeSessions() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error } = await supabase
-        .from('practice_sessions')
-        .select(`
-          *,
-          songs (id, title, artist, key_signature, bpm)
-        `)
-        .eq('user_id', user.id)
-        .order('started_at', { ascending: false })
-        .limit(50)
+      const sessions = await db.practice_sessions
+        .where('user_id')
+        .equals(user.id)
+        .toArray()
 
-      if (error) throw error
-      return data
+      const enriched = await Promise.all(
+        sessions.map(async (s) => {
+          const song = await db.songs.get(s.song_id)
+          return {
+            ...s,
+            songs: song ? { id: song.id, title: song.title, artist: song.artist, key_signature: song.key_signature, bpm: song.bpm } : null,
+          }
+        })
+      )
+
+      enriched.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+      return enriched.slice(0, 50)
     },
     enabled: !!user,
   })
@@ -68,27 +74,21 @@ export function useUserStats() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
 
-      // Get total practice time
-      const { data: sessions } = await supabase
-        .from('practice_sessions')
-        .select('duration_s, completed')
-        .eq('user_id', user.id)
+      const sessions = await db.practice_sessions
+        .where('user_id')
+        .equals(user.id)
+        .toArray()
 
-      // Get XP from settings
-      const { data: userData } = await supabase
-        .from('users')
-        .select('settings')
-        .eq('id', user.id)
-        .single()
+      const profile = await db.users.get(user.id)
 
-      const totalPracticeTime = sessions?.reduce((sum, s) => sum + (s.duration_s || 0), 0) || 0
-      const completedSessions = sessions?.filter(s => s.completed).length || 0
-      const xp = userData?.settings?.xp || 0
+      const totalPracticeTime = sessions.reduce((sum, s) => sum + (s.duration_s || 0), 0)
+      const completedSessions = sessions.filter(s => s.completed).length
+      const xp = profile?.settings?.xp || 0
 
       return {
         totalPracticeTime,
         completedSessions,
-        totalSessions: sessions?.length || 0,
+        totalSessions: sessions.length,
         xp,
       }
     },

@@ -1,29 +1,30 @@
 import { describe, it, expect } from 'vitest'
-import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/utils'
 import { LoginPage } from './page'
+import { db } from '@/lib/db'
+import { DEFAULT_SETTINGS } from '@/lib/db'
 
 describe('LoginPage', () => {
-  it('renders the login form', async () => {
+  it('shows empty state when no profiles exist', async () => {
     renderWithProviders(<LoginPage />)
+
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Iniciar Sesión/i })).not.toBeDisabled()
+      expect(screen.getByText('No hay perfiles creados')).toBeInTheDocument()
     })
-    expect(screen.getByRole('heading', { name: 'Iniciar Sesión' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Email')).toBeInTheDocument()
-    expect(screen.getByLabelText('Contraseña')).toBeInTheDocument()
-    expect(screen.getByText('¿No tienes cuenta?')).toBeInTheDocument()
+    expect(screen.getByText('Crear Perfil')).toBeInTheDocument()
   })
 
-  it('shows validation errors for empty fields', async () => {
+  it('shows profile list when profiles exist', async () => {
+    await db.users.add({ id: 'p1', display_name: 'Usuario 1', pin_hash: null, settings: { ...DEFAULT_SETTINGS }, created_at: new Date().toISOString(), last_active: null })
+    await db.users.add({ id: 'p2', display_name: 'Usuario 2', pin_hash: null, settings: { ...DEFAULT_SETTINGS }, created_at: new Date().toISOString(), last_active: null })
+
     renderWithProviders(<LoginPage />)
 
-    const submitBtn = screen.getByRole('button', { name: /Iniciar Sesión/i })
-    await waitFor(() => expect(submitBtn).not.toBeDisabled())
-
-    fireEvent.click(submitBtn)
-
-    expect(await screen.findByText('Email inválido')).toBeInTheDocument()
-    expect(await screen.findByText('Mínimo 6 caracteres')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Usuario 1')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Usuario 2')).toBeInTheDocument()
+    expect(screen.getByText('Crear nuevo perfil')).toBeInTheDocument()
   })
 })

@@ -1,33 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/db'
 import type { Song } from '@/types/music'
 
 interface FetchSongsOptions {
   styleId?: string
   limit?: number
+  search?: string
+  tab?: 'all' | 'preset' | 'mine'
 }
 
 export function useSongs(options: FetchSongsOptions = {}) {
+  const { styleId, search, tab } = options
   return useQuery({
-    queryKey: ['songs', options],
+    queryKey: ['songs', tab || 'all', styleId || '', search || ''],
     queryFn: async () => {
-      let query = supabase
-        .from('songs')
-        .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false })
+      const published = options.tab === 'mine' ? false : true
+      let results = (await db.songs.toArray()).filter(s => s.is_published === published)
 
       if (options.styleId) {
-        query = query.eq('style_id', options.styleId)
+        results = results.filter(s => s.style_id === options.styleId)
       }
+
+      if (options.search) {
+        const q = options.search.toLowerCase()
+        results = results.filter(s => s.title.toLowerCase().includes(q) || (s.artist?.toLowerCase() || '').includes(q))
+      }
+
+      results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
       if (options.limit) {
-        query = query.limit(options.limit)
+        results = results.slice(0, options.limit)
       }
 
-      const { data, error } = await query
-      if (error) throw error
-      return data as Song[]
+      return results
     },
   })
 }
@@ -36,14 +41,8 @@ export function useSong(songId: string) {
   return useQuery({
     queryKey: ['song', songId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('songs')
-        .select('*')
-        .eq('id', songId)
-        .eq('is_published', true)
-        .single()
-      
-      if (error) throw error
+      const data = await db.songs.get(songId)
+      if (!data) throw new Error('Song not found')
       return data as Song
     },
     enabled: !!songId,
@@ -54,15 +53,10 @@ export function useCreateSong() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (song: Omit<Song, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase
-        .from('songs')
-        .insert(song)
-        .select()
-        .single()
-      
-      if (error) throw error
-      return data as Song
+    mutationFn: async (song: Omit<Song, 'id'> & { id?: string }) => {
+      const newSong = { ...song, id: song.id || crypto.randomUUID() } as Song
+      await db.songs.add(newSong)
+      return newSong
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['songs'] })

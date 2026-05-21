@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Settings, Bell, Eye, LogOut, Loader2 } from 'lucide-react'
+import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useUserSettings, useUpdateSettings } from '@/hooks/useUserSettings'
@@ -31,7 +31,7 @@ const languages = [
 
 export function SettingsPage() {
   const navigate = useNavigate()
-  const { user, signOut, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading, logout, deleteProfile } = useAuth()
   const { data: settings, isLoading: settingsLoading } = useUserSettings()
   const updateSettings = useUpdateSettings()
 
@@ -76,9 +76,17 @@ export function SettingsPage() {
     }
   }
 
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
+  const handleSwitchProfile = async () => {
+    await logout()
+    navigate('/login')
+  }
+
+  const handleDeleteProfile = async () => {
+    if (!user) return
+    const confirmed = window.confirm('¿Estás seguro de eliminar este perfil? Todo tu progreso se perderá.')
+    if (!confirmed) return
+    await deleteProfile(user.id)
+    navigate('/register')
   }
 
   if (authLoading || settingsLoading) {
@@ -94,7 +102,7 @@ export function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold text-text-primary mb-2">Ajustes</h1>
         <p className="text-text-secondary">
-          Personaliza tu experiencia en ChordShift
+          Personaliza tu experiencia en Worship Piano
         </p>
       </div>
 
@@ -232,19 +240,32 @@ export function SettingsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-bg-secondary rounded-xl p-6 border border-border"
+        className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-text-primary font-medium">{user?.email}</p>
-            <p className="text-text-secondary text-sm">{user?.display_name || 'Usuario'}</p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-accent/20">
+            <User className="text-accent" size={20} />
           </div>
+          <div>
+            <p className="text-text-primary font-medium">{user?.display_name}</p>
+            <p className="text-text-secondary text-sm">{user?.settings?.xp || 0} XP</p>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
           <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-danger hover:bg-danger/10 transition-colors"
+            onClick={handleSwitchProfile}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all"
           >
             <LogOut size={18} />
-            Cerrar Sesión
+            Cambiar Perfil
+          </button>
+          <button
+            onClick={handleDeleteProfile}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-danger hover:bg-danger/10 transition-colors"
+          >
+            <Trash2 size={18} />
+            Eliminar Perfil
           </button>
         </div>
       </motion.div>

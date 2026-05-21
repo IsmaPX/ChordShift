@@ -21,6 +21,7 @@ export interface Song {
     sections: Section[]
   }
   is_published: boolean
+  created_at: string
 }
 
 export interface Style {

@@ -1,14 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { db, DEFAULT_SETTINGS } from '@/lib/db'
 import { useAuth } from './useAuth'
-
-interface UserSettings {
-  tempo_bpm: number
-  language: string
-  notifications_enabled: boolean
-  feedback_concept: 'pulse' | 'bar' | 'rings'
-  xp: number
-}
+import type { UserSettings } from '@/types/music'
 
 export function useUserSettings() {
   const { user } = useAuth()
@@ -17,15 +10,8 @@ export function useUserSettings() {
     queryKey: ['user-settings'],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('settings')
-        .eq('id', user.id)
-        .single()
-
-      if (error) throw error
-      return data?.settings as UserSettings
+      const profile = await db.users.get(user.id)
+      return profile?.settings ?? DEFAULT_SETTINGS
     },
     enabled: !!user,
   })
@@ -33,30 +19,14 @@ export function useUserSettings() {
 
 export function useUpdateSettings() {
   const queryClient = useQueryClient()
-  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async (updates: Partial<UserSettings>) => {
-      if (!user) throw new Error('Not authenticated')
-
-      // Get current settings
-      const { data: current } = await supabase
-        .from('users')
-        .select('settings')
-        .eq('id', user.id)
-        .single()
-
-      const newSettings = {
-        ...current?.settings,
-        ...updates,
-      }
-
-      const { error } = await supabase
-        .from('users')
-        .update({ settings: newSettings })
-        .eq('id', user.id)
-
-      if (error) throw error
+      const id = localStorage.getItem('worship_piano_active_profile')
+      if (!id) throw new Error('Not authenticated')
+      const profile = await db.users.get(id)
+      const newSettings = { ...profile?.settings, ...updates } as UserSettings
+      await db.users.update(id, { settings: newSettings })
       return newSettings
     },
     onSuccess: () => {
@@ -72,27 +42,11 @@ export function useAddXP() {
   return useMutation({
     mutationFn: async (amount: number) => {
       if (!user) throw new Error('Not authenticated')
-
-      const { data: current } = await supabase
-        .from('users')
-        .select('settings')
-        .eq('id', user.id)
-        .single()
-
-      const currentXP = current?.settings?.xp || 0
+      const profile = await db.users.get(user.id)
+      const currentXP = profile?.settings?.xp || 0
       const newXP = currentXP + amount
-
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          settings: {
-            ...current?.settings,
-            xp: newXP,
-          }
-        })
-        .eq('id', user.id)
-
-      if (error) throw error
+      const newSettings = { ...profile?.settings, xp: newXP } as UserSettings
+      await db.users.update(user.id, { settings: newSettings })
       return newXP
     },
     onSuccess: () => {
