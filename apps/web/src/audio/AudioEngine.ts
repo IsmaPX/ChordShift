@@ -32,8 +32,12 @@ class AudioEngineClass {
       })
       this.reverb.toDestination()
 
-      this.recorder = new Tone.Recorder()
-      this.reverb.connect(this.recorder)
+      try {
+        this.recorder = new Tone.Recorder()
+        this.reverb.connect(this.recorder)
+      } catch (e) {
+        console.warn('AudioEngine: recorder not available in this browser', e)
+      }
 
       this.synth = new Tone.PolySynth(Tone.Synth, {
         oscillator: {
