@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AudioEngine } from '@/audio/AudioEngine'
 
@@ -9,32 +9,19 @@ interface AudioGateProps {
 export function AudioGate({ children }: AudioGateProps) {
   const [isAudioReady, setIsAudioReady] = useState(false)
   const [showGate, setShowGate] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const handleStartAudio = async () => {
     try {
+      setError(null)
       await AudioEngine.initialize()
       setIsAudioReady(true)
       setShowGate(false)
-    } catch (error) {
-      console.error('Failed to initialize audio:', error)
+    } catch (err) {
+      console.error('Failed to initialize audio:', err)
+      setError('No se pudo iniciar el audio. Intenta de nuevo.')
     }
   }
-
-  useEffect(() => {
-    const handleInteraction = async () => {
-      if (!isAudioReady) {
-        await handleStartAudio()
-      }
-    }
-
-    window.addEventListener('click', handleInteraction, { once: true })
-    window.addEventListener('touchstart', handleInteraction, { once: true })
-
-    return () => {
-      window.removeEventListener('click', handleInteraction)
-      window.removeEventListener('touchstart', handleInteraction)
-    }
-  }, [isAudioReady])
 
   return (
     <>
@@ -80,6 +67,11 @@ export function AudioGate({ children }: AudioGateProps) {
               <p className="text-text-secondary text-sm">
                 Toca para comenzar
               </p>
+              {error && (
+                <p className="mt-4 text-danger text-sm">
+                  {error}
+                </p>
+              )}
             </div>
           </motion.div>
         )}
