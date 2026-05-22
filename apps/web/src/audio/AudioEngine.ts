@@ -4,7 +4,6 @@ class AudioEngineClass {
   private static instance: AudioEngineClass | null = null
   private synth: Tone.PolySynth | null = null
   private reverb: Tone.Reverb | null = null
-  private splitter: Tone.Gain | null = null
   private recorder: Tone.Recorder | null = null
   private isReady = false
   private isInitialized = false
@@ -27,16 +26,14 @@ class AudioEngineClass {
     try {
       await Tone.start()
 
-      this.splitter = new Tone.Gain()
-      this.splitter.toDestination()
-
-      this.recorder = new Tone.Recorder()
-      this.splitter.connect(this.recorder)
-
       this.reverb = new Tone.Reverb({
         wet: 0.3,
         decay: 1.5,
-      }).connect(this.splitter)
+      })
+      this.reverb.toDestination()
+
+      this.recorder = new Tone.Recorder()
+      this.reverb.connect(this.recorder)
 
       this.synth = new Tone.PolySynth(Tone.Synth, {
         oscillator: {
@@ -123,10 +120,6 @@ class AudioEngineClass {
     if (this.reverb) {
       this.reverb.dispose()
       this.reverb = null
-    }
-    if (this.splitter) {
-      this.splitter.dispose()
-      this.splitter = null
     }
     if (this.recorder) {
       this.recorder.dispose()

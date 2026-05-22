@@ -64,7 +64,7 @@ export function PracticePlayerPage() {
     }, beatDuration * 1000 * 2)
 
     return () => clearInterval(chordTimer)
-  }, [isPlaying, currentSectionIndex, currentSection, song?.bpm, sections])
+  }, [isPlaying, currentSectionIndex, currentChordIndex, currentSection, currentChord, song?.bpm, sections])
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
