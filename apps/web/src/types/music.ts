@@ -64,14 +64,3 @@ export interface PracticeSession {
   duration_s: number
   completed: boolean
 }
-
-export interface Recording {
-  id: string
-  user_id: string
-  song_id: string
-  practice_session_id: string | null
-  title: string
-  started_at: string
-  duration_s: number
-  audio_data: Blob
-}

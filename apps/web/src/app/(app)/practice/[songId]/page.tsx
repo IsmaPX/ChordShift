@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router'
-import { Play, Pause, RotateCcw, Loader2, Download, Save, Trash2, Volume2 } from 'lucide-react'
+import { Play, Pause, RotateCcw, Loader2, Download, Trash2, Volume2 } from 'lucide-react'
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
 import { useSong } from '@/hooks/useSongs'
@@ -196,21 +196,11 @@ export function PracticePlayerPage() {
                 <Trash2 className="text-danger" size={24} />
               </button>
               <button
-                onClick={() => recording.downloadRecording(`${song?.title || 'grabacion'}.webm`)}
+                onClick={recording.downloadRecording}
                 className="p-4 rounded-full bg-bg-secondary border border-border hover:border-accent/50 transition-colors"
                 title="Descargar audio"
               >
                 <Download className="text-accent" size={24} />
-              </button>
-              <button
-                onClick={async () => {
-                  await recording.saveRecording()
-                }}
-                disabled={recording.isSaving}
-                className="p-4 rounded-full bg-success/20 border border-success/50 hover:bg-success/30 transition-colors disabled:opacity-50"
-                title="Guardar en la app"
-              >
-                <Save className="text-success" size={24} />
               </button>
             </>
           ) : (
@@ -270,11 +260,7 @@ export function PracticePlayerPage() {
             </span>
           </div>
         )}
-        {recording.savedRecording && (
-          <div className="text-center text-sm text-success">
-            Grabación guardada correctamente
-          </div>
-        )}
+
       </div>
     </div>
   )

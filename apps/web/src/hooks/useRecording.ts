@@ -1,36 +1,39 @@
 import { useState, useRef, useCallback } from 'react'
 import { AudioEngine } from '@/audio/AudioEngine'
-import { db } from '@/lib/db'
-import { useAuth } from './useAuth'
-import type { Recording } from '@/types/music'
 
 interface RecordingOptions {
   songId: string
-  practiceSessionId?: string | null
 }
 
 interface RecordingState {
   isRecording: boolean
   recordedBlob: Blob | null
-  isSaving: boolean
-  savedRecording: Recording | null
   recordingDuration: number
 }
 
-export function useRecording({ songId, practiceSessionId }: RecordingOptions) {
-  const { user } = useAuth()
+export function useRecording({ songId }: RecordingOptions) {
   const [state, setState] = useState<RecordingState>({
     isRecording: false,
     recordedBlob: null,
-    isSaving: false,
-    savedRecording: null,
     recordingDuration: 0,
   })
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startTimestampRef = useRef<number>(0)
 
+  const downloadBlob = useCallback((blob: Blob, filename?: string) => {
+    const name = filename || `recording-${songId}-${Date.now()}.webm`
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [songId])
+
   const startRecording = useCallback(async () => {
-    if (state.isRecording || !user) return
+    if (state.isRecording) return
 
     await AudioEngine.startRecording()
     startTimestampRef.current = Date.now()
@@ -41,7 +44,7 @@ export function useRecording({ songId, practiceSessionId }: RecordingOptions) {
       }))
     }, 200)
     setState((prev) => ({ ...prev, isRecording: true }))
-  }, [state.isRecording, user])
+  }, [state.isRecording])
 
   const stopRecording = useCallback(async () => {
     if (!state.isRecording) return
@@ -54,53 +57,22 @@ export function useRecording({ songId, practiceSessionId }: RecordingOptions) {
     const blob = await AudioEngine.stopRecording()
     const duration = Math.floor((Date.now() - startTimestampRef.current) / 1000)
 
+    if (blob) {
+      downloadBlob(blob)
+    }
+
     setState((prev) => ({
       ...prev,
       isRecording: false,
       recordedBlob: blob,
       recordingDuration: duration,
     }))
-  }, [state.isRecording])
+  }, [state.isRecording, downloadBlob])
 
-  const downloadRecording = useCallback((filename?: string) => {
+  const downloadRecording = useCallback(() => {
     if (!state.recordedBlob) return
-
-    const name = filename || `recording-${songId}-${Date.now()}.webm`
-    const url = URL.createObjectURL(state.recordedBlob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = name
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }, [state.recordedBlob, songId])
-
-  const saveRecording = useCallback(async () => {
-    if (!state.recordedBlob || !user || state.isSaving) return null
-
-    setState((prev) => ({ ...prev, isSaving: true }))
-
-    try {
-      const recording: Recording = {
-        id: crypto.randomUUID(),
-        user_id: user.id,
-        song_id: songId,
-        practice_session_id: practiceSessionId || null,
-        title: `Práctica - ${new Date().toLocaleDateString()}`,
-        started_at: new Date(startTimestampRef.current).toISOString(),
-        duration_s: state.recordingDuration,
-        audio_data: state.recordedBlob,
-      }
-
-      await db.recordings.add(recording)
-      setState((prev) => ({ ...prev, isSaving: false, savedRecording: recording }))
-      return recording
-    } catch (err) {
-      setState((prev) => ({ ...prev, isSaving: false }))
-      throw err
-    }
-  }, [state.recordedBlob, state.isSaving, state.recordingDuration, user, songId, practiceSessionId])
+    downloadBlob(state.recordedBlob)
+  }, [state.recordedBlob, downloadBlob])
 
   const clearRecording = useCallback(() => {
     if (timerRef.current) {
@@ -111,8 +83,6 @@ export function useRecording({ songId, practiceSessionId }: RecordingOptions) {
     setState({
       isRecording: false,
       recordedBlob: null,
-      isSaving: false,
-      savedRecording: null,
       recordingDuration: 0,
     })
   }, [])
@@ -122,7 +92,6 @@ export function useRecording({ songId, practiceSessionId }: RecordingOptions) {
     startRecording,
     stopRecording,
     downloadRecording,
-    saveRecording,
     clearRecording,
   }
 }
