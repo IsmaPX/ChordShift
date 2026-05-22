@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Song, Style, Tip, PracticeSession, UserSettings } from '@/types/music'
+import type { Song, Style, Tip, PracticeSession, UserSettings, Recording } from '@/types/music'
 import type { LocalProfile } from '@/types/profile'
 import { SEED_STYLES } from '@/data/styles'
 import { SEED_TIPS } from '@/data/tips'
@@ -32,6 +32,7 @@ export class AppDatabase extends Dexie {
   practice_sessions!: Table<PracticeSession, string>
   ear_training_results!: Table<EarTrainingResult, string>
   tips!: Table<Tip, string>
+  recordings!: Table<Recording, string>
 
   constructor() {
     super('WorshipPianoApp')
@@ -42,6 +43,9 @@ export class AppDatabase extends Dexie {
       practice_sessions: 'id, user_id, song_id, started_at',
       ear_training_results: 'id, user_id, exercise_type, created_at',
       tips: 'id, category, style_id, difficulty_min',
+    })
+    this.version(2).stores({
+      recordings: 'id, user_id, song_id, practice_session_id, started_at',
     })
   }
 

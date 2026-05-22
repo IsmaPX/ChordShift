@@ -4,8 +4,10 @@ class AudioEngineClass {
   private static instance: AudioEngineClass | null = null
   private synth: Tone.PolySynth | null = null
   private reverb: Tone.Reverb | null = null
+  private recorder: Tone.Recorder | null = null
   private isReady = false
   private isInitialized = false
+  private _isRecording = false
 
   private constructor() {}
 
@@ -20,11 +22,14 @@ class AudioEngineClass {
     if (this.isInitialized) return
 
     await Tone.start()
-    
+
+    this.recorder = new Tone.Recorder()
+    this.recorder.toDestination()
+
     this.reverb = new Tone.Reverb({
       wet: 0.3,
       decay: 1.5,
-    }).toDestination()
+    }).connect(this.recorder)
 
     this.synth = new Tone.PolySynth(Tone.Synth, {
       oscillator: {
@@ -75,6 +80,24 @@ class AudioEngineClass {
     this.synth.releaseAll()
   }
 
+  async startRecording(): Promise<void> {
+    if (!this.recorder || this._isRecording) return
+    await this.ensureReady()
+    this.recorder.start()
+    this._isRecording = true
+  }
+
+  async stopRecording(): Promise<Blob | null> {
+    if (!this.recorder || !this._isRecording) return null
+    this._isRecording = false
+    const blob = await this.recorder.stop()
+    return blob
+  }
+
+  get isRecording(): boolean {
+    return this._isRecording
+  }
+
   getStatus(): { isReady: boolean; isInitialized: boolean } {
     return {
       isReady: this.isReady,
@@ -91,8 +114,13 @@ class AudioEngineClass {
       this.reverb.dispose()
       this.reverb = null
     }
+    if (this.recorder) {
+      this.recorder.dispose()
+      this.recorder = null
+    }
     this.isInitialized = false
     this.isReady = false
+    this._isRecording = false
   }
 }
 

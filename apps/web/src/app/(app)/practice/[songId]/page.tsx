@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router'
-import { Play, Pause, RotateCcw, Loader2 } from 'lucide-react'
+import { Play, Pause, RotateCcw, Loader2, Download, Save, Trash2 } from 'lucide-react'
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
 import { useSong } from '@/hooks/useSongs'
 import { usePracticeSession } from '@/hooks/usePracticeSession'
+import { useRecording } from '@/hooks/useRecording'
 
 export function PracticePlayerPage() {
   const params = useParams<{ songId: string }>()
@@ -16,6 +17,8 @@ export function PracticePlayerPage() {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [currentChordIndex, setCurrentChordIndex] = useState(0)
   const [startTime, setStartTime] = useState<number | null>(null)
+
+  const recording = useRecording({ songId })
 
   const sections = song?.chord_data?.sections || []
   const currentSection = sections[currentSectionIndex]
@@ -159,31 +162,95 @@ export function PracticePlayerPage() {
         </div>
 
         <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={handleReset}
-            className="p-4 rounded-full bg-bg-secondary border border-border hover:border-accent/50 transition-colors"
-          >
-            <RotateCcw className="text-text-primary" size={24} />
-          </button>
-          <button
-            onClick={handlePlayPause}
-            className="p-6 rounded-full bg-accent hover:bg-accent/90 transition-colors"
-          >
-            {isPlaying ? (
-              <Pause className="text-white" size={32} />
-            ) : (
-              <Play className="text-white ml-1" size={32} />
-            )}
-          </button>
-          <button
-            onClick={handleComplete}
-            className="p-4 rounded-full bg-bg-secondary border border-border hover:border-success/50 transition-colors"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-success">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-          </button>
+          {recording.recordedBlob ? (
+            <>
+              <button
+                onClick={recording.clearRecording}
+                className="p-4 rounded-full bg-bg-secondary border border-border hover:border-danger/50 transition-colors"
+                title="Descartar grabación"
+              >
+                <Trash2 className="text-danger" size={24} />
+              </button>
+              <button
+                onClick={() => recording.downloadRecording(`${song?.title || 'grabacion'}.webm`)}
+                className="p-4 rounded-full bg-bg-secondary border border-border hover:border-accent/50 transition-colors"
+                title="Descargar audio"
+              >
+                <Download className="text-accent" size={24} />
+              </button>
+              <button
+                onClick={async () => {
+                  await recording.saveRecording()
+                }}
+                disabled={recording.isSaving}
+                className="p-4 rounded-full bg-success/20 border border-success/50 hover:bg-success/30 transition-colors disabled:opacity-50"
+                title="Guardar en la app"
+              >
+                <Save className="text-success" size={24} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleReset}
+                className="p-4 rounded-full bg-bg-secondary border border-border hover:border-accent/50 transition-colors"
+              >
+                <RotateCcw className="text-text-primary" size={24} />
+              </button>
+              <button
+                onClick={handlePlayPause}
+                className="p-6 rounded-full bg-accent hover:bg-accent/90 transition-colors"
+              >
+                {isPlaying ? (
+                  <Pause className="text-white" size={32} />
+                ) : (
+                  <Play className="text-white ml-1" size={32} />
+                )}
+              </button>
+              <button
+                onClick={handleComplete}
+                className="p-4 rounded-full bg-bg-secondary border border-border hover:border-success/50 transition-colors"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-success">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </button>
+              <button
+                onClick={recording.isRecording ? recording.stopRecording : recording.startRecording}
+                className={`p-4 rounded-full transition-colors ${
+                  recording.isRecording
+                    ? 'bg-danger text-white animate-pulse'
+                    : 'bg-bg-secondary border border-border hover:border-danger/50 text-danger'
+                }`}
+                title={recording.isRecording ? 'Detener grabación' : 'Iniciar grabación'}
+              >
+                {recording.isRecording ? (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="6" />
+                  </svg>
+                )}
+              </button>
+            </>
+          )}
         </div>
+        {recording.isRecording && (
+          <div className="flex items-center justify-center gap-2 text-danger">
+            <span className="w-2 h-2 rounded-full bg-danger animate-pulse" />
+            <span className="text-sm font-mono">
+              {String(Math.floor(recording.recordingDuration / 60)).padStart(2, '0')}:
+              {String(recording.recordingDuration % 60).padStart(2, '0')}
+            </span>
+          </div>
+        )}
+        {recording.savedRecording && (
+          <div className="text-center text-sm text-success">
+            Grabación guardada correctamente
+          </div>
+        )}
       </div>
     </div>
   )
