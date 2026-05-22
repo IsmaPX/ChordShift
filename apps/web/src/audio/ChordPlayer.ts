@@ -55,8 +55,11 @@ export class ChordPlayer {
   async playChord(chordSymbol: string, duration: number = 1): Promise<void> {
     await this.init()
     const notes = this.getChordNotes(chordSymbol)
+    console.log('[ChordPlayer] playChord:', chordSymbol, 'notes:', notes, 'duration:', duration, 'synth ready:', AudioEngine.getStatus().isReady)
     if (notes) {
       AudioEngine.playChord(notes, duration)
+    } else {
+      console.warn('[ChordPlayer] no mapping for chord:', chordSymbol)
     }
   }
 

@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router'
-import { Play, Pause, RotateCcw, Loader2, Download, Save, Trash2 } from 'lucide-react'
+import { Play, Pause, RotateCcw, Loader2, Download, Save, Trash2, Volume2 } from 'lucide-react'
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
 import { useSong } from '@/hooks/useSongs'
 import { usePracticeSession } from '@/hooks/usePracticeSession'
 import { useRecording } from '@/hooks/useRecording'
+import * as Tone from 'tone'
 
 export function PracticePlayerPage() {
   const params = useParams<{ songId: string }>()
@@ -19,6 +20,19 @@ export function PracticePlayerPage() {
   const [startTime, setStartTime] = useState<number | null>(null)
 
   const recording = useRecording({ songId })
+
+  const testSound = useCallback(async () => {
+    console.log('[DEBUG] testSound clicked')
+    try {
+      await Tone.start()
+      const s = new Tone.PolySynth().toDestination()
+      s.triggerAttackRelease('C4', 0.5)
+      console.log('[DEBUG] testSound: note played, context state:', Tone.getContext().state)
+      setTimeout(() => { s.dispose(); console.log('[DEBUG] testSound: synth disposed') }, 1000)
+    } catch (err) {
+      console.error('[DEBUG] testSound error:', err)
+    }
+  }, [])
 
   const sections = song?.chord_data?.sections || []
   const currentSection = sections[currentSectionIndex]
@@ -42,7 +56,10 @@ export function PracticePlayerPage() {
 
     const playCurrentChord = async () => {
       if (currentChord) {
+        console.log('[PLAY] chord:', currentChord.chord, 'duration:', beatDuration * currentChord.duration, 'bpm:', song?.bpm)
         await chordPlayer.playChord(currentChord.chord, beatDuration * currentChord.duration)
+      } else {
+        console.warn('[PLAY] currentChord is falsy', { currentSectionIndex, currentChordIndex, sectionsLength: sections.length })
       }
     }
 
@@ -127,6 +144,13 @@ export function PracticePlayerPage() {
           <h1 className="text-2xl font-bold text-text-primary">{song.title}</h1>
           <p className="text-text-secondary">{song.artist || 'Artista desconocido'}</p>
         </div>
+        <button
+          onClick={testSound}
+          className="ml-auto p-2 rounded-lg bg-warning/20 hover:bg-warning/30 text-warning transition-colors"
+          title="Probar sonido (debug)"
+        >
+          <Volume2 size={20} />
+        </button>
       </div>
 
       <div className="bg-bg-secondary rounded-2xl p-8 space-y-8">
