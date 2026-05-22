@@ -32,13 +32,6 @@ class AudioEngineClass {
       })
       this.reverb.toDestination()
 
-      try {
-        this.recorder = new Tone.Recorder()
-        this.reverb.connect(this.recorder)
-      } catch (e) {
-        console.warn('AudioEngine: recorder not available in this browser', e)
-      }
-
       this.synth = new Tone.PolySynth(Tone.Synth, {
         oscillator: {
           type: 'triangle',
@@ -92,8 +85,17 @@ class AudioEngineClass {
   }
 
   async startRecording(): Promise<void> {
-    if (!this.recorder || this._isRecording) return
+    if (this._isRecording) return
     await this.ensureReady()
+    if (!this.recorder) {
+      try {
+        this.recorder = new Tone.Recorder()
+        this.reverb!.connect(this.recorder)
+      } catch (e) {
+        console.warn('AudioEngine: recorder not available in this browser', e)
+        return
+      }
+    }
     this.recorder.start()
     this._isRecording = true
   }
@@ -102,6 +104,8 @@ class AudioEngineClass {
     if (!this.recorder || !this._isRecording) return null
     this._isRecording = false
     const blob = await this.recorder.stop()
+    this.recorder.disconnect()
+    this.recorder = null
     return blob
   }
 
