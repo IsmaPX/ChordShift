@@ -8,21 +8,23 @@ import { useEarTrainingResult } from '@/hooks/useEarTrainingResult'
 import { useAddXP } from '@/hooks/useUserSettings'
 import {
   generateExercise,
-  getIntervalDisplayName,
-  getTriadDisplayName,
-  getSeventhDisplayName,
+  INTERVAL_KEYS,
+  TRIAD_KEYS,
+  SEVENTH_KEYS,
 } from '@/audio/ExerciseGenerator'
+import { useTranslation } from 'react-i18next'
 import type { Exercise } from '@/types/music'
 
 type ExerciseType = 'interval' | 'triad' | 'seventh_chord'
 
-const exerciseTypes: { type: ExerciseType; label: string }[] = [
-  { type: 'interval', label: 'Intervalos' },
-  { type: 'triad', label: 'Tríadas' },
-  { type: 'seventh_chord', label: 'Acordes 7ma' },
-]
+const displayNameKeys: Record<ExerciseType, Record<string, string>> = {
+  interval: INTERVAL_KEYS,
+  triad: TRIAD_KEYS,
+  seventh_chord: SEVENTH_KEYS,
+}
 
 export function EarTrainingPage() {
+  const { t } = useTranslation()
   const [selectedType, setSelectedType] = useState<ExerciseType>('interval')
   const [exercise, setExercise] = useState<Exercise | null>(null)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
@@ -87,48 +89,43 @@ export function EarTrainingPage() {
   }
 
   const getDisplayName = (answer: string) => {
-    switch (selectedType) {
-      case 'interval':
-        return getIntervalDisplayName(answer)
-      case 'triad':
-        return getTriadDisplayName(answer)
-      case 'seventh_chord':
-        return getSeventhDisplayName(answer)
-    }
+    const keyMap = displayNameKeys[selectedType]
+    const key = keyMap[answer] || answer
+    return t(key)
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">Ear Training</h1>
+        <h1 className="text-3xl font-bold text-text-primary mb-2">{t('earTraining.title')}</h1>
         <p className="text-text-secondary">
-          Entrena tu oído identificando intervalos, tríadas y acordes
+          {t('earTraining.subtitle')}
         </p>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-xl border border-border">
         <div className="flex items-center gap-2">
           <StreakIndicator count={streak} />
-          <span className="text-text-secondary text-sm">Racha</span>
+          <span className="text-text-secondary text-sm">{t('earTraining.streak')}</span>
         </div>
         <div className="text-accent font-medium">{xp} XP</div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
-        {exerciseTypes.map((type) => (
+        {(['interval', 'triad', 'seventh_chord'] as ExerciseType[]).map((type) => (
           <button
-            key={type.type}
+            key={type}
             onClick={() => {
-              setSelectedType(type.type)
+              setSelectedType(type)
               loadNewExercise()
             }}
             className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-              selectedType === type.type
+              selectedType === type
                 ? 'bg-accent text-white'
                 : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
             }`}
           >
-            {type.label}
+            {t('earTraining.' + type)}
           </button>
         ))}
       </div>
@@ -179,7 +176,7 @@ export function EarTrainingPage() {
               onClick={loadNewExercise}
               className="px-6 py-3 bg-accent text-white rounded-xl font-medium hover:bg-accent/90 transition-colors"
             >
-              Comenzar Ejercicio
+              {t('earTraining.startExercise')}
             </button>
           </div>
         )}

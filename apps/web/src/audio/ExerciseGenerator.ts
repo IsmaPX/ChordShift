@@ -14,22 +14,9 @@ const INTERVALS: Record<string, number> = {
   'octave': 12,
 }
 
-const INTERVAL_NAMES: Record<string, string> = {
-  'major_2nd': '2da M',
-  'minor_3rd': '3ra m',
-  'major_3rd': '3ra M',
-  'perfect_4th': '4ta J',
-  'perfect_5th': '5ta J',
-  'major_6th': '6ta M',
-  'minor_7th': '7ma m',
-  'octave': '8va',
-}
-
 const TRIAD_QUALITIES = ['major', 'minor', 'diminished', 'augmented']
-const TRIAD_NAMES = ['Mayor', 'Menor', 'Disminuida', 'Aumentada']
 
 const SEVENTH_QUALITIES = ['maj7', 'm7', '7', 'm7b5']
-const SEVENTH_NAMES = ['Maj7', 'm7', '7dom', 'm7b5']
 
 const TRIAD_INTERVALS: Record<string, number[]> = {
   'major': [0, 4, 7],
@@ -109,16 +96,39 @@ export function generateExercise(type: 'interval' | 'triad' | 'seventh_chord'): 
   }
 }
 
+export const INTERVAL_KEYS: Record<string, string> = {
+  'major_2nd': 'interval.major_2nd',
+  'minor_3rd': 'interval.minor_3rd',
+  'major_3rd': 'interval.major_3rd',
+  'perfect_4th': 'interval.perfect_4th',
+  'perfect_5th': 'interval.perfect_5th',
+  'major_6th': 'interval.major_6th',
+  'minor_7th': 'interval.minor_7th',
+  'octave': 'interval.octave',
+}
+
+export const TRIAD_KEYS: Record<string, string> = {
+  'major': 'triad.major',
+  'minor': 'triad.minor',
+  'diminished': 'triad.diminished',
+  'augmented': 'triad.augmented',
+}
+
+export const SEVENTH_KEYS: Record<string, string> = {
+  'maj7': 'seventh.maj7',
+  'm7': 'seventh.m7',
+  '7': 'seventh.7',
+  'm7b5': 'seventh.m7b5',
+}
+
 export function getIntervalDisplayName(answer: string): string {
-  return INTERVAL_NAMES[answer] || answer
+  return INTERVAL_KEYS[answer] || answer
 }
 
 export function getTriadDisplayName(answer: string): string {
-  const index = TRIAD_QUALITIES.indexOf(answer)
-  return index >= 0 ? TRIAD_NAMES[index] : answer
+  return TRIAD_KEYS[answer] || answer
 }
 
 export function getSeventhDisplayName(answer: string): string {
-  const index = SEVENTH_QUALITIES.indexOf(answer)
-  return index >= 0 ? SEVENTH_NAMES[index] : answer
+  return SEVENTH_KEYS[answer] || answer
 }

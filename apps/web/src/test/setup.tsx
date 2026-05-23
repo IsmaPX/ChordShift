@@ -4,6 +4,7 @@ import { cleanup } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import 'fake-indexeddb/auto'
 import { db } from '@/lib/db'
+import i18n from '@/lib/i18n/i18n'
 
 beforeAll(() => {
   if (!globalThis.structuredClone) {

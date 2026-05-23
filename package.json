@@ -25,6 +25,8 @@
   },
   "packageManager": "npm@10.9.0",
   "dependencies": {
-    "fake-indexeddb": "^6.2.5"
+    "fake-indexeddb": "^6.2.5",
+    "i18next": "^26.2.0",
+    "react-i18next": "^17.0.8"
   }
 }

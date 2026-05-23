@@ -8,18 +8,20 @@ import {
   Settings,
   Piano,
 } from 'lucide-react'
-
-const navItems = [
-  { path: '/practice', icon: Music2, label: 'Práctica' },
-  { path: '/ear-training', icon: Brain, label: 'Ear Training' },
-  { path: '/encyclopedia', icon: BookOpen, label: 'Estilos' },
-  { path: '/settings', icon: Settings, label: 'Ajustes' },
-]
+import { useTranslation } from 'react-i18next'
 
 export function AppLayout() {
+  const { t } = useTranslation()
   const location = useLocation()
 
   useWhatsAppReminder()
+
+  const navItems = [
+    { path: '/practice', icon: Music2, label: t('nav.practice') },
+    { path: '/ear-training', icon: Brain, label: t('nav.earTraining') },
+    { path: '/encyclopedia', icon: BookOpen, label: t('nav.encyclopedia') },
+    { path: '/settings', icon: Settings, label: t('nav.settings') },
+  ]
 
   return (
     <AudioGate>

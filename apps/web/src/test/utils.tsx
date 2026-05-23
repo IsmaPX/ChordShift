@@ -2,6 +2,7 @@ import { type ReactElement } from 'react'
 import { render, type RenderOptions } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router'
+import { LanguageProvider } from '@/lib/i18n/LanguageProvider'
 
 function createTestQueryClient() {
   return new QueryClient({
@@ -28,9 +29,11 @@ function createWrapper(options: WrapperOptions = {}) {
   return function TestWrapper({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={initialEntries}>
-          {children}
-        </MemoryRouter>
+        <LanguageProvider>
+          <MemoryRouter initialEntries={initialEntries}>
+            {children}
+          </MemoryRouter>
+        </LanguageProvider>
       </QueryClientProvider>
     )
   }

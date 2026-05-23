@@ -3,9 +3,11 @@ import { motion } from 'framer-motion'
 import { StyleCard } from '@/components/encyclopedia/StyleCard'
 import { useStyles } from '@/hooks/useStyles'
 import { Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { Style } from '@/types/music'
 
 export function EncyclopediaPage() {
+  const { t } = useTranslation()
   const { data: styles, isLoading, error } = useStyles()
   const [selectedStyle, setSelectedStyle] = useState<Style | null>(null)
 
@@ -20,7 +22,7 @@ export function EncyclopediaPage() {
   if (error) {
     return (
       <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger">
-        Error al cargar estilos. Intenta de nuevo.
+        {t('encyclopedia.error')}
       </div>
     )
   }
@@ -28,9 +30,9 @@ export function EncyclopediaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">Enciclopedia de Estilos</h1>
+        <h1 className="text-3xl font-bold text-text-primary mb-2">{t('encyclopedia.title')}</h1>
         <p className="text-text-secondary">
-          Domina los {styles?.length || 0} estilos de adoración más importantes
+          {t('encyclopedia.subtitle', { count: styles?.length || 0 })}
         </p>
       </div>
 
@@ -66,7 +68,7 @@ export function EncyclopediaPage() {
             <p className="text-text-secondary mb-6">{selectedStyle.description}</p>
 
             <div className="mb-4">
-              <h3 className="text-text-primary font-medium mb-2">Técnicas</h3>
+              <h3 className="text-text-primary font-medium mb-2">{t('encyclopedia.techniques')}</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedStyle.techniques?.map((tech, i) => (
                   <span
@@ -80,7 +82,7 @@ export function EncyclopediaPage() {
             </div>
 
             <div className="mb-4">
-              <h3 className="text-text-primary font-medium mb-2">Teoría Requerida</h3>
+              <h3 className="text-text-primary font-medium mb-2">{t('encyclopedia.theory')}</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedStyle.theory_required?.map((theory, i) => (
                   <span
@@ -94,7 +96,7 @@ export function EncyclopediaPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <span className="text-text-secondary text-sm">Dificultad:</span>
+              <span className="text-text-secondary text-sm">{t('encyclopedia.difficulty')}</span>
               <div className="flex gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div
@@ -111,7 +113,7 @@ export function EncyclopediaPage() {
               onClick={() => setSelectedStyle(null)}
               className="mt-6 w-full py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors"
             >
-              Cerrar
+              {t('encyclopedia.close')}
             </button>
           </motion.div>
         </motion.div>

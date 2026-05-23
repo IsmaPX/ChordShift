@@ -12,9 +12,11 @@ import { usePracticeSession } from '@/hooks/usePracticeSession'
 import { useRecording } from '@/hooks/useRecording'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { INSTRUMENTS, type InstrumentName } from '@/types/music'
+import { useTranslation } from 'react-i18next'
 import * as Tone from 'tone'
 
 export function PracticePlayerPage() {
+  const { t } = useTranslation()
   const params = useParams<{ songId: string }>()
   const songId = params?.songId || ''
   const { data: song, isLoading, error } = useSong(songId)
@@ -147,13 +149,13 @@ export function PracticePlayerPage() {
     return (
       <div className="space-y-6">
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger">
-          No se pudo cargar la canción.
+          {t('practicePlayer.notFound')}
         </div>
         <Link
           to="/practice"
           className="inline-flex items-center gap-2 text-accent hover:underline"
         >
-          Volver a canciones
+          {t('practicePlayer.backToSongs')}
         </Link>
       </div>
     )
@@ -174,7 +176,7 @@ export function PracticePlayerPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-text-primary">{song.title}</h1>
-          <p className="text-text-secondary">{song.artist || 'Artista desconocido'}</p>
+          <p className="text-text-secondary">{song.artist || t('practicePlayer.unknownArtist')}</p>
         </div>
         <div className="hidden sm:flex items-center gap-2">
           <InstrumentSelector value={instrument} onChange={handleInstrumentChange} size="sm" />
@@ -182,7 +184,7 @@ export function PracticePlayerPage() {
         <button
           onClick={testSound}
           className="p-2 rounded-lg bg-warning/20 hover:bg-warning/30 text-warning transition-colors"
-          title="Probar sonido (debug)"
+          title={t('practicePlayer.testSound')}
         >
           <Volume2 size={20} />
         </button>
@@ -196,7 +198,7 @@ export function PracticePlayerPage() {
         <div className="bg-bg-secondary rounded-2xl p-4 space-y-2">
           <div className="flex items-center gap-2 text-text-secondary text-sm">
             <Music2 size={16} />
-            <span>Audio de referencia: {songAudio?.name}</span>
+            <span>{t('practicePlayer.referenceAudio', { name: songAudio?.name })}</span>
           </div>
           <audio controls className="w-full">
             <source src={audioUrl} type={songAudio?.type || 'audio/mpeg'} />
@@ -214,7 +216,7 @@ export function PracticePlayerPage() {
             {instrumentInfo && (
               <span className="px-3 py-1 rounded-full bg-border text-text-secondary text-sm flex items-center gap-1">
                 <span className="text-xs">{instrumentInfo.icon}</span>
-                {instrumentInfo.label}
+                {t('instruments.' + instrumentInfo.value)}
               </span>
             )}
           </div>
@@ -256,14 +258,14 @@ export function PracticePlayerPage() {
               <button
                 onClick={recording.clearRecording}
                 className="p-4 rounded-full bg-bg-secondary border border-border hover:border-danger/50 transition-colors"
-                title="Descartar grabación"
+                title={t('practicePlayer.discardRecording')}
               >
                 <Trash2 className="text-danger" size={24} />
               </button>
               <button
                 onClick={recording.downloadRecording}
                 className="p-4 rounded-full bg-bg-secondary border border-border hover:border-accent/50 transition-colors"
-                title="Descargar audio"
+                title={t('practicePlayer.downloadAudio')}
               >
                 <Download className="text-accent" size={24} />
               </button>
@@ -301,7 +303,7 @@ export function PracticePlayerPage() {
                     ? 'bg-danger text-white animate-pulse'
                     : 'bg-bg-secondary border border-border hover:border-danger/50 text-danger'
                 }`}
-                title={recording.isRecording ? 'Detener grabación' : 'Iniciar grabación'}
+                title={recording.isRecording ? t('practicePlayer.stopRecording') : t('practicePlayer.startRecording')}
               >
                 {recording.isRecording ? (
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">

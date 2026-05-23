@@ -5,17 +5,15 @@ import { Music2, ChevronRight, Loader2, Search, Upload, Plus, Filter, X } from '
 import { useSongs, useCreateSong, useUploadSongAudio } from '@/hooks/useSongs'
 import { useStyles } from '@/hooks/useStyles'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 
 type Tab = 'all' | 'preset' | 'mine'
 
-const tabs: { value: Tab; label: string }[] = [
-  { value: 'all', label: 'Todas' },
-  { value: 'preset', label: 'Precargadas' },
-  { value: 'mine', label: 'Mis Canciones' },
-]
+const tabValues: Tab[] = ['all', 'preset', 'mine']
 
 export function PracticePage() {
+  const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
   const [styleFilter, setStyleFilter] = useState('')
@@ -58,7 +56,7 @@ export function PracticePage() {
       setImportAudioFile(null)
       setTab('mine')
     } catch {
-      setImportError('Error al guardar la canción')
+      setImportError(t('practice.importError'))
     }
   }, [importAudioFile, createSong, uploadAudio, styleFilter, styles])
 
@@ -91,8 +89,8 @@ export function PracticePage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Práctica</h1>
-          <p className="text-text-secondary">Selecciona una canción para practicar</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">{t('practice.title')}</h1>
+          <p className="text-text-secondary">{t('practice.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -100,32 +98,32 @@ export function PracticePage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-secondary border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all"
           >
             <Upload size={18} />
-            Importar
+            {t('practice.import')}
           </button>
           <button
             onClick={() => setShowCreateForm(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover transition-all"
           >
             <Plus size={18} />
-            Crear
+            {t('practice.create')}
           </button>
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          {tabs.map((t) => (
+          {tabValues.map((value) => (
             <button
-              key={t.value}
-              onClick={() => setTab(t.value)}
+              key={value}
+              onClick={() => setTab(value)}
               className={cn(
                 'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                tab === t.value
+                tab === value
                   ? 'bg-accent text-white'
                   : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
               )}
             >
-              {t.label}
+              {t('practice.tab' + value.charAt(0).toUpperCase() + value.slice(1))}
             </button>
           ))}
         </div>
@@ -138,7 +136,7 @@ export function PracticePage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-bg-secondary border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
-              placeholder="Buscar canciones..."
+              placeholder={t('practice.search')}
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
@@ -154,7 +152,7 @@ export function PracticePage() {
               onChange={e => setStyleFilter(e.target.value)}
               className="pl-10 pr-8 py-2 bg-bg-secondary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent transition-colors appearance-none"
             >
-              <option value="">Todos los estilos</option>
+              <option value="">{t('practice.filter')}</option>
               {styles?.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -173,7 +171,7 @@ export function PracticePage() {
 
       {error && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger">
-          Error al cargar canciones. Intenta de nuevo.
+          {t('practice.error')}
         </div>
       )}
 
@@ -181,18 +179,18 @@ export function PracticePage() {
         <div className="text-center py-12">
           <Music2 className="mx-auto text-text-secondary mb-4" size={48} />
           <p className="text-text-secondary mb-2">
-            {tab === 'mine' ? 'No has creado canciones aún' : 'No hay canciones disponibles'}
+            {tab === 'mine' ? t('practice.emptyMine') : t('practice.emptyOther')}
           </p>
           <p className="text-text-secondary text-sm mb-6">
-            {tab === 'mine' ? 'Importa o crea tu primera canción' : 'Prueba con otros filtros'}
+            {tab === 'mine' ? t('practice.emptyMineDesc') : t('practice.emptyOtherDesc')}
           </p>
           {tab === 'mine' && (
             <div className="flex justify-center gap-2">
               <button onClick={() => setShowImport(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-secondary border border-border text-text-secondary hover:text-text-primary transition-all">
-                <Upload size={18} /> Importar
+                <Upload size={18} /> {t('practice.import')}
               </button>
               <button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover transition-all">
-                <Plus size={18} /> Crear
+                <Plus size={18} /> {t('practice.create')}
               </button>
             </div>
           )}
@@ -221,14 +219,14 @@ export function PracticePage() {
                     <div>
                       <h3 className="text-text-primary font-medium">{song.title}</h3>
                       <p className="text-text-secondary text-sm">
-                        {song.artist || 'Artista desconocido'}
+                        {song.artist || t('practice.unknownArtist')}
                         {style ? ` · ${style.name}` : ''}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right hidden sm:block">
-                      <p className="text-text-secondary text-sm">Tonalidad</p>
+                      <p className="text-text-secondary text-sm">{t('practice.key')}</p>
                       <p className="text-text-primary font-medium">{song.key_signature || '—'}</p>
                     </div>
                     <div className="text-right hidden sm:block">
@@ -251,7 +249,7 @@ export function PracticePage() {
             animate={{ scale: 1, opacity: 1 }}
             className="w-full max-w-lg bg-bg-primary border border-border rounded-2xl p-6 space-y-4"
           >
-            <h2 className="text-xl font-bold text-text-primary">Importar Canción</h2>
+            <h2 className="text-xl font-bold text-text-primary">{t('practice.importTitle')}</h2>
 
             <div className="border-2 border-dashed border-border rounded-xl p-4 hover:border-accent/50 transition-colors">
               {importAudioFile ? (
@@ -264,7 +262,7 @@ export function PracticePage() {
                       <p className="text-text-primary text-sm font-medium truncate">{importAudioFile.name}</p>
                       <p className="text-text-secondary text-xs">
                         {(importAudioFile.size / (1024 * 1024)).toFixed(1)} MB
-                        {importAudioFile.size > 10 * 1024 * 1024 && ' — Puede ser muy grande para IndexedDB'}
+                        {importAudioFile.size > 10 * 1024 * 1024 && ` — ${t('practice.importLargeFile')}`}
                       </p>
                     </div>
                   </div>
@@ -278,7 +276,7 @@ export function PracticePage() {
               ) : (
                 <label className="flex flex-col items-center gap-2 cursor-pointer py-2">
                   <Upload size={24} className="text-text-secondary" />
-                  <span className="text-text-secondary text-sm">Haz clic para subir un archivo de audio (mp3, mp4, wav, ogg...)</span>
+                  <span className="text-text-secondary text-sm">{t('practice.importUploadLabel')}</span>
                   <input
                     type="file"
                     accept="audio/*,video/mp4"
@@ -296,10 +294,10 @@ export function PracticePage() {
             {importError && <p className="text-danger text-sm">{importError}</p>}
             <div className="flex gap-2 justify-end">
               <button onClick={() => { setShowImport(false); setImportError(null); setImportAudioFile(null) }} className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
-                Cancelar
+                {t('practice.cancel')}
               </button>
               <button onClick={handleImport} disabled={!importAudioFile || createSong.isPending || uploadAudio.isPending} className="px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-50">
-                {createSong.isPending || uploadAudio.isPending ? 'Importando...' : 'Importar'}
+                {createSong.isPending || uploadAudio.isPending ? t('practice.importing') : t('practice.import')}
               </button>
             </div>
           </motion.div>
@@ -313,22 +311,22 @@ export function PracticePage() {
             animate={{ scale: 1, opacity: 1 }}
             className="w-full max-w-md bg-bg-primary border border-border rounded-2xl p-6 space-y-4"
           >
-            <h2 className="text-xl font-bold text-text-primary">Crear Canción</h2>
+            <h2 className="text-xl font-bold text-text-primary">{t('practice.createTitle')}</h2>
             <div className="space-y-3">
-              <input value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="Título" autoFocus />
-              <input value={newArtist} onChange={e => setNewArtist(e.target.value)} className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="Artista (opcional)" />
+              <input value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('practice.createTitlePlaceholder')} autoFocus />
+              <input value={newArtist} onChange={e => setNewArtist(e.target.value)} className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('practice.createArtistPlaceholder')} />
               <div className="flex gap-2">
-                <input value={newKey} onChange={e => setNewKey(e.target.value)} className="flex-1 px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="Tonalidad (C, G, Dm...)" />
-                <input type="number" value={newBpm} onChange={e => setNewBpm(Number(e.target.value))} className="w-24 px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder="BPM" />
+                <input value={newKey} onChange={e => setNewKey(e.target.value)} className="flex-1 px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('practice.createKeyPlaceholder')} />
+                <input type="number" value={newBpm} onChange={e => setNewBpm(Number(e.target.value))} className="w-24 px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors" placeholder={t('practice.createBpmPlaceholder')} />
               </div>
             </div>
-            <p className="text-text-secondary text-sm">Después de crear la canción, podrás añadir las progresiones desde el editor.</p>
+            <p className="text-text-secondary text-sm">{t('practice.createDesc')}</p>
             <div className="flex gap-2 justify-end">
               <button onClick={() => setShowCreateForm(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
-                Cancelar
+                {t('practice.cancel')}
               </button>
               <button onClick={handleCreate} disabled={!newTitle.trim() || createSong.isPending} className="px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-50">
-                {createSong.isPending ? 'Creando...' : 'Crear'}
+                {createSong.isPending ? t('practice.creating') : t('practice.create')}
               </button>
             </div>
           </motion.div>

@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router'
 import { INSTRUMENTS, type InstrumentName } from '@/types/music'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { useTranslation } from 'react-i18next'
 
 const settingsSchema = z.object({
   tempo_bpm: z.number().min(60).max(200),
@@ -32,20 +33,13 @@ const settingsSchema = z.object({
 
 type SettingsForm = z.infer<typeof settingsSchema>
 
-const feedbackOptions = [
-  { value: 'rings', label: 'Anillos de Eco', description: 'Expansión suave con desvanecimiento' },
-  { value: 'pulse', label: 'Pulso', description: 'Círculo central que pulsa' },
-  { value: 'bar', label: 'Barra de Precisión', description: 'Línea horizontal que crece' },
-] as const
-
 const languages = [
   { value: 'es', label: 'Español' },
   { value: 'en', label: 'English' },
 ]
 
-const difficultyLabels = ['', 'Principiante', 'Fácil', 'Intermedio', 'Avanzado', 'Experto']
-
 export function SettingsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, isLoading: authLoading, logout, deleteProfile } = useAuth()
   const { data: settings, isLoading: settingsLoading } = useUserSettings()
@@ -53,6 +47,14 @@ export function SettingsPage() {
   const clearPractice = useClearPracticeHistory()
   const clearEarTraining = useClearEarTrainingResults()
   const setPin = useSetPin()
+
+  const feedbackOptions = [
+    { value: 'rings', label: t('settings.feedbackRings'), description: t('settings.feedbackRingsDesc') },
+    { value: 'pulse', label: t('settings.feedbackPulse'), description: t('settings.feedbackPulseDesc') },
+    { value: 'bar', label: t('settings.feedbackBar'), description: t('settings.feedbackBarDesc') },
+  ] as const
+
+  const difficultyLabels = ['', t('settings.difficultyLabel.1'), t('settings.difficultyLabel.2'), t('settings.difficultyLabel.3'), t('settings.difficultyLabel.4'), t('settings.difficultyLabel.5')]
 
   const [toastVisible, setToastVisible] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -130,9 +132,9 @@ export function SettingsPage() {
   const onSubmit = async (data: SettingsForm) => {
     try {
       await updateSettings.mutateAsync(data)
-      showToast('Ajustes guardados correctamente')
+      showToast(t('settings.saved'))
     } catch (err) {
-      showToast('Error al guardar ajustes', 'error')
+      showToast(t('settings.saveError'), 'error')
       console.error('Failed to update settings:', err)
     }
   }
@@ -152,41 +154,41 @@ export function SettingsPage() {
   const handleClearPractice = async () => {
     setClearPracticeModalOpen(false)
     await clearPractice.mutateAsync()
-    showToast('Historial de práctica eliminado')
+    showToast(t('settings.dataPracticeCleared'))
   }
 
   const handleClearEarTraining = async () => {
     setClearEarModalOpen(false)
     await clearEarTraining.mutateAsync()
-    showToast('Resultados de ear training eliminados')
+    showToast(t('settings.dataEarCleared'))
   }
 
   const handleSavePin = async () => {
     if (pinValue.length < 4) {
-      showToast('El PIN debe tener al menos 4 dígitos', 'error')
+      showToast(t('settings.pinErrorLength'), 'error')
       return
     }
     if (pinValue !== pinConfirm) {
-      showToast('Los PIN no coinciden', 'error')
+      showToast(t('settings.pinErrorMatch'), 'error')
       return
     }
     try {
       await setPin.mutateAsync(pinValue)
-      showToast('PIN configurado correctamente')
+      showToast(t('settings.pinSuccess'))
       setPinMode('none')
       setPinValue('')
       setPinConfirm('')
     } catch (err) {
-      showToast('Error al configurar PIN', 'error')
+      showToast(t('settings.pinError'), 'error')
     }
   }
 
   const handleRemovePin = async () => {
     try {
       await setPin.mutateAsync(null)
-      showToast('PIN eliminado')
+      showToast(t('settings.pinRemoved'))
     } catch (err) {
-      showToast('Error al eliminar PIN', 'error')
+      showToast(t('settings.pinRemoveError'), 'error')
     }
   }
 
@@ -205,7 +207,7 @@ export function SettingsPage() {
 
   const handleSendOTP = async () => {
     if (phoneInput.length < 10) {
-      showToast('Ingresa un número válido con código de país', 'error')
+      showToast(t('settings.whatsappInvalidPhone'), 'error')
       return
     }
     setSendingOtp(true)
@@ -214,9 +216,9 @@ export function SettingsPage() {
       setOtpGenerated(code)
       await sendOTP.mutateAsync({ phone: phoneInput, code })
       setOtpSent(true)
-      showToast('Código enviado por WhatsApp')
+      showToast(t('settings.whatsappCodeSent'))
     } catch (err) {
-      showToast('Error al enviar código', 'error')
+      showToast(t('settings.whatsappCodeError'), 'error')
     } finally {
       setSendingOtp(false)
     }
@@ -229,10 +231,10 @@ export function SettingsPage() {
         setPhoneVerified(true)
         setOtpSent(false)
         setOtpCode('')
-        showToast('Número verificado correctamente')
+        showToast(t('settings.whatsappVerifiedSuccess'))
         updateSettings.mutate({ phone_number: phoneInput, phone_verified: true })
       } else {
-        showToast('Código incorrecto', 'error')
+        showToast(t('settings.whatsappWrongCode'), 'error')
       }
     } finally {
       setVerifyingOtp(false)
@@ -245,7 +247,7 @@ export function SettingsPage() {
     setOtpSent(false)
     setOtpCode('')
     updateSettings.mutate({ phone_number: '', phone_verified: false })
-    showToast('Número eliminado')
+    showToast(t('settings.whatsappNumberRemoved'))
   }
 
   const handleSaveReminderSettings = () => {
@@ -255,7 +257,7 @@ export function SettingsPage() {
       reminder_days: selectedDays,
       notifications_enabled: true,
     })
-    showToast('Configuración de recordatorios guardada')
+    showToast(t('settings.whatsappReminderSaved'))
   }
 
   if (authLoading || settingsLoading) {
@@ -277,10 +279,10 @@ export function SettingsPage() {
 
       <ConfirmModal
         isOpen={deleteModalOpen}
-        title="Eliminar Perfil"
-        message="¿Estás seguro de eliminar este perfil? Todo tu progreso se perderá. Esta acción no se puede deshacer."
-        confirmLabel="Eliminar"
-        cancelLabel="Cancelar"
+        title={t('settings.confirmDeleteTitle')}
+        message={t('settings.confirmDeleteMsg')}
+        confirmLabel={t('settings.confirmDeleteBtn')}
+        cancelLabel={t('practice.cancel')}
         variant="danger"
         onConfirm={handleDeleteProfile}
         onCancel={() => setDeleteModalOpen(false)}
@@ -288,10 +290,10 @@ export function SettingsPage() {
 
       <ConfirmModal
         isOpen={clearPracticeModalOpen}
-        title="Limpiar Historial"
-        message="¿Eliminar todo tu historial de práctica? Los datos de canciones no se verán afectados."
-        confirmLabel="Limpiar"
-        cancelLabel="Cancelar"
+        title={t('settings.confirmClearPracticeTitle')}
+        message={t('settings.confirmClearPracticeMsg')}
+        confirmLabel={t('settings.confirmClearBtn')}
+        cancelLabel={t('practice.cancel')}
         variant="warning"
         onConfirm={handleClearPractice}
         onCancel={() => setClearPracticeModalOpen(false)}
@@ -299,19 +301,19 @@ export function SettingsPage() {
 
       <ConfirmModal
         isOpen={clearEarModalOpen}
-        title="Limpiar Resultados"
-        message="¿Eliminar todos tus resultados de ear training? Esta acción no se puede deshacer."
-        confirmLabel="Limpiar"
-        cancelLabel="Cancelar"
+        title={t('settings.confirmClearEarTitle')}
+        message={t('settings.confirmClearEarMsg')}
+        confirmLabel={t('settings.confirmClearBtn')}
+        cancelLabel={t('practice.cancel')}
         variant="warning"
         onConfirm={handleClearEarTraining}
         onCancel={() => setClearEarModalOpen(false)}
       />
 
       <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">Ajustes</h1>
+        <h1 className="text-3xl font-bold text-text-primary mb-2">{t('settings.title')}</h1>
         <p className="text-text-secondary">
-          Personaliza tu experiencia en la app
+          {t('settings.subtitle')}
         </p>
       </div>
 
@@ -325,12 +327,12 @@ export function SettingsPage() {
             <div className="p-2 rounded-lg bg-accent/20">
               <Settings className="text-accent" size={20} />
             </div>
-            <h2 className="text-lg font-medium text-text-primary">General</h2>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.general')}</h2>
           </div>
 
           <div>
             <label className="block text-text-primary text-sm mb-2">
-              Idioma
+              {t('settings.language')}
             </label>
             <select
               {...register('language')}
@@ -346,7 +348,7 @@ export function SettingsPage() {
 
           <div>
             <label className="block text-text-primary text-sm mb-2">
-              Tempo predeterminado: {watch('tempo_bpm')} BPM
+              {t('settings.tempo', { bpm: watch('tempo_bpm') })}
             </label>
             <input
               type="range"
@@ -359,7 +361,7 @@ export function SettingsPage() {
 
           <div>
             <label className="block text-text-primary text-sm mb-2">
-              Dificultad predeterminada
+              {t('settings.difficulty')}
             </label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((d) => (
@@ -385,7 +387,7 @@ export function SettingsPage() {
 
           <div>
             <label className="block text-text-primary text-sm mb-3">
-              Instrumento preferido
+              {t('settings.instrument')}
             </label>
             <div className="grid grid-cols-3 gap-2">
               {INSTRUMENTS.map((inst) => (
@@ -405,7 +407,7 @@ export function SettingsPage() {
                     className="sr-only"
                   />
                   <span className="text-2xl">{inst.icon}</span>
-                  <span className="text-text-primary text-sm font-medium">{inst.label}</span>
+                  <span className="text-text-primary text-sm font-medium">{t('instruments.' + inst.value)}</span>
                 </label>
               ))}
             </div>
@@ -422,11 +424,11 @@ export function SettingsPage() {
             <div className="p-2 rounded-lg bg-accent/20">
               <Music2 className="text-accent" size={20} />
             </div>
-            <h2 className="text-lg font-medium text-text-primary">Metrónomo</h2>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.metronome')}</h2>
           </div>
 
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-text-secondary">Metrónomo en práctica</span>
+            <span className="text-text-secondary">{t('settings.metronomeToggle')}</span>
             <div className="relative">
               <input
                 type="checkbox"
@@ -441,7 +443,7 @@ export function SettingsPage() {
           {watch('metronome_enabled') && (
             <div>
               <label className="block text-text-primary text-sm mb-2">
-                Volumen del metrónomo: {Math.round(watch('metronome_volume') * 100)}%
+                {t('settings.metronomeVolume', { pct: Math.round(watch('metronome_volume') * 100) })}
               </label>
               <input
                 type="range"
@@ -465,11 +467,11 @@ export function SettingsPage() {
             <div className="p-2 rounded-lg bg-accent/20">
               <Bell className="text-accent" size={20} />
             </div>
-            <h2 className="text-lg font-medium text-text-primary">Notificaciones</h2>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.notifications')}</h2>
           </div>
 
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-text-secondary">Recordatorios de práctica</span>
+            <span className="text-text-secondary">{t('settings.notificationsToggle')}</span>
             <div className="relative">
               <input
                 type="checkbox"
@@ -492,18 +494,18 @@ export function SettingsPage() {
             <div className="p-2 rounded-lg bg-accent/20">
               <Smartphone className="text-accent" size={20} />
             </div>
-            <h2 className="text-lg font-medium text-text-primary">Recordatorios WhatsApp</h2>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.whatsapp')}</h2>
           </div>
 
           {!phoneVerified ? (
             <div className="space-y-3">
               <p className="text-text-secondary text-sm">
-                Recibe recordatorios de práctica por WhatsApp. Ingresa tu número con código de país.
+                {t('settings.whatsappDesc')}
               </p>
               <div className="flex gap-2">
                 <input
                   type="tel"
-                  placeholder="+521234567890"
+                  placeholder={t('settings.whatsappPhonePlaceholder')}
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value.replace(/[^0-9+]/g, ''))}
                   className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
@@ -514,20 +516,20 @@ export function SettingsPage() {
                   disabled={sendingOtp || phoneInput.length < 10}
                   className="px-4 py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50 whitespace-nowrap"
                 >
-                  {sendingOtp ? <Loader2 className="animate-spin" size={18} /> : 'Enviar código'}
+                  {sendingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappSendCode')}
                 </button>
               </div>
 
               {otpSent && (
                 <div className="space-y-2">
                   <p className="text-text-secondary text-sm">
-                    Ingresa el código de 6 dígitos que recibiste por WhatsApp
+                    {t('settings.whatsappEnterCode')}
                   </p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       maxLength={6}
-                      placeholder="123456"
+                      placeholder={t('settings.whatsappOtpPlaceholder')}
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                       className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
@@ -538,7 +540,7 @@ export function SettingsPage() {
                       disabled={verifyingOtp || otpCode.length < 6}
                       className="px-4 py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50"
                     >
-                      {verifyingOtp ? <Loader2 className="animate-spin" size={18} /> : 'Verificar'}
+                      {verifyingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappVerify')}
                     </button>
                   </div>
                 </div>
@@ -548,7 +550,7 @@ export function SettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-xl bg-success/10 border border-success/20">
                 <div>
-                  <p className="text-text-primary text-sm font-medium">Número verificado</p>
+                  <p className="text-text-primary text-sm font-medium">{t('settings.whatsappVerified')}</p>
                   <p className="text-success text-sm">{phoneInput}</p>
                 </div>
                 <button
@@ -562,7 +564,7 @@ export function SettingsPage() {
 
               <div>
                 <label className="block text-text-primary text-sm mb-2">
-                  Hora del recordatorio
+                  {t('settings.whatsappHour')}
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -591,18 +593,18 @@ export function SettingsPage() {
 
               <div>
                 <label className="block text-text-primary text-sm mb-2">
-                  Días de la semana
+                  {t('settings.whatsappDays')}
                 </label>
                 <div className="flex gap-2">
                   {[
-                    { n: 0, label: 'Dom' },
-                    { n: 1, label: 'Lun' },
-                    { n: 2, label: 'Mar' },
-                    { n: 3, label: 'Mié' },
-                    { n: 4, label: 'Jue' },
-                    { n: 5, label: 'Vie' },
-                    { n: 6, label: 'Sáb' },
-                  ].map(({ n, label }) => (
+                    { n: 0, key: 'sun' },
+                    { n: 1, key: 'mon' },
+                    { n: 2, key: 'tue' },
+                    { n: 3, key: 'wed' },
+                    { n: 4, key: 'thu' },
+                    { n: 5, key: 'fri' },
+                    { n: 6, key: 'sat' },
+                  ].map(({ n, key }) => (
                     <button
                       key={n}
                       type="button"
@@ -618,7 +620,7 @@ export function SettingsPage() {
                           : 'border-border text-text-secondary hover:border-accent/50'
                       )}
                     >
-                      {label}
+                      {t('days.' + key)}
                     </button>
                   ))}
                 </div>
@@ -629,7 +631,7 @@ export function SettingsPage() {
                 onClick={handleSaveReminderSettings}
                 className="w-full py-2.5 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors text-sm"
               >
-                Guardar horario
+                {t('settings.whatsappSaveSchedule')}
               </button>
             </div>
           )}
@@ -645,7 +647,7 @@ export function SettingsPage() {
             <div className="p-2 rounded-lg bg-accent/20">
               <Shield className="text-accent" size={20} />
             </div>
-            <h2 className="text-lg font-medium text-text-primary">Seguridad</h2>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.security')}</h2>
           </div>
 
           {pinMode === 'none' && (
@@ -657,14 +659,14 @@ export function SettingsPage() {
                     onClick={() => { setPinMode('change'); setPinValue(''); setPinConfirm('') }}
                     className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all text-sm"
                   >
-                    Cambiar PIN
+                    {t('settings.pinChangeBtn')}
                   </button>
                   <button
                     type="button"
                     onClick={handleRemovePin}
                     className="flex-1 px-4 py-2.5 rounded-xl text-danger hover:bg-danger/10 transition-colors text-sm"
                   >
-                    Desactivar PIN
+                    {t('settings.pinRemoveBtn')}
                   </button>
                 </>
               ) : (
@@ -673,7 +675,7 @@ export function SettingsPage() {
                   onClick={() => { setPinMode('set'); setPinValue(''); setPinConfirm('') }}
                   className="w-full px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all text-sm"
                 >
-                  Establecer PIN
+                  {t('settings.pinSetBtn')}
                 </button>
               )}
             </div>
@@ -682,12 +684,12 @@ export function SettingsPage() {
           {(pinMode === 'set' || pinMode === 'change') && (
             <div className="space-y-3">
               <p className="text-text-secondary text-sm">
-                {pinMode === 'set' ? 'Establece un PIN de 4 dígitos para proteger tu perfil' : 'Ingresa tu nuevo PIN'}
+                {pinMode === 'set' ? t('settings.pinSet') : t('settings.pinChange')}
               </p>
               <input
                 type="password"
                 maxLength={6}
-                placeholder="Nuevo PIN"
+                placeholder={t('settings.pinNew')}
                 value={pinValue}
                 onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ''))}
                 className="w-full px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
@@ -695,7 +697,7 @@ export function SettingsPage() {
               <input
                 type="password"
                 maxLength={6}
-                placeholder="Confirmar PIN"
+                placeholder={t('settings.pinConfirm')}
                 value={pinConfirm}
                 onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ''))}
                 className="w-full px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
@@ -706,14 +708,14 @@ export function SettingsPage() {
                   onClick={() => setPinMode('none')}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary transition-all text-sm"
                 >
-                  Cancelar
+                  {t('settings.pinCancelBtn')}
                 </button>
                 <button
                   type="button"
                   onClick={handleSavePin}
                   className="flex-1 px-4 py-2.5 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors text-sm"
                 >
-                  Guardar PIN
+                  {t('settings.pinSaveBtn')}
                 </button>
               </div>
             </div>
@@ -730,7 +732,7 @@ export function SettingsPage() {
             <div className="p-2 rounded-lg bg-accent/20">
               <Eye className="text-accent" size={20} />
             </div>
-            <h2 className="text-lg font-medium text-text-primary">Concepto de Feedback</h2>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.feedback')}</h2>
           </div>
 
           <div className="grid grid-cols-1 gap-3">
@@ -776,7 +778,7 @@ export function SettingsPage() {
           disabled={isSubmitting}
           className="w-full py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50"
         >
-          {isSubmitting ? 'Guardando...' : 'Guardar Ajustes'}
+          {isSubmitting ? t('settings.savingBtn') : t('settings.saveBtn')}
         </button>
       </form>
 
@@ -786,12 +788,12 @@ export function SettingsPage() {
         transition={{ delay: 0.25 }}
         className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
       >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-accent/20">
-            <Database className="text-accent" size={20} />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-accent/20">
+              <Database className="text-accent" size={20} />
+            </div>
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.data')}</h2>
           </div>
-          <h2 className="text-lg font-medium text-text-primary">Gestión de Datos</h2>
-        </div>
 
         <div className="space-y-3">
           <button
@@ -800,7 +802,7 @@ export function SettingsPage() {
             disabled={clearPractice.isPending}
             className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-warning/50 transition-all disabled:opacity-50"
           >
-            <span className="text-sm">Limpiar historial de práctica</span>
+            <span className="text-sm">{t('settings.dataClearPractice')}</span>
             {clearPractice.isPending ? (
               <Loader2 className="animate-spin" size={16} />
             ) : (
@@ -814,7 +816,7 @@ export function SettingsPage() {
             disabled={clearEarTraining.isPending}
             className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-warning/50 transition-all disabled:opacity-50"
           >
-            <span className="text-sm">Limpiar resultados de ear training</span>
+            <span className="text-sm">{t('settings.dataClearEar')}</span>
             {clearEarTraining.isPending ? (
               <Loader2 className="animate-spin" size={16} />
             ) : (
@@ -846,14 +848,14 @@ export function SettingsPage() {
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all"
           >
             <LogOut size={18} />
-            Cambiar Perfil
+            {t('settings.profileSwitch')}
           </button>
           <button
             onClick={() => setDeleteModalOpen(true)}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-danger hover:bg-danger/10 transition-colors"
           >
             <Trash2 size={18} />
-            Eliminar Perfil
+            {t('settings.profileDelete')}
           </button>
         </div>
       </motion.div>

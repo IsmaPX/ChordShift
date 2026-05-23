@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AudioEngine } from '@/audio/AudioEngine'
+import { useTranslation } from 'react-i18next'
 
 interface AudioGateProps {
   children: React.ReactNode
 }
 
 export function AudioGate({ children }: AudioGateProps) {
+  const { t } = useTranslation()
   const [isAudioReady, setIsAudioReady] = useState(false)
   const [showGate, setShowGate] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -19,7 +21,7 @@ export function AudioGate({ children }: AudioGateProps) {
       setShowGate(false)
     } catch (err) {
       console.error('Failed to initialize audio:', err)
-      setError('No se pudo iniciar el audio. Intenta de nuevo.')
+      setError(t('audio.error'))
     }
   }
 
@@ -62,10 +64,10 @@ export function AudioGate({ children }: AudioGateProps) {
                 </svg>
               </motion.div>
               <h2 className="text-text-primary text-xl font-medium mb-2">
-                Worship Piano
+                {t('brand.worshipPiano')}
               </h2>
               <p className="text-text-secondary text-sm">
-                Toca para comenzar
+                {t('audio.tapToStart')}
               </p>
               {error && (
                 <p className="mt-4 text-danger text-sm">
