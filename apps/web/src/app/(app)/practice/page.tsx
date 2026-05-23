@@ -5,7 +5,7 @@ import { Music2, ChevronRight, Loader2, Search, Upload, Plus, Filter, X } from '
 import { useSongs, useCreateSong, useUploadSongAudio } from '@/hooks/useSongs'
 import { useStyles } from '@/hooks/useStyles'
 import { cn } from '@/lib/utils'
-import { INSTRUMENTS } from '@/types/music'
+
 
 type Tab = 'all' | 'preset' | 'mine'
 
