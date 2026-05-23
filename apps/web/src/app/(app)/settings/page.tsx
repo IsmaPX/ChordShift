@@ -8,12 +8,14 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useUserSettings, useUpdateSettings } from '@/hooks/useUserSettings'
 import { useNavigate } from 'react-router'
+import { INSTRUMENTS, type InstrumentName } from '@/types/music'
 
 const settingsSchema = z.object({
   tempo_bpm: z.number().min(60).max(200),
   language: z.string(),
   notifications_enabled: z.boolean(),
   feedback_concept: z.enum(['pulse', 'bar', 'rings']),
+  preferred_instrument: z.enum(['piano', 'guitar', 'trumpet']),
 })
 
 type SettingsForm = z.infer<typeof settingsSchema>
@@ -48,6 +50,7 @@ export function SettingsPage() {
       language: 'es',
       notifications_enabled: true,
       feedback_concept: 'rings',
+      preferred_instrument: 'piano' as InstrumentName,
     },
   })
 
@@ -58,6 +61,7 @@ export function SettingsPage() {
         language: settings.language || 'es',
         notifications_enabled: settings.notifications_enabled ?? true,
         feedback_concept: settings.feedback_concept || 'rings',
+        preferred_instrument: settings.preferred_instrument || 'piano',
       })
     }
   }, [settings, reset])
@@ -102,7 +106,7 @@ export function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold text-text-primary mb-2">Ajustes</h1>
         <p className="text-text-secondary">
-          Personaliza tu experiencia en Worship Piano
+          Personaliza tu experiencia en la app
         </p>
       </div>
 
@@ -146,6 +150,34 @@ export function SettingsPage() {
               {...register('tempo_bpm', { valueAsNumber: true })}
               className="w-full accent-accent"
             />
+          </div>
+
+          <div>
+            <label className="block text-text-primary text-sm mb-3">
+              Instrumento preferido
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {INSTRUMENTS.map((inst) => (
+                <label
+                  key={inst.value}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors',
+                    watch('preferred_instrument') === inst.value
+                      ? 'border-accent bg-accent/10'
+                      : 'border-border hover:border-accent/50'
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={inst.value}
+                    {...register('preferred_instrument')}
+                    className="sr-only"
+                  />
+                  <span className="text-2xl">{inst.icon}</span>
+                  <span className="text-text-primary text-sm font-medium">{inst.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </motion.div>
 

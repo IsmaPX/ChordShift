@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   notifications_enabled: true,
   feedback_concept: 'rings',
   xp: 0,
+  preferred_instrument: 'piano',
 }
 
 interface EarTrainingResult {
@@ -39,7 +40,7 @@ export class AppDatabase extends Dexie {
     this.version(1).stores({
       users: 'id, display_name, created_at, last_active',
       styles: 'id, name, difficulty',
-      songs: 'id, title, style_id, difficulty, is_published',
+      songs: 'id, title, style_id, difficulty, is_published, instrument',
       practice_sessions: 'id, user_id, song_id, started_at',
       song_audio: 'id, song_id',
       ear_training_results: 'id, user_id, exercise_type, created_at',

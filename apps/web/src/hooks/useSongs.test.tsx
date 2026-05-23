@@ -11,8 +11,8 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 const fakeSongs = [
-  { id: '1', title: 'Canción 1', artist: 'Artista A', style_id: 'style-1', difficulty: 2, key_signature: 'C', bpm: 120, chord_data: { sections: [] }, is_published: true, created_at: '2024-01-01' },
-  { id: '2', title: 'Canción 2', artist: 'Artista B', style_id: 'style-1', difficulty: 3, key_signature: 'G', bpm: 80, chord_data: { sections: [] }, is_published: true, created_at: '2024-01-02' },
+  { id: '1', title: 'Canción 1', artist: 'Artista A', style_id: 'style-1', difficulty: 2, key_signature: 'C', bpm: 120, instrument: 'piano' as const, chord_data: { sections: [] as never[] }, is_published: true, created_at: '2024-01-01' },
+  { id: '2', title: 'Canción 2', artist: 'Artista B', style_id: 'style-1', difficulty: 3, key_signature: 'G', bpm: 80, instrument: 'piano' as const, chord_data: { sections: [] as never[] }, is_published: true, created_at: '2024-01-02' },
 ]
 
 describe('useSongs', () => {
@@ -69,7 +69,7 @@ describe('useCreateSong', () => {
     const { result } = renderHook(() => useCreateSong(), { wrapper })
 
     await waitFor(() => {
-      result.current.mutate({ title: 'New Song', artist: 'Me', style_id: 's1', difficulty: 1, key_signature: 'C', bpm: 120, chord_data: { sections: [] }, is_published: false, created_at: new Date().toISOString() })
+      result.current.mutate({ title: 'New Song', artist: 'Me', style_id: 's1', difficulty: 1, key_signature: 'C', bpm: 120, instrument: 'piano' as const, chord_data: { sections: [] as never[] }, is_published: false, created_at: new Date().toISOString() })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))

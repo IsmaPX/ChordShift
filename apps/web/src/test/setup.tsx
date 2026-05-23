@@ -23,7 +23,7 @@ beforeEach(async () => {
   // Seed a minimal set so useAuth's seedIfEmpty is a no-op
   await db.styles.add({ id: 'test-style', name: 'Test', difficulty: 1, theory_required: [], techniques: [], description: '' })
   await db.tips.add({ id: 'test-tip', content: 'Test', category: 'teoría', style_id: null, difficulty_min: 1 })
-  await db.songs.add({ id: 'test-song', title: 'Test', artist: 'T', style_id: 'test-style', difficulty: 1, key_signature: 'C', bpm: 120, chord_data: { sections: [] }, is_published: true, created_at: '2024-01-01' })
+  await db.songs.add({ id: 'test-song', title: 'Test', artist: 'T', style_id: 'test-style', difficulty: 1, key_signature: 'C', bpm: 120, instrument: 'piano', chord_data: { sections: [] }, is_published: true, created_at: '2024-01-01' })
 })
 
 afterEach(() => {

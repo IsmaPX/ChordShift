@@ -1,18 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { db } from '@/lib/db'
-import type { Song, SongAudio } from '@/types/music'
+import type { InstrumentName, Song, SongAudio } from '@/types/music'
 
 interface FetchSongsOptions {
   styleId?: string
   limit?: number
   search?: string
   tab?: 'all' | 'preset' | 'mine'
+  instrument?: InstrumentName
 }
 
 export function useSongs(options: FetchSongsOptions = {}) {
-  const { styleId, search, tab } = options
+  const { styleId, search, tab, instrument } = options
   return useQuery({
-    queryKey: ['songs', tab || 'all', styleId || '', search || ''],
+    queryKey: ['songs', tab || 'all', styleId || '', search || '', instrument || ''],
     queryFn: async () => {
       const published = options.tab === 'mine' ? false : true
       let results = (await db.songs.toArray()).filter(s => s.is_published === published)
@@ -24,6 +25,10 @@ export function useSongs(options: FetchSongsOptions = {}) {
       if (options.search) {
         const q = options.search.toLowerCase()
         results = results.filter(s => s.title.toLowerCase().includes(q) || (s.artist?.toLowerCase() || '').includes(q))
+      }
+
+      if (options.instrument) {
+        results = results.filter(s => s.instrument === options.instrument)
       }
 
       results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())

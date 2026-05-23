@@ -21,6 +21,7 @@ export interface SeedSong {
   difficulty: number
   key_signature: string
   bpm: number
+  instrument: 'piano' | 'guitar' | 'trumpet'
   chord_data: SeedSongData
   lyrics?: string
   is_published: boolean
@@ -66,7 +67,7 @@ function sec(name: string, ...patterns: [string, number, number][]): SeedSection
 }
 
 function fmt(title: string, artist: string, style: string, diff: number, key: string, bpm: number, sections: SeedSection[], lyrics?: string): SeedSong {
-  return { id: `song-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}`, title, artist, style_id: style, difficulty: diff, key_signature: key, bpm, chord_data: { sections }, lyrics, is_published: true }
+  return { id: `song-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}`, title, artist, style_id: style, difficulty: diff, key_signature: key, bpm, instrument: 'piano', chord_data: { sections }, lyrics, is_published: true }
 }
 
 function hymns(): SeedSong[] {

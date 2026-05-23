@@ -2,10 +2,16 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router'
 import { Play, Pause, RotateCcw, Loader2, Download, Trash2, Volume2, Music2 } from 'lucide-react'
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
+import { InstrumentSelector } from '@/components/ui/InstrumentSelector'
+import { ChordDiagram } from '@/components/guitar/ChordDiagram'
+import { NoteDisplay } from '@/components/trumpet/NoteDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
+import { AudioEngine } from '@/audio/AudioEngine'
 import { useSong, useSongAudio } from '@/hooks/useSongs'
 import { usePracticeSession } from '@/hooks/usePracticeSession'
 import { useRecording } from '@/hooks/useRecording'
+import { useUserSettings } from '@/hooks/useUserSettings'
+import { INSTRUMENTS, type InstrumentName } from '@/types/music'
 import * as Tone from 'tone'
 
 export function PracticePlayerPage() {
@@ -13,11 +19,26 @@ export function PracticePlayerPage() {
   const songId = params?.songId || ''
   const { data: song, isLoading, error } = useSong(songId)
   const createSession = usePracticeSession()
-  
+  const { data: userSettings } = useUserSettings()
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [currentChordIndex, setCurrentChordIndex] = useState(0)
   const [startTime, setStartTime] = useState<number | null>(null)
+  const [instrument, setInstrument] = useState<InstrumentName>('piano')
+
+  useEffect(() => {
+    if (song?.instrument) {
+      setInstrument(song.instrument)
+    } else if (userSettings?.preferred_instrument) {
+      setInstrument(userSettings.preferred_instrument)
+    }
+  }, [song?.instrument, userSettings?.preferred_instrument])
+
+  const handleInstrumentChange = useCallback(async (newInst: InstrumentName) => {
+    setInstrument(newInst)
+    await AudioEngine.setInstrument(newInst)
+  }, [])
 
   const recording = useRecording({ songId })
   const { data: songAudio } = useSongAudio(songId)
@@ -34,13 +55,11 @@ export function PracticePlayerPage() {
   }, [songAudio?.blob])
 
   const testSound = useCallback(async () => {
-    console.log('[DEBUG] testSound clicked')
     try {
       await Tone.start()
       const s = new Tone.PolySynth().toDestination()
       s.triggerAttackRelease('C4', 0.5)
-      console.log('[DEBUG] testSound: note played, context state:', Tone.getContext().state)
-      setTimeout(() => { s.dispose(); console.log('[DEBUG] testSound: synth disposed') }, 1000)
+      setTimeout(() => { s.dispose() }, 1000)
     } catch (err) {
       console.error('[DEBUG] testSound error:', err)
     }
@@ -49,6 +68,10 @@ export function PracticePlayerPage() {
   const sections = song?.chord_data?.sections || []
   const currentSection = sections[currentSectionIndex]
   const currentChord = currentSection?.chords[currentChordIndex]
+
+  const isTrumpet = instrument === 'trumpet'
+
+  const currentNote = currentChord ? chordPlayer.getChordNotes(currentChord.chord, instrument)?.[0] || null : null
 
   useEffect(() => {
     if (song && !startTime) {
@@ -66,16 +89,13 @@ export function PracticePlayerPage() {
     const beatDuration = 60 / (song?.bpm || 120)
     let chordTimer: ReturnType<typeof setInterval> | undefined
 
-    const playCurrentChord = async () => {
+    const playCurrent = async () => {
       if (currentChord) {
-        console.log('[PLAY] chord:', currentChord.chord, 'duration:', beatDuration * currentChord.duration, 'bpm:', song?.bpm)
-        await chordPlayer.playChord(currentChord.chord, beatDuration * currentChord.duration)
-      } else {
-        console.warn('[PLAY] currentChord is falsy', { currentSectionIndex, currentChordIndex, sectionsLength: sections.length })
+        await chordPlayer.playChord(currentChord.chord, beatDuration * currentChord.duration, instrument)
       }
     }
 
-    playCurrentChord()
+    playCurrent()
 
     chordTimer = setInterval(() => {
       setCurrentChordIndex((prevChord) => {
@@ -93,7 +113,7 @@ export function PracticePlayerPage() {
     }, beatDuration * 1000 * 2)
 
     return () => clearInterval(chordTimer)
-  }, [isPlaying, currentSectionIndex, currentChordIndex, currentSection, currentChord, song?.bpm, sections])
+  }, [isPlaying, currentSectionIndex, currentChordIndex, currentSection, currentChord, song?.bpm, sections, instrument])
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
@@ -141,6 +161,8 @@ export function PracticePlayerPage() {
     )
   }
 
+  const instrumentInfo = INSTRUMENTS.find(i => i.value === instrument)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -152,17 +174,24 @@ export function PracticePlayerPage() {
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-text-primary">{song.title}</h1>
           <p className="text-text-secondary">{song.artist || 'Artista desconocido'}</p>
         </div>
+        <div className="hidden sm:flex items-center gap-2">
+          <InstrumentSelector value={instrument} onChange={handleInstrumentChange} size="sm" />
+        </div>
         <button
           onClick={testSound}
-          className="ml-auto p-2 rounded-lg bg-warning/20 hover:bg-warning/30 text-warning transition-colors"
+          className="p-2 rounded-lg bg-warning/20 hover:bg-warning/30 text-warning transition-colors"
           title="Probar sonido (debug)"
         >
           <Volume2 size={20} />
         </button>
+      </div>
+
+      <div className="sm:hidden flex justify-center">
+        <InstrumentSelector value={instrument} onChange={handleInstrumentChange} size="sm" />
       </div>
 
       {audioUrl && (
@@ -184,14 +213,28 @@ export function PracticePlayerPage() {
               {song.key_signature || '—'}
             </span>
             <span className="text-text-secondary">{song.bpm || 120} BPM</span>
+            {instrumentInfo && (
+              <span className="px-3 py-1 rounded-full bg-border text-text-secondary text-sm flex items-center gap-1">
+                <span className="text-xs">{instrumentInfo.icon}</span>
+                {instrumentInfo.label}
+              </span>
+            )}
           </div>
           <span className="px-3 py-1 rounded-full bg-border text-text-secondary text-sm">
             {currentSection?.name || 'Intro'}
           </span>
         </div>
 
-        <div className="flex justify-center py-12">
-          <ChordDisplay chord={currentChord?.chord || '—'} isActive={true} />
+        <div className="flex flex-col items-center gap-6 py-12">
+          {isTrumpet && currentNote ? (
+            <NoteDisplay note={currentNote} isActive={isPlaying} />
+          ) : (
+            <ChordDisplay chord={currentChord?.chord || '—'} isActive={true} />
+          )}
+
+          {instrument === 'guitar' && currentChord && (
+            <ChordDiagram chord={currentChord.chord} />
+          )}
         </div>
 
         <div className="space-y-2">

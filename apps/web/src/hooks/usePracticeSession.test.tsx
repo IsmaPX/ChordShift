@@ -20,7 +20,7 @@ async function seedUser() {
 describe('usePracticeSession', () => {
   it('inserts a practice session', async () => {
     const userId = await seedUser()
-    await db.songs.add({ id: 's1', title: 'Song', artist: 'A', style_id: 'st1', difficulty: 1, key_signature: 'C', bpm: 120, chord_data: { sections: [] }, is_published: true, created_at: new Date().toISOString() })
+    await db.songs.add({ id: 's1', title: 'Song', artist: 'A', style_id: 'st1', difficulty: 1, key_signature: 'C', bpm: 120, instrument: 'piano', chord_data: { sections: [] }, is_published: true, created_at: new Date().toISOString() })
 
     const { result } = renderHook(() => usePracticeSession(), { wrapper })
     await act(async () => {})

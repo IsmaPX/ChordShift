@@ -5,6 +5,7 @@ import { Music2, ChevronRight, Loader2, Search, Upload, Plus, Filter, X } from '
 import { useSongs, useCreateSong, useUploadSongAudio } from '@/hooks/useSongs'
 import { useStyles } from '@/hooks/useStyles'
 import { cn } from '@/lib/utils'
+import { INSTRUMENTS, type InstrumentName } from '@/types/music'
 
 type Tab = 'all' | 'preset' | 'mine'
 
@@ -18,6 +19,7 @@ export function PracticePage() {
   const [tab, setTab] = useState<Tab>('all')
   const [search, setSearch] = useState('')
   const [styleFilter, setStyleFilter] = useState('')
+  const [instrumentFilter, setInstrumentFilter] = useState<InstrumentName | ''>('')
   const [showImport, setShowImport] = useState(false)
   const [importAudioFile, setImportAudioFile] = useState<File | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
@@ -27,7 +29,7 @@ export function PracticePage() {
   const [newKey, setNewKey] = useState('C')
   const [newBpm, setNewBpm] = useState(120)
 
-  const { data: songs, isLoading, error } = useSongs({ search, styleId: styleFilter || undefined, tab })
+  const { data: songs, isLoading, error } = useSongs({ search, styleId: styleFilter || undefined, tab, instrument: instrumentFilter || undefined })
   const { data: styles } = useStyles()
   const createSong = useCreateSong()
   const uploadAudio = useUploadSongAudio()
@@ -44,6 +46,7 @@ export function PracticePage() {
         artist: null,
         key_signature: 'C',
         bpm: 120,
+        instrument: 'piano',
         chord_data: { sections: [{ name: 'Intro', chords: [{ chord: 'C', beat: 1, duration: 4 }] }] },
         style_id: styleFilter || styles?.[0]?.id || crypto.randomUUID(),
         difficulty: 1,
@@ -69,6 +72,7 @@ export function PracticePage() {
         artist: newArtist.trim() || 'Creada por mí',
         key_signature: newKey,
         bpm: newBpm,
+        instrument: 'piano',
         chord_data: { sections: [{ name: 'Intro', chords: [{ chord: 'C', beat: 1, duration: 4 }] }] },
         style_id: styleFilter || styles?.[0]?.id || crypto.randomUUID(),
         difficulty: 1,
@@ -159,6 +163,20 @@ export function PracticePage() {
               ))}
             </select>
           </div>
+
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none text-sm">🎸</span>
+            <select
+              value={instrumentFilter}
+              onChange={e => setInstrumentFilter(e.target.value as InstrumentName | '')}
+              className="pl-10 pr-8 py-2 bg-bg-secondary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent transition-colors appearance-none"
+            >
+              <option value="">Todos los instrumentos</option>
+              {INSTRUMENTS.map(inst => (
+                <option key={inst.value} value={inst.value}>{inst.icon} {inst.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -196,10 +214,11 @@ export function PracticePage() {
         </div>
       )}
 
-      {songs && songs.length > 0 && (
+            {songs && songs.length > 0 && (
         <div className="space-y-3">
           {songs.map((song, index) => {
             const style = styles?.find(s => s.id === song.style_id)
+            const instInfo = INSTRUMENTS.find(i => i.value === song.instrument)
             return (
               <motion.div
                 key={song.id}
@@ -213,11 +232,19 @@ export function PracticePage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                      <Music2 className="text-accent" size={24} />
+                      {instInfo ? (
+                        <span className="text-xl">{instInfo.icon}</span>
+                      ) : (
+                        <Music2 className="text-accent" size={24} />
+                      )}
                     </div>
                     <div>
                       <h3 className="text-text-primary font-medium">{song.title}</h3>
-                      <p className="text-text-secondary text-sm">{song.artist || 'Artista desconocido'}{style ? ` · ${style.name}` : ''}</p>
+                      <p className="text-text-secondary text-sm">
+                        {song.artist || 'Artista desconocido'}
+                        {style ? ` · ${style.name}` : ''}
+                        {instInfo ? ` · ${instInfo.icon} ${instInfo.label}` : ''}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">

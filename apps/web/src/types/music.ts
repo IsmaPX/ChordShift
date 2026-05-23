@@ -1,3 +1,11 @@
+export type InstrumentName = 'piano' | 'guitar' | 'trumpet'
+
+export const INSTRUMENTS: { value: InstrumentName; label: string; icon: string }[] = [
+  { value: 'piano', label: 'Piano', icon: '🎹' },
+  { value: 'guitar', label: 'Guitarra', icon: '🎸' },
+  { value: 'trumpet', label: 'Trompeta', icon: '🎺' },
+]
+
 export interface Chord {
   chord: string
   beat: number
@@ -17,6 +25,7 @@ export interface Song {
   difficulty: number
   key_signature: string
   bpm: number
+  instrument: InstrumentName
   chord_data: {
     sections: Section[]
   }
@@ -54,6 +63,7 @@ export interface UserSettings {
   notifications_enabled: boolean
   feedback_concept: 'pulse' | 'bar' | 'rings'
   xp: number
+  preferred_instrument: InstrumentName
 }
 
 export interface SongAudio {
