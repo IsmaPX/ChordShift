@@ -64,6 +64,10 @@ export interface UserSettings {
   feedback_concept: 'pulse' | 'bar' | 'rings'
   xp: number
   preferred_instrument: InstrumentName
+  metronome_enabled: boolean
+  metronome_volume: number
+  difficulty: number
+  pin_enabled: boolean
 }
 
 export interface SongAudio {

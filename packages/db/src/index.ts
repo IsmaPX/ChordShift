@@ -12,6 +12,11 @@ export interface UserSettings {
   notifications_enabled: boolean
   feedback_concept: 'pulse' | 'bar' | 'rings'
   xp: number
+  preferred_instrument: 'piano' | 'guitar' | 'trumpet'
+  metronome_enabled: boolean
+  metronome_volume: number
+  difficulty: number
+  pin_enabled: boolean
 }
 
 export interface Style {

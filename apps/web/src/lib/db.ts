@@ -12,6 +12,10 @@ const DEFAULT_SETTINGS: UserSettings = {
   feedback_concept: 'rings',
   xp: 0,
   preferred_instrument: 'piano',
+  metronome_enabled: true,
+  metronome_volume: 0.5,
+  difficulty: 1,
+  pin_enabled: false,
 }
 
 interface EarTrainingResult {
