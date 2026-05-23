@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { Music2, ChevronRight, Loader2, Search, Upload, Plus, Filter, X } from 'lucide-react'
 import { useSongs, useCreateSong, useUploadSongAudio } from '@/hooks/useSongs'
 import { useStyles } from '@/hooks/useStyles'
-import { importSong } from '@/lib/songImporter'
 import { cn } from '@/lib/utils'
 
 type Tab = 'all' | 'preset' | 'mine'
@@ -20,7 +19,6 @@ export function PracticePage() {
   const [search, setSearch] = useState('')
   const [styleFilter, setStyleFilter] = useState('')
   const [showImport, setShowImport] = useState(false)
-  const [importText, setImportText] = useState('')
   const [importAudioFile, setImportAudioFile] = useState<File | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -35,49 +33,33 @@ export function PracticePage() {
   const uploadAudio = useUploadSongAudio()
 
   const handleImport = useCallback(async () => {
-    if (!importText.trim() && !importAudioFile) return
+    if (!importAudioFile) return
     setImportError(null)
 
-    let parsed = null
-    if (importText.trim()) {
-      parsed = importSong(importText)
-      if (!parsed) {
-        setImportError('No se pudo interpretar el formato. Usa ChordPro o formato simple.')
-        return
-      }
-    }
-
-    const title = parsed?.title || (importAudioFile ? importAudioFile.name.replace(/\.[^/.]+$/, '') : '')
-    if (!title) {
-      setImportError('Debes ingresar un título o un archivo de audio.')
-      return
-    }
+    const title = importAudioFile.name.replace(/\.[^/.]+$/, '')
 
     try {
       const song = await createSong.mutateAsync({
         title,
-        artist: parsed?.artist || null,
-        key_signature: parsed?.key_signature || 'C',
-        bpm: parsed?.bpm || 120,
-        chord_data: parsed?.chord_data || { sections: [{ name: 'Intro', chords: [{ chord: 'C', beat: 1, duration: 4 }] }] },
+        artist: null,
+        key_signature: 'C',
+        bpm: 120,
+        chord_data: { sections: [{ name: 'Intro', chords: [{ chord: 'C', beat: 1, duration: 4 }] }] },
         style_id: styleFilter || styles?.[0]?.id || crypto.randomUUID(),
         difficulty: 1,
         is_published: false,
         created_at: new Date().toISOString(),
       })
 
-      if (importAudioFile) {
-        await uploadAudio.mutateAsync({ song_id: song.id, file: importAudioFile })
-      }
+      await uploadAudio.mutateAsync({ song_id: song.id, file: importAudioFile })
 
       setShowImport(false)
-      setImportText('')
       setImportAudioFile(null)
       setTab('mine')
     } catch {
       setImportError('Error al guardar la canción')
     }
-  }, [importText, importAudioFile, createSong, uploadAudio, styleFilter, styles])
+  }, [importAudioFile, createSong, uploadAudio, styleFilter, styles])
 
   const handleCreate = useCallback(async () => {
     if (!newTitle.trim()) return
@@ -265,13 +247,6 @@ export function PracticePage() {
           >
             <h2 className="text-xl font-bold text-text-primary">Importar Canción</h2>
 
-            <textarea
-              value={importText}
-              onChange={e => setImportText(e.target.value)}
-              className="w-full h-48 px-4 py-3 bg-bg-card border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors font-mono text-sm"
-              placeholder={`ChordPro:\n{title: Mi Canción}\n{artist: Autor}\n{key: C}\n\n[Am]Let it [C]be, [G]let it [F]be\n\nO formato simple:\nMi Canción\nAutor\nC\n120\n| Am | C | G | F |`}
-            />
-
             <div className="border-2 border-dashed border-border rounded-xl p-4 hover:border-accent/50 transition-colors">
               {importAudioFile ? (
                 <div className="flex items-center justify-between gap-3">
@@ -314,10 +289,10 @@ export function PracticePage() {
 
             {importError && <p className="text-danger text-sm">{importError}</p>}
             <div className="flex gap-2 justify-end">
-              <button onClick={() => { setShowImport(false); setImportError(null); setImportText(''); setImportAudioFile(null) }} className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
+              <button onClick={() => { setShowImport(false); setImportError(null); setImportAudioFile(null) }} className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors">
                 Cancelar
               </button>
-              <button onClick={handleImport} disabled={(!importText.trim() && !importAudioFile) || createSong.isPending || uploadAudio.isPending} className="px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-50">
+              <button onClick={handleImport} disabled={!importAudioFile || createSong.isPending || uploadAudio.isPending} className="px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-50">
                 {createSong.isPending || uploadAudio.isPending ? 'Importando...' : 'Importar'}
               </button>
             </div>
