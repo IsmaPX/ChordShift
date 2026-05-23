@@ -25,7 +25,7 @@ export interface Song {
   difficulty: number
   key_signature: string
   bpm: number
-  instrument: InstrumentName
+  instrument?: InstrumentName
   chord_data: {
     sections: Section[]
   }

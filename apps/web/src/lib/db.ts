@@ -37,10 +37,10 @@ export class AppDatabase extends Dexie {
 
   constructor() {
     super('WorshipPianoApp')
-    this.version(1).stores({
+    this.version(2).stores({
       users: 'id, display_name, created_at, last_active',
       styles: 'id, name, difficulty',
-      songs: 'id, title, style_id, difficulty, is_published, instrument',
+      songs: 'id, title, style_id, difficulty, is_published',
       practice_sessions: 'id, user_id, song_id, started_at',
       song_audio: 'id, song_id',
       ear_training_results: 'id, user_id, exercise_type, created_at',

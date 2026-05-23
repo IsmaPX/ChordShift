@@ -1,3 +1,6 @@
+import { songsGuitar } from './songsGuitar'
+import { songsTrumpet } from './songsTrumpet'
+
 interface SeedChord {
   chord: string
   beat: number
@@ -9,11 +12,23 @@ interface SeedSection {
   chords: SeedChord[]
 }
 
-interface SeedSongData {
-  sections: SeedSection[]
+export function chords(patterns: [string, number, number][]): SeedChord[] {
+  return patterns.map(([chord, beat, duration]) => ({ chord, beat, duration }))
 }
 
-export interface SeedSong {
+export function sec(name: string, ...patterns: [string, number, number][]): SeedSection {
+  return { name, chords: chords(patterns) }
+}
+
+export function fmt(title: string, artist: string, style: string, diff: number, key: string, bpm: number, sections: SeedSection[], lyrics?: string) {
+  return {
+    id: `song-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}`,
+    title, artist, style_id: style, difficulty: diff, key_signature: key, bpm,
+    chord_data: { sections }, lyrics, is_published: true,
+  }
+}
+
+interface SeedSong {
   id: string
   title: string
   artist: string
@@ -21,53 +36,9 @@ export interface SeedSong {
   difficulty: number
   key_signature: string
   bpm: number
-  instrument: 'piano' | 'guitar' | 'trumpet'
-  chord_data: SeedSongData
+  chord_data: { sections: SeedSection[] }
   lyrics?: string
   is_published: boolean
-}
-
-export const SEED_SONGS: SeedSong[] = [
-  // =====================
-  // CLASSICAL HYMNS (40)
-  // =====================
-  ...hymns(),
-  // =====================
-  // LATIN/HISPANIC HYMNS (15)
-  // =====================
-  ...latinHymns(),
-  // =====================
-  // AFRICAN AMERICAN SPIRITUALS (15)
-  // =====================
-  ...spirituals(),
-  // =====================
-  // CHRISTMAS CAROLS (10)
-  // =====================
-  ...carols(),
-  // =====================
-  // FOLK/GOSPEL TRADITIONAL (10)
-  // =====================
-  ...folkGospel(),
-  // =====================
-  // SOAKING CONTEMPLATIVE (5)
-  // =====================
-  ...contemplative(),
-  // =====================
-  // ORIGINAL PRACTICE EXERCISES (5)
-  // =====================
-  ...exercises(),
-]
-
-function chords(patterns: [string, number, number][]): SeedChord[] {
-  return patterns.map(([chord, beat, duration]) => ({ chord, beat, duration }))
-}
-
-function sec(name: string, ...patterns: [string, number, number][]): SeedSection {
-  return { name, chords: chords(patterns) }
-}
-
-function fmt(title: string, artist: string, style: string, diff: number, key: string, bpm: number, sections: SeedSection[], lyrics?: string): SeedSong {
-  return { id: `song-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}`, title, artist, style_id: style, difficulty: diff, key_signature: key, bpm, instrument: 'piano', chord_data: { sections }, lyrics, is_published: true }
 }
 
 function hymns(): SeedSong[] {
@@ -512,3 +483,15 @@ function exercises(): SeedSong[] {
     ], 'Progresión de mass choir en Eb.\nEstilo: Gospel Coral.'),
   ]
 }
+
+export const SEED_SONGS: SeedSong[] = [
+  ...hymns(),
+  ...latinHymns(),
+  ...spirituals(),
+  ...carols(),
+  ...folkGospel(),
+  ...contemplative(),
+  ...exercises(),
+  ...songsGuitar(),
+  ...songsTrumpet(),
+]

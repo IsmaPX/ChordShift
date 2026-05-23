@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Volume2, Loader2 } from 'lucide-react'
 import { FeedbackCanvas } from '@/components/ui/FeedbackCanvas'
 import { StreakIndicator } from '@/components/ui/StreakIndicator'
-import { chordPlayer } from '@/audio/ChordPlayer'
+import { AudioEngine } from '@/audio/AudioEngine'
 import { useEarTrainingResult } from '@/hooks/useEarTrainingResult'
 import { useAddXP } from '@/hooks/useUserSettings'
 import {
@@ -45,12 +45,8 @@ export function EarTrainingPage() {
     if (!exercise || isPlaying) return
 
     setIsPlaying(true)
-    await chordPlayer.init()
-
-    for (const note of exercise.notes) {
-      chordPlayer.playChord(note, 0.8)
-      await new Promise((resolve) => setTimeout(resolve, 500))
-    }
+    AudioEngine.playChord(exercise.notes, 1.2)
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsPlaying(false)
   }

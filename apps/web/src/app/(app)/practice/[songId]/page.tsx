@@ -28,12 +28,10 @@ export function PracticePlayerPage() {
   const [instrument, setInstrument] = useState<InstrumentName>('piano')
 
   useEffect(() => {
-    if (song?.instrument) {
-      setInstrument(song.instrument)
-    } else if (userSettings?.preferred_instrument) {
+    if (userSettings?.preferred_instrument) {
       setInstrument(userSettings.preferred_instrument)
     }
-  }, [song?.instrument, userSettings?.preferred_instrument])
+  }, [userSettings?.preferred_instrument])
 
   const handleInstrumentChange = useCallback(async (newInst: InstrumentName) => {
     setInstrument(newInst)
