@@ -16,6 +16,11 @@ const DEFAULT_SETTINGS: UserSettings = {
   metronome_volume: 0.5,
   difficulty: 1,
   pin_enabled: false,
+  phone_number: '',
+  phone_verified: false,
+  reminder_time: '18:00',
+  reminder_days: [1, 3, 5],
+  last_reminder_sent: '',
 }
 
 interface EarTrainingResult {

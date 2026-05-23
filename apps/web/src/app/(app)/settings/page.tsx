@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2 } from 'lucide-react'
+import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2, Smartphone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -12,6 +12,7 @@ import {
   useClearPracticeHistory,
   useClearEarTrainingResults,
   useSetPin,
+  useSendOTP,
 } from '@/hooks/useUserSettings'
 import { useNavigate } from 'react-router'
 import { INSTRUMENTS, type InstrumentName } from '@/types/music'
@@ -64,6 +65,19 @@ export function SettingsPage() {
   const [pinMode, setPinMode] = useState<'none' | 'set' | 'change'>('none')
   const [pinValue, setPinValue] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
+
+  const [phoneInput, setPhoneInput] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpGenerated, setOtpGenerated] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [reminderHour, setReminderHour] = useState('18')
+  const [reminderMinute, setReminderMinute] = useState('00')
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 3, 5])
+  const [sendingOtp, setSendingOtp] = useState(false)
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+
+  const sendOTP = useSendOTP()
 
   const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setToastMessage(message)
@@ -174,6 +188,74 @@ export function SettingsPage() {
     } catch (err) {
       showToast('Error al eliminar PIN', 'error')
     }
+  }
+
+  useEffect(() => {
+    if (settings) {
+      setPhoneInput(settings.phone_number || '')
+      setPhoneVerified(settings.phone_verified || false)
+      if (settings.reminder_time) {
+        const [h, m] = settings.reminder_time.split(':')
+        setReminderHour(h || '18')
+        setReminderMinute(m || '00')
+      }
+      setSelectedDays(settings.reminder_days || [])
+    }
+  }, [settings])
+
+  const handleSendOTP = async () => {
+    if (phoneInput.length < 10) {
+      showToast('Ingresa un número válido con código de país', 'error')
+      return
+    }
+    setSendingOtp(true)
+    try {
+      const code = Math.floor(100000 + Math.random() * 900000).toString()
+      setOtpGenerated(code)
+      await sendOTP.mutateAsync({ phone: phoneInput, code })
+      setOtpSent(true)
+      showToast('Código enviado por WhatsApp')
+    } catch (err) {
+      showToast('Error al enviar código', 'error')
+    } finally {
+      setSendingOtp(false)
+    }
+  }
+
+  const handleVerifyOTP = () => {
+    setVerifyingOtp(true)
+    try {
+      if (otpCode === otpGenerated) {
+        setPhoneVerified(true)
+        setOtpSent(false)
+        setOtpCode('')
+        showToast('Número verificado correctamente')
+        updateSettings.mutate({ phone_number: phoneInput, phone_verified: true })
+      } else {
+        showToast('Código incorrecto', 'error')
+      }
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
+  const handleRemovePhone = () => {
+    setPhoneInput('')
+    setPhoneVerified(false)
+    setOtpSent(false)
+    setOtpCode('')
+    updateSettings.mutate({ phone_number: '', phone_verified: false })
+    showToast('Número eliminado')
+  }
+
+  const handleSaveReminderSettings = () => {
+    const time = `${reminderHour.padStart(2, '0')}:${reminderMinute.padStart(2, '0')}`
+    updateSettings.mutate({
+      reminder_time: time,
+      reminder_days: selectedDays,
+      notifications_enabled: true,
+    })
+    showToast('Configuración de recordatorios guardada')
   }
 
   if (authLoading || settingsLoading) {
@@ -404,6 +486,159 @@ export function SettingsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
+          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-accent/20">
+              <Smartphone className="text-accent" size={20} />
+            </div>
+            <h2 className="text-lg font-medium text-text-primary">Recordatorios WhatsApp</h2>
+          </div>
+
+          {!phoneVerified ? (
+            <div className="space-y-3">
+              <p className="text-text-secondary text-sm">
+                Recibe recordatorios de práctica por WhatsApp. Ingresa tu número con código de país.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  placeholder="+521234567890"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value.replace(/[^0-9+]/g, ''))}
+                  className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendOTP}
+                  disabled={sendingOtp || phoneInput.length < 10}
+                  className="px-4 py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+                >
+                  {sendingOtp ? <Loader2 className="animate-spin" size={18} /> : 'Enviar código'}
+                </button>
+              </div>
+
+              {otpSent && (
+                <div className="space-y-2">
+                  <p className="text-text-secondary text-sm">
+                    Ingresa el código de 6 dígitos que recibiste por WhatsApp
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                      className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyOTP}
+                      disabled={verifyingOtp || otpCode.length < 6}
+                      className="px-4 py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50"
+                    >
+                      {verifyingOtp ? <Loader2 className="animate-spin" size={18} /> : 'Verificar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-success/10 border border-success/20">
+                <div>
+                  <p className="text-text-primary text-sm font-medium">Número verificado</p>
+                  <p className="text-success text-sm">{phoneInput}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemovePhone}
+                  className="p-2 rounded-lg text-danger hover:bg-danger/10 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-text-primary text-sm mb-2">
+                  Hora del recordatorio
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={reminderHour}
+                    onChange={(e) => setReminderHour(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <option key={i} value={String(i).padStart(2, '0')}>
+                        {String(i).padStart(2, '0')}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="flex items-center text-text-secondary">:</span>
+                  <select
+                    value={reminderMinute}
+                    onChange={(e) => setReminderMinute(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
+                  >
+                    {['00', '15', '30', '45'].map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-text-primary text-sm mb-2">
+                  Días de la semana
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { n: 0, label: 'Dom' },
+                    { n: 1, label: 'Lun' },
+                    { n: 2, label: 'Mar' },
+                    { n: 3, label: 'Mié' },
+                    { n: 4, label: 'Jue' },
+                    { n: 5, label: 'Vie' },
+                    { n: 6, label: 'Sáb' },
+                  ].map(({ n, label }) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDays((prev) =>
+                          prev.includes(n) ? prev.filter((d) => d !== n) : [...prev, n]
+                        )
+                      }}
+                      className={cn(
+                        'flex-1 px-2 py-2 rounded-xl border text-xs font-medium transition-colors',
+                        selectedDays.includes(n)
+                          ? 'border-accent bg-accent/10 text-accent'
+                          : 'border-border text-text-secondary hover:border-accent/50'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveReminderSettings}
+                className="w-full py-2.5 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors text-sm"
+              >
+                Guardar horario
+              </button>
+            </div>
+          )}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
           className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
         >
           <div className="flex items-center gap-3 mb-4">

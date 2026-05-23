@@ -36,7 +36,7 @@ describe('useAuth', () => {
 
   it('returns authenticated state when active profile exists', async () => {
     const id = crypto.randomUUID()
-        await db.users.add({ id, display_name: 'Existing', pin_hash: null, settings: { tempo_bpm: 120, language: 'es', notifications_enabled: true, feedback_concept: 'rings', xp: 0, preferred_instrument: 'piano', metronome_enabled: true, metronome_volume: 0.5, difficulty: 1, pin_enabled: false }, created_at: new Date().toISOString(), last_active: null })
+        await db.users.add({ id, display_name: 'Existing', pin_hash: null, settings: { tempo_bpm: 120, language: 'es', notifications_enabled: true, feedback_concept: 'rings', xp: 0, preferred_instrument: 'piano', metronome_enabled: true, metronome_volume: 0.5, difficulty: 1, pin_enabled: false, phone_number: '', phone_verified: false, reminder_time: '18:00', reminder_days: [1, 3, 5], last_reminder_sent: '' }, created_at: new Date().toISOString(), last_active: null })
     localStorage.setItem('worship_piano_active_profile', id)
 
     const { result } = renderHook(() => useAuth(), { wrapper })

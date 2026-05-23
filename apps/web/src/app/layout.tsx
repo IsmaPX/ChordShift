@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router'
 import { AudioGate } from '@/components/ui/AudioGate'
+import { useWhatsAppReminder } from '@/hooks/useWhatsAppReminder'
 import { 
   Music2, 
   Brain, 
@@ -17,6 +18,8 @@ const navItems = [
 
 export function AppLayout() {
   const location = useLocation()
+
+  useWhatsAppReminder()
 
   return (
     <AudioGate>

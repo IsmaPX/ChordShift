@@ -17,6 +17,11 @@ export interface UserSettings {
   metronome_volume: number
   difficulty: number
   pin_enabled: boolean
+  phone_number: string
+  phone_verified: boolean
+  reminder_time: string
+  reminder_days: number[]
+  last_reminder_sent: string
 }
 
 export interface Style {
