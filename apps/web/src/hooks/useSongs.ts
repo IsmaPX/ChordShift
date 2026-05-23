@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { db } from '@/lib/db'
-import type { Song } from '@/types/music'
+import type { Song, SongAudio } from '@/types/music'
 
 interface FetchSongsOptions {
   styleId?: string
@@ -46,6 +46,40 @@ export function useSong(songId: string) {
       return data as Song
     },
     enabled: !!songId,
+  })
+}
+
+export function useSongAudio(songId: string) {
+  return useQuery({
+    queryKey: ['song_audio', songId],
+    queryFn: async () => {
+      const results = await db.song_audio.where('song_id').equals(songId).toArray()
+      return results[0] || null
+    },
+    enabled: !!songId,
+  })
+}
+
+export function useUploadSongAudio() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (audio: { song_id: string; file: File }) => {
+      const entry: SongAudio = {
+        id: crypto.randomUUID(),
+        song_id: audio.song_id,
+        blob: audio.file,
+        name: audio.file.name,
+        size: audio.file.size,
+        type: audio.file.type,
+        created_at: new Date().toISOString(),
+      }
+      await db.song_audio.add(entry)
+      return entry
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['song_audio', data.song_id] })
+    },
   })
 }
 

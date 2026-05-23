@@ -56,6 +56,16 @@ export interface UserSettings {
   xp: number
 }
 
+export interface SongAudio {
+  id: string
+  song_id: string
+  blob: Blob
+  name: string
+  size: number
+  type: string
+  created_at: string
+}
+
 export interface PracticeSession {
   id: string
   user_id: string

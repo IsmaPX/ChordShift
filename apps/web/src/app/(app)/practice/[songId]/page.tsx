@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router'
-import { Play, Pause, RotateCcw, Loader2, Download, Trash2, Volume2 } from 'lucide-react'
+import { Play, Pause, RotateCcw, Loader2, Download, Trash2, Volume2, Music2 } from 'lucide-react'
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
-import { useSong } from '@/hooks/useSongs'
+import { useSong, useSongAudio } from '@/hooks/useSongs'
 import { usePracticeSession } from '@/hooks/usePracticeSession'
 import { useRecording } from '@/hooks/useRecording'
 import * as Tone from 'tone'
@@ -20,6 +20,18 @@ export function PracticePlayerPage() {
   const [startTime, setStartTime] = useState<number | null>(null)
 
   const recording = useRecording({ songId })
+  const { data: songAudio } = useSongAudio(songId)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (songAudio?.blob) {
+      const url = URL.createObjectURL(songAudio.blob)
+      setAudioUrl(url)
+      return () => URL.revokeObjectURL(url)
+    } else {
+      setAudioUrl(null)
+    }
+  }, [songAudio?.blob])
 
   const testSound = useCallback(async () => {
     console.log('[DEBUG] testSound clicked')
@@ -152,6 +164,18 @@ export function PracticePlayerPage() {
           <Volume2 size={20} />
         </button>
       </div>
+
+      {audioUrl && (
+        <div className="bg-bg-secondary rounded-2xl p-4 space-y-2">
+          <div className="flex items-center gap-2 text-text-secondary text-sm">
+            <Music2 size={16} />
+            <span>Audio de referencia: {songAudio?.name}</span>
+          </div>
+          <audio controls className="w-full">
+            <source src={audioUrl} type={songAudio?.type || 'audio/mpeg'} />
+          </audio>
+        </div>
+      )}
 
       <div className="bg-bg-secondary rounded-2xl p-8 space-y-8">
         <div className="flex items-center justify-between">

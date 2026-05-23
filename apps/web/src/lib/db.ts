@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Song, Style, Tip, PracticeSession, UserSettings } from '@/types/music'
+import type { Song, SongAudio, Style, Tip, PracticeSession, UserSettings } from '@/types/music'
 import type { LocalProfile } from '@/types/profile'
 import { SEED_STYLES } from '@/data/styles'
 import { SEED_TIPS } from '@/data/tips'
@@ -30,6 +30,7 @@ export class AppDatabase extends Dexie {
   styles!: Table<Style, string>
   songs!: Table<Song, string>
   practice_sessions!: Table<PracticeSession, string>
+  song_audio!: Table<SongAudio, string>
   ear_training_results!: Table<EarTrainingResult, string>
   tips!: Table<Tip, string>
 
@@ -40,6 +41,7 @@ export class AppDatabase extends Dexie {
       styles: 'id, name, difficulty',
       songs: 'id, title, style_id, difficulty, is_published',
       practice_sessions: 'id, user_id, song_id, started_at',
+      song_audio: 'id, song_id',
       ear_training_results: 'id, user_id, exercise_type, created_at',
       tips: 'id, category, style_id, difficulty_min',
     })
