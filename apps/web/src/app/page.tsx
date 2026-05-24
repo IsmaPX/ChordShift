@@ -7,7 +7,7 @@ import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'luci
 const VERSION = 'v1.0.0'
 const DL_BASE = `https://github.com/IsmaPX/ChordShift/releases/download/${VERSION}`
 const DL = {
-  win: `${DL_BASE}/Worship%20Piano%20Setup%201.0.0.exe`,
+  win: `${DL_BASE}/Worship.Piano.Setup.1.0.0.exe`,
   mac: `${DL_BASE}/Worship-Piano-1.0.0.dmg`,
   linux: `${DL_BASE}/Worship-Piano-1.0.0.AppImage`,
 }

@@ -975,7 +975,7 @@ function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; on
   const ver = 'v1.0.0'
   const base = `https://github.com/IsmaPX/ChordShift/releases/download/${ver}`
   const urls = {
-    win: `${base}/Worship%20Piano%20Setup%201.0.0.exe`,
+    win: `${base}/Worship.Piano.Setup.1.0.0.exe`,
     mac: `${base}/Worship-Piano-1.0.0.dmg`,
     linux: `${base}/Worship-Piano-1.0.0.AppImage`,
   }
