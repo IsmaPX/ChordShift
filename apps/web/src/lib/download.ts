@@ -1,8 +1,9 @@
 export function triggerDownload(url: string) {
-  const a = document.createElement('a')
-  a.href = url
-  a.style.display = 'none'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  const iframe = document.createElement('iframe')
+  iframe.style.display = 'none'
+  iframe.style.width = '0px'
+  iframe.style.height = '0px'
+  document.body.appendChild(iframe)
+  iframe.src = url
+  setTimeout(() => document.body.removeChild(iframe), 30000)
 }
