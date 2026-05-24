@@ -1,6 +1,7 @@
 appId: com.chordshift.app
 productName: Worship Piano
 copyright: Copyright © 2026 IsmaPX
+electronVersion: 33.0.0
 
 directories:
   output: release
@@ -16,6 +17,7 @@ win:
     - target: nsis
       arch: [x64]
   icon: resources/icon.png
+  sign: false
   publish:
     - provider: github
       owner: IsmaPX

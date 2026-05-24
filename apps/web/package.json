@@ -8,7 +8,7 @@
     "dev": "vite",
     "dev:electron": "cross-env VITE_ELECTRON_BUILD=true vite",
     "build": "tsc -b && vite build",
-    "build:electron": "cross-env VITE_ELECTRON_BUILD=true tsc -b && vite build",
+    "build:electron": "tsc -b && cross-env VITE_ELECTRON_BUILD=true vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
