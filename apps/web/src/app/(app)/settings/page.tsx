@@ -999,8 +999,6 @@ function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; on
 
       <a
         href={urls[os]}
-        target="_blank"
-        rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent/90 transition-colors text-sm"
       >
         <Download size={18} />
@@ -1018,7 +1016,7 @@ function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; on
       {showAll && (
         <div className="flex flex-col sm:flex-row gap-3">
           {(['win', 'mac', 'linux'] as const).map((p) => (
-            <a key={p} href={urls[p]} target="_blank" rel="noopener noreferrer"
+            <a key={p} href={urls[p]}
               className="flex items-center justify-center gap-2 flex-1 px-4 py-2 rounded-xl bg-bg-card text-text-primary border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm">
               <Download size={14} /> {t('desktop.' + ({ win: 'windows', mac: 'mac', linux: 'linux' } as const)[p])}
             </a>

@@ -172,8 +172,6 @@ export function LandingPage() {
 
             <a
               href={primaryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               onClick={() => setShowToast(true)}
               className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
             >
@@ -194,17 +192,17 @@ export function LandingPage() {
 
             {showAll && (
               <div className="flex flex-col sm:flex-row gap-3 justify-center mt-3">
-                <a href={DL.win} target="_blank" rel="noopener noreferrer"
+                <a href={DL.win}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.windows')}
                 </a>
-                <a href={DL.mac} target="_blank" rel="noopener noreferrer"
+                <a href={DL.mac}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.mac')}
                 </a>
-                <a href={DL.linux} target="_blank" rel="noopener noreferrer"
+                <a href={DL.linux}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.linux')}
