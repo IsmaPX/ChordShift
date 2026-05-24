@@ -108,6 +108,9 @@ export function useSetPin() {
 export function useSendOTP() {
   return useMutation({
     mutationFn: async ({ phone, code }: { phone: string; code: string }) => {
+      if (window.isElectron && window.electronAPI) {
+        return window.electronAPI.sendOTP(phone, code)
+      }
       const res = await fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,6 +128,9 @@ export function useSendOTP() {
 export function useSendWhatsApp() {
   return useMutation({
     mutationFn: async ({ phone, message }: { phone: string; message: string }) => {
+      if (window.isElectron && window.electronAPI) {
+        return window.electronAPI.sendWhatsApp(phone, message)
+      }
       const res = await fetch('/api/send-whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -70,6 +70,36 @@
 - **Team**: `maikel-js-projects`
 - **CI**: Automático desde `main` en GitHub. El deploy se gatilla con cada push a main.
 
+### 9. Guitar voicings incompletas para 6 acordes
+- **Problema**: `GUITAR_CHORD_VOICINGS` en `ChordPlayer.ts` faltaba para Ab, Bb, C#dim, D#dim, Eb, F#m → al seleccionar guitarra, esos acordes caían a voicings de piano (fallback).
+- **Solución**: Agregar las 6 voicings con posiciones propias de guitarra.
+- **Archivo**: `apps/web/src/audio/ChordPlayer.ts`
+
+### 10. Ear training sin soporte de instrumentos
+- **Problema**: La página de ear training usaba `AudioEngine.playChord()` directamente, sin pasar por `ChordPlayer`, y no tenía selector de instrumentos.
+- **Solución**: Agregar `InstrumentSelector`, estado `instrument` desde `preferred_instrument`, y playback instrument-aware:
+  - Piano: acorde simultáneo (igual que antes)
+  - Guitarra: usa `notesToChordSymbol()` + `ChordPlayer.getChordNotes()` para voicings auténticos
+  - Trompeta: arpegia todas las notas secuencialmente con delay de 120ms
+- **Archivos**: `apps/web/src/app/(app)/ear-training/page.tsx`, `apps/web/src/audio/ChordPlayer.ts`
+
+### 11. Función notesToChordSymbol()
+- **Problema**: El ear training genera notas MIDI raw (`['C4','E4','G4']`), no símbolos de acorde. Guitarra necesita símbolos para usar sus voicings.
+- **Solución**: Crear `notesToChordSymbol(notes: string[])` que detecta triadas (major→'', minor→'m', dim→'dim', aug→'aug') y séptimas (maj7, m7, 7, m7b5) por semitonos desde la raíz.
+- **Archivo**: `apps/web/src/audio/ChordPlayer.ts`
+
+### 12. ExerciseGenerator expandido
+- **Problema**: Solo 7 raíces diatónicas (C-B) y 8 intervalos; faltaban cromáticas e intervalos como tritone, minor_2nd, minor_6th, major_7th.
+- **Solución**: ROOTS ahora tiene 12 notas (incluye C#, Eb, F#, Ab, Bb). INTERVALS incluye minor_2nd(1), tritone(6), minor_6th(8), major_7th(11). Se agregó campo `root` al `Exercise` type.
+- **Archivos**: `apps/web/src/audio/ExerciseGenerator.ts`, `apps/web/src/types/music.ts`
+
+## Flujo de Deploy
+- Push a `main` → GitHub Actions (`ci.yml` + `deploy.yml`).
+- `ci.yml`: typecheck → lint → test → build (jobs secuenciales).
+- `deploy.yml`: build con `VITE_APP_ENV=production` → `vercel --prod` en `apps/web`.
+- El backend son 2 serverless functions (`api/send-whatsapp.ts`, `api/send-otp.ts`) que se deployan junto con el frontend.
+- Variables de entorno requeridas en Vercel para WhatsApp real: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`.
+
 ### 9. IndexedDB no accesible desde serverless
 - **Problema**: Serverless functions en Vercel no pueden leer IndexedDB (solo existe en el browser).
 - **Solución**: Cualquier lógica que necesite datos locales (ej: reminder checks) debe ejecutarse en hooks del lado cliente.
@@ -109,14 +139,42 @@
 - **CI**: Automático desde `main` en GitHub. El deploy se gatilla con cada push a main.
 - **Env vars requeridas para WhatsApp**: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
 
+## Electron Desktop
+- **Stack**: Electron 33 + Vite 6 (`vite-plugin-electron`) + electron-builder + electron-updater
+- **Main process**: `apps/web/electron/main.ts` — BrowserWindow 1200×800, menú, CSP, dev/prod load
+- **Preload**: `apps/web/electron/preload.ts` — contextBridge expone `window.electronAPI` + `window.isElectron`
+- **IPC Twilio**: `apps/web/electron/ipc-handlers.ts` — handlers `send-otp` y `send-whatsapp` (migrados de serverless)
+- **Auto-update**: `apps/web/electron/updater.ts` — electron-updater con GitHub Releases (check a los 5s de inicio)
+- **Detección en renderer**: `window.isElectron` (booleano) + `window.electronAPI` (objeto con métodos)
+- **Fallback**: Si no está en Electron, las llamadas OTP/WhatsApp usan `fetch()` al serverless de Vercel (comportamiento original)
+- **Service Worker**: Se salta si `window.isElectron === true`
+- **Comandos**:
+  - `npm run dev:electron` — Dev con hot reload + Electron
+  - `npm run build:electron` — Build para Electron
+  - `npm run dist:win` — Build + empaquetado Windows (NSIS)
+  - `npm run dist:mac` — Build + empaquetado macOS (DMG)
+  - `npm run dist:linux` — Build + empaquetado Linux (AppImage/deb)
+  - `npm run release` — Build + publish a GitHub Releases
+- **Release CI**: `.github/workflows/release.yml` — manual `workflow_dispatch` para Win/Mac/Linux
+- **Actualizaciones**: electron-updater busca nuevos releases en `IsmaPX/ChordShift` en GitHub
+- **Iconos**: Espera `apps/web/resources/icon.png` (PNG 512×512 para electron-builder)
+
 ## Estructura de Archivos Relevante
 ```
 apps/web/
 ├── api/
 │   ├── send-whatsapp.ts     # Serverless: enviar WhatsApp via Twilio
 │   └── send-otp.ts          # Serverless: enviar OTP via Twilio
+├── electron/
+│   ├── main.ts              # Main process (BrowserWindow, menú, IPC, seguridad)
+│   ├── preload.ts           # Context bridge (electronAPI + isElectron)
+│   ├── ipc-handlers.ts      # Twilio IPC handlers (send-otp, send-whatsapp)
+│   └── updater.ts           # Auto-update con electron-updater
+├── electron-builder.yml     # Packaging config (Win/Mac/Linux)
+├── resources/               # Iconos para empaquetado desktop
 ├── vercel.json               # Rewrites SPA + exclusión /api/*
 └── src/
+    ├── electron.d.ts        # Tipos globales Window.isElectron + Window.electronAPI
     ├── audio/
     │   ├── AudioEngine.ts       # Singleton de Tone.js (synth, reverb, recorder)
     │   ├── ChordPlayer.ts       # Mapeo acorde → notas MIDI + reproducción
@@ -124,13 +182,13 @@ apps/web/
     ├── hooks/
     │   ├── useAudio.ts          # Hook básico playNote/playChord/stop
     │   ├── useRecording.ts      # Hook de grabación con auto-descarga
-    │   ├── useUserSettings.ts   # CRUD settings + phone/OTP/WhatsApp hooks
+    │   ├── useUserSettings.ts   # CRUD settings + phone/OTP/WhatsApp hooks (+ IPC fallback)
     │   └── useWhatsAppReminder.ts # Reminder check al abrir app
     ├── components/ui/
     │   ├── Toast.tsx            # Toast animado con auto-dismiss
     │   └── ConfirmModal.tsx     # Modal de confirmación animado
     ├── app/(app)/settings/
-    │   └── page.tsx             # Settings completo (PIN, metrónomo, dificultad, WhatsApp, datos)
+    │   └── page.tsx             # Settings completo (+ sección auto-update si isElectron)
     ├── lib/
     │   └── db.ts                # Dexie schema (tablas y versiones)
     └── types/

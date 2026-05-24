@@ -1,0 +1,50 @@
+appId: com.chordshift.app
+productName: Worship Piano
+copyright: Copyright © 2026 IsmaPX
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: resources/icon.png
+  publish:
+    - provider: github
+      owner: IsmaPX
+      repo: ChordShift
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: resources/icon.png
+  publish:
+    - provider: github
+      owner: IsmaPX
+      repo: ChordShift
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  icon: resources/icon.png
+  publish:
+    - provider: github
+      owner: IsmaPX
+      repo: ChordShift
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
