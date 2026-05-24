@@ -12,6 +12,12 @@ files:
   - dist-electron/**/*
   - package.json
 
+extraResources:
+  - from: ../../node_modules/twilio
+    to: node_modules/twilio
+    filter:
+      - "**/*"
+
 win:
   target:
     - target: nsis

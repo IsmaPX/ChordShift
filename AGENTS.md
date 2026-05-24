@@ -174,6 +174,27 @@
 - **Actualizaciones**: electron-updater busca nuevos releases en `IsmaPX/ChordShift` en GitHub
 - **Iconos**: Espera `apps/web/resources/icon.png` (PNG 512×512 para electron-builder)
 
+### 14. Electron packaging — files whitelist omite node_modules en monorepo
+- **Problema**: `electron-builder.yml` usaba `files: [dist/**, dist-electron/**, package.json]` sin incluir `node_modules`. En monorepo con Turborepo, los deps están hoisted en la raíz. `twilio` está externalizado en Vite (`external: ['electron', 'twilio']`) → no se bundlea → al hacer `require('twilio')` en `ipc-handlers.ts` crashea.
+- **Solución**: Usar `extraResources` para incluir `twilio` desde la raíz del monorepo (`../../node_modules/twilio` → `node_modules/twilio`).
+- **Archivo**: `apps/web/electron-builder.yml`
+- **Patrón**:
+  ```yaml
+  extraResources:
+    - from: ../../node_modules/twilio
+      to: node_modules/twilio
+      filter: ["**/*"]
+  ```
+
+### 15. CSP en Electron — bloquea renderer en file:// protocol
+- **Problema**: `session.defaultSession.webRequest.onHeadersReceived` aplicaba CSP a TODAS las requests, incluyendo `file://`. `default-src 'self'` no siempre coincide con `file://` en Electron 33, lo que puede causar pantalla en blanco.
+- **Solución**: Condicionar CSP solo a requests HTTP/HTTPS. Agregar `'unsafe-eval'` a `script-src` para compatibilidad.
+- **Archivo**: `apps/web/electron/main.ts`
+- **Patrón**:
+  ```ts
+  if (!url.startsWith('http')) { callback({ responseHeaders }) }
+  ```
+
 ## Estructura de Archivos Relevante
 ```
 apps/web/

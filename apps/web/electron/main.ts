@@ -61,11 +61,16 @@ function createWindow(): void {
   Menu.setApplicationMenu(menu)
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const url = details.url || ''
+    if (!url.startsWith('http')) {
+      callback({ responseHeaders: details.responseHeaders })
+      return
+    }
     callback({
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.twilio.com; media-src 'self' blob:; img-src 'self' data:; font-src 'self' data:;",
+          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.twilio.com; media-src 'self' blob:; img-src 'self' data:; font-src 'self' data:;",
         ],
       },
     })
