@@ -2,6 +2,10 @@
   "name": "web",
   "version": "1.0.0",
   "private": true,
+  "author": {
+    "name": "IsmaPX",
+    "email": "ismaepx@gmail.com"
+  },
   "homepage": "https://web-maikel-js-projects.vercel.app",
   "type": "module",
   "main": "dist-electron/main.js",
