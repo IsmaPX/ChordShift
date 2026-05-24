@@ -28,6 +28,7 @@ win:
     - provider: github
       owner: IsmaPX
       repo: ChordShift
+      draft: false
 
 mac:
   target:
@@ -38,6 +39,7 @@ mac:
     - provider: github
       owner: IsmaPX
       repo: ChordShift
+      draft: false
 
 linux:
   target:
@@ -50,6 +52,7 @@ linux:
     - provider: github
       owner: IsmaPX
       repo: ChordShift
+      draft: false
 
 nsis:
   oneClick: false
