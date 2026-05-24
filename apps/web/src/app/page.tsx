@@ -8,7 +8,7 @@ const RELEASES_URL = 'https://github.com/IsmaPX/ChordShift/releases/latest'
 export function LandingPage() {
   const { t } = useTranslation()
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-bg-primary flex flex-col overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 text-accent/5">
           <Music3 size={120} />
