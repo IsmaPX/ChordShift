@@ -47,6 +47,7 @@ export interface Exercise {
   notes: string[]
   answer: string
   options: string[]
+  root: string
 }
 
 export interface Tip {

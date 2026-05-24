@@ -1,11 +1,13 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Volume2, Loader2 } from 'lucide-react'
 import { FeedbackCanvas } from '@/components/ui/FeedbackCanvas'
 import { StreakIndicator } from '@/components/ui/StreakIndicator'
+import { InstrumentSelector } from '@/components/ui/InstrumentSelector'
 import { AudioEngine } from '@/audio/AudioEngine'
+import { chordPlayer, notesToChordSymbol } from '@/audio/ChordPlayer'
 import { useEarTrainingResult } from '@/hooks/useEarTrainingResult'
-import { useAddXP } from '@/hooks/useUserSettings'
+import { useAddXP, useUserSettings } from '@/hooks/useUserSettings'
 import {
   generateExercise,
   INTERVAL_KEYS,
@@ -13,7 +15,7 @@ import {
   SEVENTH_KEYS,
 } from '@/audio/ExerciseGenerator'
 import { useTranslation } from 'react-i18next'
-import type { Exercise } from '@/types/music'
+import type { Exercise, InstrumentName } from '@/types/music'
 
 type ExerciseType = 'interval' | 'triad' | 'seventh_chord'
 
@@ -32,9 +34,22 @@ export function EarTrainingPage() {
   const [xp, setXp] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [startTime, setStartTime] = useState<number | null>(null)
+  const [instrument, setInstrument] = useState<InstrumentName>('piano')
 
+  const { data: userSettings } = useUserSettings()
   const saveResult = useEarTrainingResult()
   const addXP = useAddXP()
+
+  useEffect(() => {
+    if (userSettings?.preferred_instrument) {
+      setInstrument(userSettings.preferred_instrument)
+    }
+  }, [userSettings?.preferred_instrument])
+
+  const handleInstrumentChange = useCallback(async (newInst: InstrumentName) => {
+    setInstrument(newInst)
+    await AudioEngine.setInstrument(newInst)
+  }, [])
 
   const loadNewExercise = useCallback(() => {
     const newExercise = generateExercise(selectedType)
@@ -43,15 +58,42 @@ export function EarTrainingPage() {
     setStartTime(Date.now())
   }, [selectedType])
 
-  const handlePlaySound = async () => {
+  const playArpeggiated = useCallback(async (notes: string[], totalDuration: number) => {
+    if (notes.length === 0) return
+    const gap = 0.12
+    const noteDuration = Math.max(totalDuration / notes.length, totalDuration - gap * (notes.length - 1))
+    for (let i = 0; i < notes.length; i++) {
+      AudioEngine.playNote(notes[i], noteDuration)
+      if (i < notes.length - 1) {
+        await new Promise((r) => setTimeout(r, gap * 1000))
+      }
+    }
+    await new Promise((r) => setTimeout(r, (totalDuration - gap * (notes.length - 1)) * 1000))
+  }, [])
+
+  const handlePlaySound = useCallback(async () => {
     if (!exercise || isPlaying) return
 
     setIsPlaying(true)
-    AudioEngine.playChord(exercise.notes, 1.2)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    if (instrument === 'trumpet') {
+      await playArpeggiated(exercise.notes, 1.5)
+    } else if (instrument === 'guitar' && exercise.notes.length >= 3) {
+      const symbol = notesToChordSymbol(exercise.notes)
+      if (symbol) {
+        await chordPlayer.playChord(symbol, 1.2, 'guitar')
+        await new Promise((r) => setTimeout(r, 1500))
+      } else {
+        AudioEngine.playChord(exercise.notes, 1.2)
+        await new Promise((r) => setTimeout(r, 1500))
+      }
+    } else {
+      AudioEngine.playChord(exercise.notes, 1.2)
+      await new Promise((r) => setTimeout(r, 1500))
+    }
 
     setIsPlaying(false)
-  }
+  }, [exercise, isPlaying, instrument, playArpeggiated])
 
   const handleAnswer = async (selectedAnswer: string) => {
     if (!exercise || isCorrect !== null) return
@@ -111,7 +153,8 @@ export function EarTrainingPage() {
         <div className="text-accent font-medium">{xp} XP</div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex gap-2 overflow-x-auto pb-2">
         {(['interval', 'triad', 'seventh_chord'] as ExerciseType[]).map((type) => (
           <button
             key={type}
@@ -128,6 +171,10 @@ export function EarTrainingPage() {
             {t('earTraining.' + type)}
           </button>
         ))}
+      </div>
+        <div className="flex-shrink-0">
+          <InstrumentSelector value={instrument} onChange={handleInstrumentChange} size="sm" />
+        </div>
       </div>
 
       <div className="bg-bg-secondary rounded-2xl p-8 space-y-8">

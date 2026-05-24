@@ -63,24 +63,92 @@ const CHORD_ROOTS: Record<string, string> = {
 
 const GUITAR_CHORD_VOICINGS: Record<string, string[]> = {
   'A': ['A3', 'E4', 'A4', 'C#5'],
-  'Am': ['A3', 'E4', 'A4', 'C5'],
   'A7': ['A3', 'E4', 'G4', 'C#5'],
+  'Ab': ['Ab3', 'C4', 'Eb4', 'Ab4'],
+  'Am': ['A3', 'E4', 'A4', 'C5'],
   'B': ['B3', 'F#4', 'B4', 'D#5'],
   'B7': ['B3', 'D#4', 'F#4', 'A4'],
+  'Bb': ['Bb3', 'D4', 'F4', 'Bb4'],
   'Bm': ['B3', 'F#4', 'B4', 'D5'],
   'C': ['C3', 'E3', 'G3', 'C4', 'E4'],
+  'C#dim': ['C#4', 'E4', 'G4', 'C#5'],
   'C7': ['C3', 'E3', 'G3', 'Bb3', 'C4'],
   'D': ['D3', 'F#3', 'A3', 'D4'],
+  'D#dim': ['D#4', 'F#4', 'A4', 'D#5'],
   'Dm': ['D3', 'F3', 'A3', 'D4'],
   'D7': ['D3', 'F#3', 'A3', 'C4', 'D4'],
   'E': ['E3', 'B3', 'E4', 'G#4'],
   'E7': ['E3', 'B3', 'D4', 'G#4'],
+  'Eb': ['Eb3', 'G3', 'Bb3', 'Eb4'],
   'Em': ['E3', 'B3', 'E4', 'G4'],
   'F': ['F3', 'A3', 'C4', 'F4'],
+  'F#m': ['F#3', 'A3', 'C#4', 'F#4'],
   'Fm': ['F3', 'Ab3', 'C4', 'F4'],
   'G': ['G3', 'B3', 'D4', 'G4'],
   'G7': ['G3', 'B3', 'D4', 'F4', 'G4'],
   'Gm': ['G3', 'Bb3', 'D4', 'G4'],
+}
+
+const NOTE_TO_SEMITONE: Record<string, number> = {
+  'C': 0, 'C#': 1, 'Db': 1,
+  'D': 2, 'D#': 3, 'Eb': 3,
+  'E': 4, 'Fb': 4,
+  'F': 5, 'F#': 6, 'Gb': 6,
+  'G': 7, 'G#': 8, 'Ab': 8,
+  'A': 9, 'A#': 10, 'Bb': 10,
+  'B': 11, 'Cb': 11,
+}
+
+function noteNameWithoutOctave(note: string): string {
+  return note.replace(/\d+$/, '')
+}
+
+function semitonesFromRoot(notes: string[]): number[] {
+  if (notes.length === 0) return []
+  const rootName = noteNameWithoutOctave(notes[0])
+  const rootSemitone = NOTE_TO_SEMITONE[rootName] ?? 0
+  const semitones = new Set<number>()
+  for (const note of notes) {
+    const name = noteNameWithoutOctave(note)
+    const semitone = (NOTE_TO_SEMITONE[name] ?? 0) - rootSemitone
+    semitones.add(((semitone % 12) + 12) % 12)
+  }
+  return [...semitones].sort((a, b) => a - b)
+}
+
+const TRIAD_PATTERNS: Record<string, string> = {
+  '0,4,7': '',
+  '0,3,7': 'm',
+  '0,3,6': 'dim',
+  '0,4,8': 'aug',
+}
+
+const SEVENTH_PATTERNS: Record<string, string> = {
+  '0,3,7,10': 'm7',
+  '0,4,7,10': '7',
+  '0,4,7,11': 'maj7',
+  '0,3,6,10': 'm7b5',
+}
+
+export function notesToChordSymbol(notes: string[]): string | null {
+  if (notes.length === 2) return null
+  const intervals = semitonesFromRoot(notes)
+  const key = intervals.join(',')
+  const rootName = noteNameWithoutOctave(notes[0])
+
+  if (notes.length === 3) {
+    const suffix = TRIAD_PATTERNS[key]
+    if (suffix !== undefined) return rootName + suffix
+    return null
+  }
+
+  if (notes.length === 4) {
+    const suffix = SEVENTH_PATTERNS[key]
+    if (suffix !== undefined) return rootName + suffix
+    return null
+  }
+
+  return null
 }
 
 export class ChordPlayer {

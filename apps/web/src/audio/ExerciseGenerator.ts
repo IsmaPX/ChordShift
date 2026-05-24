@@ -1,16 +1,20 @@
 import * as Tone from 'tone'
 import type { Exercise } from '@/types/music'
 
-const ROOTS = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4']
+const ROOTS = ['C4', 'C#4', 'D4', 'Eb4', 'E4', 'F4', 'F#4', 'G4', 'Ab4', 'A4', 'Bb4', 'B4']
 
 const INTERVALS: Record<string, number> = {
+  'minor_2nd': 1,
   'major_2nd': 2,
   'minor_3rd': 3,
   'major_3rd': 4,
   'perfect_4th': 5,
+  'tritone': 6,
   'perfect_5th': 7,
+  'minor_6th': 8,
   'major_6th': 9,
   'minor_7th': 10,
+  'major_7th': 11,
   'octave': 12,
 }
 
@@ -46,6 +50,7 @@ export function generateIntervalExercise(): Exercise {
     notes: [root, upper],
     answer: name,
     options: Object.keys(INTERVALS),
+    root,
   }
 }
 
@@ -64,6 +69,7 @@ export function generateTriadExercise(): Exercise {
     notes,
     answer: quality,
     options: TRIAD_QUALITIES,
+    root,
   }
 }
 
@@ -82,6 +88,7 @@ export function generateSeventhChordExercise(): Exercise {
     notes,
     answer: quality,
     options: SEVENTH_QUALITIES,
+    root,
   }
 }
 
@@ -97,13 +104,17 @@ export function generateExercise(type: 'interval' | 'triad' | 'seventh_chord'): 
 }
 
 export const INTERVAL_KEYS: Record<string, string> = {
+  'minor_2nd': 'interval.minor_2nd',
   'major_2nd': 'interval.major_2nd',
   'minor_3rd': 'interval.minor_3rd',
   'major_3rd': 'interval.major_3rd',
   'perfect_4th': 'interval.perfect_4th',
+  'tritone': 'interval.tritone',
   'perfect_5th': 'interval.perfect_5th',
+  'minor_6th': 'interval.minor_6th',
   'major_6th': 'interval.major_6th',
   'minor_7th': 'interval.minor_7th',
+  'major_7th': 'interval.major_7th',
   'octave': 'interval.octave',
 }
 
