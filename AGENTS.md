@@ -93,6 +93,21 @@
 - **Solución**: ROOTS ahora tiene 12 notas (incluye C#, Eb, F#, Ab, Bb). INTERVALS incluye minor_2nd(1), tritone(6), minor_6th(8), major_7th(11). Se agregó campo `root` al `Exercise` type.
 - **Archivos**: `apps/web/src/audio/ExerciseGenerator.ts`, `apps/web/src/types/music.ts`
 
+### 13. Botón de descarga de escritorio — sin abrir nueva pestaña
+- **Problema**: Los botones "Descargar para Windows/macOS/Linux" en landing y settings abrían una nueva pestaña hacia GitHub Releases. El usuario debía quedarse en la misma página.
+- **Intentos fallidos (no repetir)**:
+  1. `<button onClick → triggerDownload(url)>` con `<a>` temporal → el navegador no descarga cross-origin sin `target="_blank"` (navega en lugar de descargar)
+  2. Hidden iframe → GitHub CDN bloquea con `X-Frame-Options: DENY` y `CSP: frame-ancestors 'none'`
+  3. `fetch()` + blob → GitHub CDN no envía cabeceras CORS
+- **Solución**: `<a href={url}>` sin `target`, sin `rel="noopener noreferrer"`, sin JavaScript. El navegador recibe `Content-Type: application/octet-stream` y descarga automáticamente sin navegar ni abrir pestañas.
+- **Precondición crítica**: El release en GitHub debe estar **publicado** (`draft: false`). Releases en draft (`gh release view <tag> --json isDraft` → `true`) bloquean descargas a no-colaboradores (redirigen a login/404). Verificar con `curl -I -L <url>` que el status final sea `200` con `Content-Type: application/octet-stream`.
+- **Regla**: Para descargar assets de GitHub Releases desde el browser, usar `<a href={url}>` plano. NO usar: `target="_blank"`, `download=""`, `window.open()`, iframes, fetch, blob, ni ningún JavaScript intermedio. Si no funciona, el release probablemente está en draft o el asset no existe.
+- **Archivos**: `apps/web/src/app/page.tsx`, `apps/web/src/app/(app)/settings/page.tsx`
+- **Patrón correcto**:
+  ```tsx
+  <a href={url} className="...">Descargar</a>
+  ```
+
 ## Flujo de Deploy
 - Push a `main` → GitHub Actions (`ci.yml` + `deploy.yml`).
 - `ci.yml`: typecheck → lint → test → build (jobs secuenciales).
