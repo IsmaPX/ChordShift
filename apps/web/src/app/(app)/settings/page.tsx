@@ -921,10 +921,63 @@ export function SettingsPage() {
         </motion.div>
       )}
 
+      {!window.isElectron && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-accent/20">
+              <Download className="text-accent" size={20} />
+            </div>
+            <div>
+              <p className="text-text-primary font-medium">{t('desktop.title')}</p>
+              <p className="text-text-secondary text-sm">{t('desktop.desc')}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a
+              href="https://github.com/IsmaPX/ChordShift/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 flex-1 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent/90 transition-colors text-sm"
+            >
+              <Download size={16} />
+              {t('desktop.windows')}
+            </a>
+            <a
+              href="https://github.com/IsmaPX/ChordShift/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 flex-1 px-4 py-2 rounded-xl bg-bg-card text-text-primary border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm"
+            >
+              <Download size={16} />
+              {t('desktop.mac')}
+            </a>
+            <a
+              href="https://github.com/IsmaPX/ChordShift/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 flex-1 px-4 py-2 rounded-xl bg-bg-card text-text-primary border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm"
+            >
+              <Download size={16} />
+              {t('desktop.linux')}
+            </a>
+          </div>
+
+          <p className="text-text-secondary text-xs text-center">
+            {t('desktop.benefits')}
+          </p>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.35 }}
         className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
       >
         <div className="flex items-center gap-3">

@@ -1,8 +1,12 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
-import { Music2, Music3, Headphones } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Music2, Music3, Headphones, Download, Monitor } from 'lucide-react'
+
+const RELEASES_URL = 'https://github.com/IsmaPX/ChordShift/releases/latest'
 
 export function LandingPage() {
+  const { t } = useTranslation()
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col overflow-hidden">
       <div className="fixed inset-0 pointer-events-none">
@@ -122,6 +126,57 @@ export function LandingPage() {
               </div>
             )
           })}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="mt-16 mb-16 max-w-lg mx-auto w-full"
+        >
+          <div className="bg-bg-card rounded-2xl border border-border p-8 text-center">
+            <div className="p-3 rounded-xl bg-accent/20 w-fit mx-auto mb-4">
+              <Monitor className="text-accent" size={28} />
+            </div>
+            <h2 className="text-xl font-bold text-text-primary mb-2">
+              {t('desktop.title')}
+            </h2>
+            <p className="text-text-secondary text-sm mb-4">
+              {t('desktop.desc')}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+              <a
+                href={RELEASES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-white font-medium rounded-xl hover:bg-accent-hover glow-green transition-all text-sm"
+              >
+                <Download size={16} />
+                {t('desktop.windows')}
+              </a>
+              <a
+                href={RELEASES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm"
+              >
+                <Download size={16} />
+                {t('desktop.mac')}
+              </a>
+              <a
+                href={RELEASES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm"
+              >
+                <Download size={16} />
+                {t('desktop.linux')}
+              </a>
+            </div>
+            <p className="text-text-secondary text-xs">
+              {t('desktop.benefits')}
+            </p>
+          </div>
         </motion.div>
       </main>
     </div>

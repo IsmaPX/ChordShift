@@ -189,5 +189,13 @@
     "thu": "Jue",
     "fri": "Vie",
     "sat": "Sáb"
+  },
+  "desktop": {
+    "title": "App de Escritorio",
+    "desc": "Descarga Worship Piano como aplicación nativa. Sin conexión, notificaciones y más.",
+    "windows": "Descargar para Windows",
+    "mac": "Descargar para macOS",
+    "linux": "Descargar para Linux",
+    "benefits": "Sin conexión • Notificaciones nativas • Atajos de teclado"
   }
 }
