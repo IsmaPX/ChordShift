@@ -40,6 +40,7 @@ export default defineConfig(async () => {
   }
 
   return {
+    base: process.env.VITE_ELECTRON_BUILD === 'true' ? './' : '/',
     plugins,
     resolve: {
       alias: {

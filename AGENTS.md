@@ -195,6 +195,15 @@
   if (!url.startsWith('http')) { callback({ responseHeaders }) }
   ```
 
+### 16. Vite base path — rutas absolutas rompen renderer en Electron
+- **Problema**: Vite genera `src="/assets/index-xxx.js"` (ruta absoluta desde la raíz). En Electron con `loadFile()` (protocolo `file://`), el browser intenta resolver como `file:///C:/assets/...` → no encuentra el JS/CSS → renderer en blanco.
+- **Solución**: Condicionar `base` en `vite.config.ts` según `VITE_ELECTRON_BUILD`:
+  ```ts
+  base: process.env.VITE_ELECTRON_BUILD === 'true' ? './' : '/',
+  ```
+- **Archivo**: `apps/web/vite.config.ts`
+- **Verificación**: Electron build produce `dist/index.html` con `src="./assets/...`. Web build (Vercel) sigue usando `src="/assets/..."`.
+
 ## Estructura de Archivos Relevante
 ```
 apps/web/
