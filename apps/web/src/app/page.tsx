@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
+import { Toast } from '../components/ui/Toast'
 
 const VERSION = 'v1.0.0'
 const DL_BASE = `https://github.com/IsmaPX/ChordShift/releases/download/${VERSION}`
@@ -26,6 +27,7 @@ const OS_NAME: Record<string, string> = { win: 'Windows', mac: 'macOS', linux: '
 export function LandingPage() {
   const { t } = useTranslation()
   const [showAll, setShowAll] = useState(false)
+  const [showToast, setShowToast] = useState(false)
   const detectedOS = getOS()
   const primaryOS = detectedOS ?? 'win'
   const primaryUrl = DL[primaryOS]
@@ -170,6 +172,9 @@ export function LandingPage() {
 
             <a
               href={primaryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setShowToast(true)}
               className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
             >
               <Download size={18} />
@@ -189,17 +194,17 @@ export function LandingPage() {
 
             {showAll && (
               <div className="flex flex-col sm:flex-row gap-3 justify-center mt-3">
-                <a href={DL.win}
+                <a href={DL.win} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.windows')}
                 </a>
-                <a href={DL.mac}
+                <a href={DL.mac} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.mac')}
                 </a>
-                <a href={DL.linux}
+                <a href={DL.linux} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.linux')}
@@ -213,6 +218,12 @@ export function LandingPage() {
           </div>
         </motion.div>
       </main>
+
+      <Toast
+        message={t('desktop.downloadStarted')}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   )
 }

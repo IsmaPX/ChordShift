@@ -198,6 +198,7 @@
     "mac": "Download for macOS",
     "linux": "Download for Linux",
     "otherPlatforms": "Other platforms",
-    "benefits": "Offline • Native notifications • Keyboard shortcuts"
+    "benefits": "Offline • Native notifications • Keyboard shortcuts",
+    "downloadStarted": "Download started — check your downloads folder"
   }
 }

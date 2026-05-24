@@ -198,6 +198,7 @@
     "mac": "Descargar para macOS",
     "linux": "Descargar para Linux",
     "otherPlatforms": "Otras plataformas",
-    "benefits": "Sin conexión • Notificaciones nativas • Atajos de teclado"
+    "benefits": "Sin conexión • Notificaciones nativas • Atajos de teclado",
+    "downloadStarted": "Descarga iniciada — revisa tu carpeta de descargas"
   }
 }
