@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
-import { triggerDownload } from '../lib/download'
 
 const VERSION = 'v1.0.0'
 const DL_BASE = `https://github.com/IsmaPX/ChordShift/releases/download/${VERSION}`
@@ -169,14 +168,13 @@ export function LandingPage() {
               {t('desktop.desc')}
             </p>
 
-            <button
-              type="button"
-              onClick={() => triggerDownload(primaryUrl)}
+            <a
+              href={primaryUrl}
               className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
             >
               <Download size={18} />
               {t('desktop.download', { os: OS_NAME[primaryOS] })}
-            </button>
+            </a>
 
             <button
               onClick={() => setShowAll(!showAll)}
@@ -191,21 +189,21 @@ export function LandingPage() {
 
             {showAll && (
               <div className="flex flex-col sm:flex-row gap-3 justify-center mt-3">
-                <button type="button" onClick={() => triggerDownload(DL.win)}
+                <a href={DL.win}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.windows')}
-                </button>
-                <button type="button" onClick={() => triggerDownload(DL.mac)}
+                </a>
+                <a href={DL.mac}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.mac')}
-                </button>
-                <button type="button" onClick={() => triggerDownload(DL.linux)}
+                </a>
+                <a href={DL.linux}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.linux')}
-                </button>
+                </a>
               </div>
             )}
 

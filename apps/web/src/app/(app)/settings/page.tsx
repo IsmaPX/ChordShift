@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2, Smartphone, Download, RefreshCw, ChevronDown, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { triggerDownload } from '@/lib/download'
 import { useAuth } from '@/hooks/useAuth'
 import {
   useUserSettings,
@@ -998,14 +997,13 @@ function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; on
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => triggerDownload(urls[os])}
+      <a
+        href={urls[os]}
         className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent/90 transition-colors text-sm"
       >
         <Download size={18} />
         {t('desktop.download', { os: osName[os] })}
-      </button>
+      </a>
 
       <button
         onClick={onToggle}
@@ -1018,10 +1016,10 @@ function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; on
       {showAll && (
         <div className="flex flex-col sm:flex-row gap-3">
           {(['win', 'mac', 'linux'] as const).map((p) => (
-            <button key={p} type="button" onClick={() => triggerDownload(urls[p])}
+            <a key={p} href={urls[p]}
               className="flex items-center justify-center gap-2 flex-1 px-4 py-2 rounded-xl bg-bg-card text-text-primary border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm">
               <Download size={14} /> {t('desktop.' + ({ win: 'windows', mac: 'mac', linux: 'linux' } as const)[p])}
-            </button>
+            </a>
           ))}
         </div>
       )}
