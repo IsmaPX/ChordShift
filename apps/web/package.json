@@ -18,7 +18,7 @@
     "dist:mac": "electron-builder --mac --x64",
     "dist:linux": "electron-builder --linux --x64",
     "dist:all": "electron-builder --win --mac --linux --x64",
-    "release": "electron-builder --win --mac --linux --x64 --publish always"
+    "release": "electron-builder --x64 --publish always"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

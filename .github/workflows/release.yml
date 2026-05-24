@@ -52,10 +52,11 @@ jobs:
           VITE_ELECTRON_BUILD: true
 
       - name: Build and publish
-        run: npm run release
+        run: npx electron-builder --x64 --publish always
         working-directory: ./apps/web
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_WHATSAPP_NUMBER: ${{ secrets.TWILIO_WHATSAPP_NUMBER }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
