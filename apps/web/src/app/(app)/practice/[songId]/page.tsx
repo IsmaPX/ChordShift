@@ -4,6 +4,7 @@ import { Play, Pause, RotateCcw, Loader2, Download, Trash2, Volume2, Music2 } fr
 import { ChordDisplay } from '@/components/ui/ChordDisplay'
 import { InstrumentSelector } from '@/components/ui/InstrumentSelector'
 import { ChordDiagram } from '@/components/guitar/ChordDiagram'
+import { Toast } from '@/components/ui/Toast'
 import { NoteDisplay } from '@/components/trumpet/NoteDisplay'
 import { chordPlayer } from '@/audio/ChordPlayer'
 import { AudioEngine } from '@/audio/AudioEngine'
@@ -28,6 +29,7 @@ export function PracticePlayerPage() {
   const [currentChordIndex, setCurrentChordIndex] = useState(0)
   const [startTime, setStartTime] = useState<number | null>(null)
   const [instrument, setInstrument] = useState<InstrumentName>('piano')
+  const [showDownloadToast, setShowDownloadToast] = useState(false)
 
   useEffect(() => {
     if (userSettings?.preferred_instrument) {
@@ -125,6 +127,11 @@ export function PracticePlayerPage() {
     setCurrentChordIndex(0)
   }
 
+  const handleDownloadRecording = useCallback(() => {
+    recording.downloadRecording()
+    setShowDownloadToast(true)
+  }, [recording])
+
   const handleComplete = () => {
     if (song && startTime) {
       const duration = Math.floor((Date.now() - startTime) / 1000)
@@ -188,6 +195,15 @@ export function PracticePlayerPage() {
         >
           <Volume2 size={20} />
         </button>
+        {recording.recordedBlob && (
+          <button
+            onClick={handleDownloadRecording}
+            className="p-2 rounded-lg bg-accent/20 hover:bg-accent/30 text-accent transition-colors"
+            title={t('practicePlayer.downloadAudio')}
+          >
+            <Download size={20} />
+          </button>
+        )}
       </div>
 
       <div className="sm:hidden flex justify-center">
@@ -254,22 +270,13 @@ export function PracticePlayerPage() {
 
         <div className="flex items-center justify-center gap-4">
           {recording.recordedBlob ? (
-            <>
-              <button
-                onClick={recording.clearRecording}
-                className="p-4 rounded-full bg-bg-secondary border border-border hover:border-danger/50 transition-colors"
-                title={t('practicePlayer.discardRecording')}
-              >
-                <Trash2 className="text-danger" size={24} />
-              </button>
-              <button
-                onClick={recording.downloadRecording}
-                className="p-4 rounded-full bg-bg-secondary border border-border hover:border-accent/50 transition-colors"
-                title={t('practicePlayer.downloadAudio')}
-              >
-                <Download className="text-accent" size={24} />
-              </button>
-            </>
+            <button
+              onClick={recording.clearRecording}
+              className="p-4 rounded-full bg-bg-secondary border border-border hover:border-danger/50 transition-colors"
+              title={t('practicePlayer.discardRecording')}
+            >
+              <Trash2 className="text-danger" size={24} />
+            </button>
           ) : (
             <>
               <button
@@ -329,6 +336,12 @@ export function PracticePlayerPage() {
         )}
 
       </div>
+      <Toast
+        message={t('practicePlayer.downloadAudio')}
+        type="success"
+        isVisible={showDownloadToast}
+        onClose={() => setShowDownloadToast(false)}
+      />
     </div>
   )
 }
