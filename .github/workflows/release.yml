@@ -49,6 +49,7 @@ jobs:
         working-directory: ./apps/web
         env:
           VITE_APP_ENV: production
+          VITE_ELECTRON_BUILD: true
 
       - name: Build and publish
         run: npm run release

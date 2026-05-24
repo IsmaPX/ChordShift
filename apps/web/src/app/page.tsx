@@ -1,12 +1,35 @@
 import { Link } from 'react-router'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Music2, Music3, Headphones, Download, Monitor } from 'lucide-react'
+import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
 
-const RELEASES_URL = 'https://github.com/IsmaPX/ChordShift/releases/latest'
+const VERSION = 'v1.0.0'
+const DL_BASE = `https://github.com/IsmaPX/ChordShift/releases/download/${VERSION}`
+const DL = {
+  win: `${DL_BASE}/Worship-Piano-Setup-1.0.0.exe`,
+  mac: `${DL_BASE}/Worship-Piano-1.0.0.dmg`,
+  linux: `${DL_BASE}/Worship-Piano-1.0.0.AppImage`,
+}
+
+function getOS(): 'win' | 'mac' | 'linux' | null {
+  if (typeof window === 'undefined') return null
+  const ua = navigator.userAgent
+  if (ua.includes('Windows')) return 'win'
+  if (ua.includes('Mac')) return 'mac'
+  if (ua.includes('Linux')) return 'linux'
+  return null
+}
+
+const OS_NAME: Record<string, string> = { win: 'Windows', mac: 'macOS', linux: 'Linux' }
 
 export function LandingPage() {
   const { t } = useTranslation()
+  const [showAll, setShowAll] = useState(false)
+  const detectedOS = getOS()
+  const primaryOS = detectedOS ?? 'win'
+  const primaryUrl = DL[primaryOS]
+
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none">
@@ -144,36 +167,49 @@ export function LandingPage() {
             <p className="text-text-secondary text-sm mb-4">
               {t('desktop.desc')}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
-              <a
-                href={RELEASES_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-white font-medium rounded-xl hover:bg-accent-hover glow-green transition-all text-sm"
-              >
-                <Download size={16} />
-                {t('desktop.windows')}
-              </a>
-              <a
-                href={RELEASES_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm"
-              >
-                <Download size={16} />
-                {t('desktop.mac')}
-              </a>
-              <a
-                href={RELEASES_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm"
-              >
-                <Download size={16} />
-                {t('desktop.linux')}
-              </a>
-            </div>
-            <p className="text-text-secondary text-xs">
+
+            <a
+              href={primaryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
+            >
+              <Download size={18} />
+              {t('desktop.download', { os: OS_NAME[primaryOS] })}
+            </a>
+
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="flex items-center justify-center gap-1 w-full text-xs text-text-secondary hover:text-text-primary transition-colors"
+            >
+              {t('desktop.otherPlatforms')}
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${showAll ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {showAll && (
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mt-3">
+                <a href={DL.win} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                  <Download size={14} />
+                  {t('desktop.windows')}
+                </a>
+                <a href={DL.mac} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                  <Download size={14} />
+                  {t('desktop.mac')}
+                </a>
+                <a href={DL.linux} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                  <Download size={14} />
+                  {t('desktop.linux')}
+                </a>
+              </div>
+            )}
+
+            <p className="text-text-secondary text-xs mt-4">
               {t('desktop.benefits')}
             </p>
           </div>

@@ -193,9 +193,11 @@
   "desktop": {
     "title": "Desktop App",
     "desc": "Download Worship Piano as a native app. Offline, notifications, and more.",
+    "download": "Download for {{os}}",
     "windows": "Download for Windows",
     "mac": "Download for macOS",
     "linux": "Download for Linux",
+    "otherPlatforms": "Other platforms",
     "benefits": "Offline • Native notifications • Keyboard shortcuts"
   }
 }
