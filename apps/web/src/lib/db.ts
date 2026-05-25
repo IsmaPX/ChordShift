@@ -60,15 +60,15 @@ export class AppDatabase extends Dexie {
   async seedIfEmpty(): Promise<void> {
     const styleCount = await this.styles.count()
     if (styleCount === 0) {
-      await this.styles.bulkAdd(SEED_STYLES as Style[])
+      await this.styles.bulkAdd(SEED_STYLES as Style[]).catch(() => {})
     }
     const tipCount = await this.tips.count()
     if (tipCount === 0) {
-      await this.tips.bulkAdd(SEED_TIPS as Tip[])
+      await this.tips.bulkAdd(SEED_TIPS as Tip[]).catch(() => {})
     }
     const songCount = await this.songs.count()
     if (songCount === 0) {
-      await this.songs.bulkAdd(SEED_SONGS as Song[])
+      await this.songs.bulkAdd(SEED_SONGS as Song[]).catch(() => {})
     }
   }
 }
