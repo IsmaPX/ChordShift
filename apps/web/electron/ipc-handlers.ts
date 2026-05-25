@@ -1,10 +1,19 @@
 import { ipcMain } from 'electron'
+import path from 'path'
 
 function getTwilioConfig() {
   return {
     sid: process.env.TWILIO_ACCOUNT_SID,
     token: process.env.TWILIO_AUTH_TOKEN,
     from: process.env.TWILIO_WHATSAPP_NUMBER,
+  }
+}
+
+function requireTwilio() {
+  try {
+    return require(path.join(process.resourcesPath, 'node_modules/twilio'))
+  } catch {
+    return require('twilio')
   }
 }
 
@@ -15,7 +24,7 @@ export function registerIpcHandlers() {
       return { success: true, simulated: true }
     }
     try {
-      const twilio = require('twilio')
+      const twilio = requireTwilio()
       await twilio(sid, token).messages.create({
         body: `Tu código de verificación es: ${code}`,
         from: `whatsapp:${from}`,
@@ -34,7 +43,7 @@ export function registerIpcHandlers() {
       return { success: true, simulated: true }
     }
     try {
-      const twilio = require('twilio')
+      const twilio = requireTwilio()
       await twilio(sid, token).messages.create({
         body: message,
         from: `whatsapp:${from}`,

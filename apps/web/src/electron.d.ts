@@ -1,3 +1,8 @@
+interface FileFilter {
+  name: string
+  extensions: string[]
+}
+
 interface UpdateInfo {
   version: string
   releaseNotes?: string
@@ -11,6 +16,11 @@ interface ElectronAPI {
   onUpdateDownloaded(callback: () => void): () => void
   installUpdate(): void
   checkForUpdates(): void
+  onDeepLink(callback: (pathname: string) => void): () => void
+  onNavigate(callback: (pathname: string) => void): () => void
+  showNotification(title: string, body: string): Promise<void>
+  openFileDialog(filters?: FileFilter[]): Promise<string | null>
+  saveFileDialog(defaultName: string, filters?: FileFilter[]): Promise<string | null>
 }
 
 declare global {

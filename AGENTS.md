@@ -204,6 +204,49 @@
 - **Archivo**: `apps/web/vite.config.ts`
 - **Verificación**: Electron build produce `dist/index.html` con `src="./assets/...`. Web build (Vercel) sigue usando `src="/assets/..."`.
 
+### 17. NSIS installer no copia archivos sin admin (perMachine: false)
+- **Problema**: `electron-builder.yml` sin `perMachine` explicito -> default `true` -> instalador requiere admin para `C:\Program Files`. Usuario sin admin o UAC cancelado -> carpeta creada pero **vacia** -> app nunca instalada.
+- **Diagnostico**: `Test-Path "C:\Program Files\Worship Piano"` -> `True`, `Get-ChildItem` -> 0 archivos.
+- **Solucion**:
+  ```yaml
+  nsis:
+    perMachine: false
+    runAfterFinish: true
+  ```
+  Con `perMachine: false` instala en `%LOCALAPPDATA%\Programs\Worship Piano` - no requiere admin.
+- **Archivo**: `apps/web/electron-builder.yml`
+
+### 18. require('electron') dinamico en updater.ts rompe startup
+- **Problema**: `const { ipcMain } = require('electron')` dentro de `ipcMainListeners()`. `"type": "module"` -> `require` no disponible en ESM puro. Si Vite no lo transforma -> crash silencioso al arrancar.
+- **Solucion**: Importar `ipcMain` estatico: `import { BrowserWindow, ipcMain } from 'electron'`, eliminar `require` dinamico.
+- **Archivo**: `apps/web/electron/updater.ts`
+
+### 19. loadFile() sin .catch() causa unhandledRejection -> muerte silenciosa
+- **Problema**: `mainWindow.loadFile(path)` retorna Promise sin `.catch()`. Si el path es incorrecto, la Promise rechaza -> `unhandledRejection` -> Electron termina sin ventana ni error visible.
+- **Solucion**: Agregar `.catch((err) => logError('LOADFILE', err))`.
+- **Archivo**: `apps/web/electron/main.ts`
+
+### 20. Falta global error handlers en main process
+- **Problema**: Sin `process.on('uncaughtException')` ni `process.on('unhandledRejection')`, cualquier error en main process mata la app silenciosamente.
+- **Solucion**: Handlers que escriben a `worship-piano-crash.log` en `%APPDATA%` o `%TEMP%`.
+- **Archivo**: `apps/web/electron/main.ts`
+
+### 21. Sin single instance lock se abren multiples ventanas
+- **Problema**: Sin `app.requestSingleInstanceLock()`, cada ejecucion del .exe lanza una nueva instancia.
+- **Solucion**: `const gotTheLock = app.requestSingleInstanceLock()` + `app.on('second-instance', ...)`.
+- **Archivo**: `apps/web/electron/main.ts`
+
+### 22. twilio require falla en produccion (extraResources)
+- **Problema**: `extraResources` copia twilio a `resources/node_modules/twilio`, pero `require('twilio')` busca en `node_modules/twilio` -> no encuentra.
+- **Solucion**: `require(path.join(process.resourcesPath, 'node_modules/twilio'))` con fallback a `require('twilio')` en dev.
+- **Archivo**: `apps/web/electron/ipc-handlers.ts`
+
+### 23. App unsigned - SmartScreen bloquea instalacion
+- **Problema**: `sign: false` -> instalador sin firma digital -> Windows SmartScreen/Defender bloquea.
+- **Mitigacion**: `perMachine: false` evita escribir en Program Files, reduce friccion.
+- **Solucion permanente**: Adquirir certificado de firma de codigo (EV recomendado).
+- **Archivo**: `apps/web/electron-builder.yml`
+
 ## Estructura de Archivos Relevante
 ```
 apps/web/

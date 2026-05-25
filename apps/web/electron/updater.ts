@@ -1,5 +1,5 @@
 import { autoUpdater } from 'electron-updater'
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 
 export function setupAutoUpdater(mainWindow: BrowserWindow) {
   autoUpdater.autoDownload = false
@@ -35,8 +35,6 @@ export function setupAutoUpdater(mainWindow: BrowserWindow) {
 }
 
 function ipcMainListeners(mainWindow: BrowserWindow) {
-  const { ipcMain } = require('electron')
-
   ipcMain.on('install-update', () => {
     autoUpdater.quitAndInstall()
   })

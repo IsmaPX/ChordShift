@@ -7,10 +7,16 @@ directories:
   output: release
   buildResources: resources
 
+asar: false
+
+extraMetadata:
+  type: commonjs
+
 files:
   - dist/**/*
   - dist-electron/**/*
   - package.json
+  - resources/icon.png
 
 extraResources:
   - from: ../../node_modules/twilio
@@ -18,10 +24,16 @@ extraResources:
     filter:
       - "**/*"
 
+protocols:
+  - name: Worship Piano
+    schemes: [worship-piano]
+
 win:
   target:
     - target: nsis
-      arch: [x64]
+      arch: [x64, arm64]
+    - target: portable
+      arch: [x64, arm64]
   icon: resources/icon.png
   sign: false
   publish:
@@ -53,6 +65,9 @@ linux:
 
 nsis:
   oneClick: false
+  perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  runAfterFinish: true
+  shortcutName: Worship Piano

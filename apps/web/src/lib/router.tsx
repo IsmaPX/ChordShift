@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, createHashRouter } from 'react-router'
 import { AppLayout } from '../app/layout'
 import { LoginPage } from '../app/(auth)/login/page'
 import { RegisterPage } from '../app/(auth)/register/page'
@@ -9,7 +9,10 @@ import { EncyclopediaPage } from '../app/(app)/encyclopedia/page'
 import { SettingsPage } from '../app/(app)/settings/page'
 import { LandingPage } from '../app/page'
 
-export const router = createBrowserRouter([
+const isElectron = import.meta.env.VITE_ELECTRON_BUILD === 'true'
+const createRouter = isElectron ? createHashRouter : createBrowserRouter
+
+export const router = createRouter([
   {
     path: '/',
     element: <LandingPage />,

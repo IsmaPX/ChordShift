@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
 import { Toast } from '../components/ui/Toast'
+import { APP_VERSION } from '../lib/version'
 
-const VERSION = 'v1.0.2'
+const VERSION = `v${APP_VERSION}`
 const DL_BASE = `https://github.com/IsmaPX/ChordShift/releases/download/${VERSION}`
 const DL = {
-  win: `${DL_BASE}/Worship-Piano-Setup-1.0.2.exe`,
-  mac: `${DL_BASE}/Worship-Piano-1.0.2.dmg`,
-  linux: `${DL_BASE}/Worship-Piano-1.0.2.AppImage`,
+  win: `${DL_BASE}/Worship-Piano-Setup-${APP_VERSION}.exe`,
+  mac: `${DL_BASE}/Worship-Piano-${APP_VERSION}.dmg`,
+  linux: `${DL_BASE}/Worship-Piano-${APP_VERSION}.AppImage`,
 }
 
 function getOS(): 'win' | 'mac' | 'linux' | null {

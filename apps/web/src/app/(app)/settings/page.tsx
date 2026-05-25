@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2, Smartphone, Download, RefreshCw, ChevronDown, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { useAutoUpdate } from '@/hooks/useAutoUpdate'
 import {
   useUserSettings,
   useUpdateSettings,
@@ -82,33 +83,13 @@ export function SettingsPage() {
 
   const sendOTP = useSendOTP()
 
-  const [updateState, setUpdateState] = useState<'idle' | 'checking' | 'available' | 'downloading' | 'downloaded'>('idle')
-  const [updateProgress, setUpdateProgress] = useState(0)
-  const [updateVersion, setUpdateVersion] = useState('')
-
-  const handleCheckForUpdates = useCallback(() => {
-    if (window.isElectron && window.electronAPI) {
-      setUpdateState('checking')
-      window.electronAPI.checkForUpdates()
-      window.electronAPI.onUpdateAvailable((info) => {
-        setUpdateVersion(info.version)
-        setUpdateState('available')
-      })
-      window.electronAPI.onUpdateProgress((percent) => {
-        setUpdateProgress(percent)
-        setUpdateState('downloading')
-      })
-      window.electronAPI.onUpdateDownloaded(() => {
-        setUpdateState('downloaded')
-      })
-    }
-  }, [])
-
-  const handleInstallUpdate = useCallback(() => {
-    if (window.isElectron && window.electronAPI) {
-      window.electronAPI.installUpdate()
-    }
-  }, [])
+  const {
+    updateState,
+    updateProgress,
+    updateVersion,
+    handleCheckForUpdates,
+    handleInstallUpdate,
+  } = useAutoUpdate()
 
   const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setToastMessage(message)

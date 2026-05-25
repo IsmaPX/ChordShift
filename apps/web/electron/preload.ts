@@ -30,4 +30,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
   installUpdate: () => ipcRenderer.send('install-update'),
 
   checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+
+  onDeepLink: (callback: (pathname: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, pathname: string) => callback(pathname)
+    ipcRenderer.on('deep-link', handler)
+    return () => ipcRenderer.removeListener('deep-link', handler)
+  },
+
+  onNavigate: (callback: (pathname: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, pathname: string) => callback(pathname)
+    ipcRenderer.on('navigate', handler)
+    return () => ipcRenderer.removeListener('navigate', handler)
+  },
+
+  showNotification: (title: string, body: string) =>
+    ipcRenderer.invoke('show-notification', title, body),
+
+  openFileDialog: (filters?: { name: string; extensions: string[] }[]) =>
+    ipcRenderer.invoke('dialog:openFile', filters),
+
+  saveFileDialog: (defaultName: string, filters?: { name: string; extensions: string[] }[]) =>
+    ipcRenderer.invoke('dialog:saveFile', defaultName, filters),
 })
