@@ -57,6 +57,8 @@ jobs:
         run: npx electron-builder --x64 --publish always
         working-directory: ./apps/web
         env:
+          VITE_APP_ENV: production
+          VITE_ELECTRON_BUILD: true
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}

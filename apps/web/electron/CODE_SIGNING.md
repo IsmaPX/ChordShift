@@ -76,6 +76,38 @@ certutil -encode cert.pfx cert-base64.txt
 - `perMachine: false` para evitar bloqueos de SmartScreen
 - Instalador en `%LOCALAPPDATA%\Programs\Worship Piano` sin requerir admin
 
+## Troubleshooting — App no abre tras instalar
+
+### Síntoma: La instalación termina pero la app no se abre
+
+1. **Buscar crash logs**:
+   ```
+   %APPDATA%\Worship Piano\worship-piano-crash.log
+   %TEMP%\worship-piano-crash.log
+   ```
+
+2. **Ejecutar desde terminal** para ver errores:
+   ```powershell
+   & "$env:LOCALAPPDATA\Programs\Worship Piano\Worship Piano.exe"
+   ```
+
+3. **Errores comunes**:
+
+   | Error | Causa | Solución |
+   |---|---|---|
+   | `__dirname is not defined` | El `package.json` tiene `"type": "module"` pero el main.js es CJS | `extraMetadata.type: commonjs` en electron-builder.yml |
+   | Pantalla en blanco | `dist/index.html` usa rutas absolutas (`/assets/...`) en file:// | Build con `VITE_ELECTRON_BUILD=true` (base: `'./'`) |
+   | SmartScreen bloquea | .exe sin firma digital | Adquirir certificado EV o el usuario hace clic en "Ejecutar de todas formas" |
+
+4. **Verificar archivos empaquetados**:
+   ```powershell
+   # Verificar que dist/index.html tiene rutas relativas (./assets/...)
+   Get-Content "$env:LOCALAPPDATA\Programs\Worship Piano\resources\app\dist\index.html"
+   
+   # Verificar que main.js existe
+   Test-Path "$env:LOCALAPPDATA\Programs\Worship Piano\resources\app\dist-electron\main.js"
+   ```
+
 ## Referencias
 - [electron-builder — Code Signing](https://www.electron.build/code-signing)
 - [Windows Hardware Dev Center](https://partner.microsoft.com/dashboard)

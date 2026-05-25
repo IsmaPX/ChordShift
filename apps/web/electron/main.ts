@@ -6,15 +6,18 @@ import { setupAutoUpdater } from './updater'
 
 function logError(type: string, err: any) {
   try {
-    const dir = app.isReady() ? app.getPath('userData') : (process.env.TEMP || '.')
+    const dir = (typeof app !== 'undefined' && app.isReady()) ? app.getPath('userData') : (process.env.TEMP || '.')
     fs.writeFileSync(path.join(dir, 'worship-piano-crash.log'), `[${type}] ${new Date().toISOString()}\n${err?.stack || err}\n`, { flag: 'a' })
   } catch {}
 }
 
+function safeExit(code = 1) {
+  try { app.quit() } catch { process.exit(code) }
+}
+
 process.on('uncaughtException', (err) => {
   logError('FATAL', err)
-  if (app.isReady()) app.quit()
-  else process.exit(1)
+  safeExit()
 })
 
 process.on('unhandledRejection', (reason) => {
@@ -243,12 +246,14 @@ if (process.defaultApp && process.argv.length >= 2) {
 }
 
 app.whenReady().then(() => {
-  registerIpcHandlers()
-  registerNotificationHandler()
-  registerDialogHandlers()
-  createWindow()
-  createTray()
-  registerGlobalShortcuts()
+  logError('STARTUP', new Error('app started'))
+
+  try { registerIpcHandlers() } catch (err) { logError('IPC_HANDLERS', err) }
+  try { registerNotificationHandler() } catch (err) { logError('NOTIFICATION', err) }
+  try { registerDialogHandlers() } catch (err) { logError('DIALOG', err) }
+  try { createWindow() } catch (err) { logError('CREATE_WINDOW', err); return }
+  try { createTray() } catch (err) { logError('CREATE_TRAY', err) }
+  try { registerGlobalShortcuts() } catch (err) { logError('SHORTCUTS', err) }
 
   if (!isDev && mainWindow) {
     setupAutoUpdater(mainWindow)

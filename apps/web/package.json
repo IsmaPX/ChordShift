@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "pack": "electron-builder --dir",
-    "dist:win": "electron-builder --win --x64",
+    "dist:win": "npm run build:electron && electron-builder --win --x64",
     "dist:mac": "electron-builder --mac --x64",
     "dist:linux": "electron-builder --linux --x64",
     "dist:all": "electron-builder --win --mac --linux --x64",
