@@ -4,11 +4,12 @@ import fs from 'fs'
 import { registerIpcHandlers } from './ipc-handlers'
 import { setupAutoUpdater } from './updater'
 
-function logError(type: string, err: any) {
+function logError(type: string, err: unknown) {
   try {
     const dir = (typeof app !== 'undefined' && app.isReady()) ? app.getPath('userData') : (process.env.TEMP || '.')
-    fs.writeFileSync(path.join(dir, 'worship-piano-crash.log'), `[${type}] ${new Date().toISOString()}\n${err?.stack || err}\n`, { flag: 'a' })
-  } catch {}
+    const msg = err instanceof Error ? err.stack || err.message : String(err)
+    fs.writeFileSync(path.join(dir, 'worship-piano-crash.log'), `[${type}] ${new Date().toISOString()}\n${msg}\n`, { flag: 'a' })
+  } catch { /* ignore write errors */ }
 }
 
 function safeExit(code = 1) {

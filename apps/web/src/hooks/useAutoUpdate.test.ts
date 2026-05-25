@@ -11,7 +11,7 @@ const mockElectronAPI = {
 }
 
 function getCallArg<T>(mock: ReturnType<typeof vi.fn>, callIndex = 0, argIndex = 0): T {
-  return (mock.mock.calls as any)[callIndex]?.[argIndex] as T
+  return mock.mock.calls[callIndex]?.[argIndex] as T
 }
 
 beforeEach(() => {

@@ -27,8 +27,8 @@ describe('registerIpcHandlers', () => {
     const { ipcMain } = await import('electron')
     const { registerIpcHandlers: register } = await import('./ipc-handlers')
     register()
-    const handlers = new Map<string, Function>()
-    for (const call of (ipcMain.handle as any).mock.calls) {
+    const handlers = new Map<string, (...args: unknown[]) => unknown>()
+    for (const call of (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls) {
       handlers.set(call[0], call[1])
     }
     return handlers

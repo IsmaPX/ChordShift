@@ -1,5 +1,8 @@
 import { ipcMain } from 'electron'
 import path from 'path'
+import { createRequire } from 'module'
+
+const _require = createRequire(import.meta.url)
 
 function getTwilioConfig() {
   return {
@@ -11,9 +14,9 @@ function getTwilioConfig() {
 
 function requireTwilio() {
   try {
-    return require(path.join(process.resourcesPath, 'node_modules/twilio'))
+    return _require(path.join(process.resourcesPath, 'node_modules/twilio'))
   } catch {
-    return require('twilio')
+    return _require('twilio')
   }
 }
 
@@ -31,9 +34,9 @@ export function registerIpcHandlers() {
         to: `whatsapp:${phone}`,
       })
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[IPC] send-otp error:', err)
-      throw new Error(err.message || 'Failed to send OTP')
+      throw new Error((err instanceof Error ? err.message : 'Failed to send OTP'), { cause: err })
     }
   })
 
@@ -50,9 +53,9 @@ export function registerIpcHandlers() {
         to: `whatsapp:${phone}`,
       })
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[IPC] send-whatsapp error:', err)
-      throw new Error(err.message || 'Failed to send WhatsApp')
+      throw new Error((err instanceof Error ? err.message : 'Failed to send WhatsApp'), { cause: err })
     }
   })
 }

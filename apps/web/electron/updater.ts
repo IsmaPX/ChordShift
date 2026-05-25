@@ -1,5 +1,5 @@
 import { autoUpdater } from 'electron-updater'
-import { BrowserWindow, ipcMain } from 'electron'
+import { ipcMain } from 'electron'
 
 export function setupAutoUpdater(mainWindow: BrowserWindow) {
   autoUpdater.autoDownload = false
@@ -25,7 +25,7 @@ export function setupAutoUpdater(mainWindow: BrowserWindow) {
     console.error('[AutoUpdater] error:', err)
   })
 
-  ipcMainListeners(mainWindow)
+  ipcMainListeners()
 
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch((err) => {
@@ -34,13 +34,13 @@ export function setupAutoUpdater(mainWindow: BrowserWindow) {
   }, 5000)
 }
 
-function ipcMainListeners(mainWindow: BrowserWindow) {
+function ipcMainListeners() {
   ipcMain.on('install-update', () => {
     autoUpdater.quitAndInstall()
   })
 
   ipcMain.on('check-for-updates', () => {
-    autoUpdater.checkForUpdates().catch((err: any) => {
+    autoUpdater.checkForUpdates().catch((err: unknown) => {
       console.error('[AutoUpdater] manual check failed:', err)
     })
   })
