@@ -16,6 +16,7 @@ import {
   useSendOTP,
 } from '@/hooks/useUserSettings'
 import { useNavigate } from 'react-router'
+import { APP_VERSION } from '@/lib/version'
 import { INSTRUMENTS, type InstrumentName } from '@/types/music'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
@@ -950,15 +951,16 @@ export function SettingsPage() {
 
 function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; onToggle: () => void; t: (key: string, opts?: Record<string, string>) => string }) {
   const ua = navigator.userAgent
-  const detected = ua.includes('Windows') ? 'win' : ua.includes('Mac') ? 'mac' : ua.includes('Linux') ? 'linux' : null
+  const detected = ua.includes('Android') ? 'android' : ua.includes('Windows') ? 'win' : ua.includes('Mac') ? 'mac' : ua.includes('Linux') ? 'linux' : null
   const os = detected ?? 'win'
-  const osName: Record<string, string> = { win: 'Windows', mac: 'macOS', linux: 'Linux' }
-  const ver = 'v1.0.2'
+  const osName: Record<string, string> = { win: 'Windows', mac: 'macOS', linux: 'Linux', android: 'Android' }
+  const ver = `v${APP_VERSION}`
   const base = `https://github.com/IsmaPX/ChordShift/releases/download/${ver}`
   const urls = {
-    win: `${base}/Worship-Piano-Setup-1.0.2.exe`,
-    mac: `${base}/Worship-Piano-1.0.2.dmg`,
-    linux: `${base}/Worship-Piano-1.0.2.AppImage`,
+    win: `${base}/Worship-Piano-Setup-${APP_VERSION}.exe`,
+    mac: `${base}/Worship-Piano-${APP_VERSION}.dmg`,
+    linux: `${base}/Worship-Piano-${APP_VERSION}.AppImage`,
+    android: `${base}/ChordShift-${APP_VERSION}.apk`,
   }
 
   return (
@@ -1002,6 +1004,10 @@ function DesktopDownloadSection({ showAll, onToggle, t }: { showAll: boolean; on
               <Download size={14} /> {t('desktop.' + ({ win: 'windows', mac: 'mac', linux: 'linux' } as const)[p])}
             </a>
           ))}
+          <a href={urls.android}
+            className="flex items-center justify-center gap-2 flex-1 px-4 py-2 rounded-xl bg-bg-card text-text-primary border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm">
+            <Download size={14} /> Android APK
+          </a>
         </div>
       )}
 

@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
+import { Music2, Music3, Headphones, Download, Monitor, Smartphone, ChevronDown } from 'lucide-react'
 import { Toast } from '../components/ui/Toast'
 import { APP_VERSION } from '../lib/version'
 
@@ -12,18 +12,20 @@ const DL = {
   win: `${DL_BASE}/Worship-Piano-Setup-${APP_VERSION}.exe`,
   mac: `${DL_BASE}/Worship-Piano-${APP_VERSION}.dmg`,
   linux: `${DL_BASE}/Worship-Piano-${APP_VERSION}.AppImage`,
+  android: `${DL_BASE}/ChordShift-${APP_VERSION}.apk`,
 }
 
-function getOS(): 'win' | 'mac' | 'linux' | null {
+function getOS(): 'win' | 'mac' | 'linux' | 'android' | null {
   if (typeof window === 'undefined') return null
   const ua = navigator.userAgent
+  if (ua.includes('Android')) return 'android'
   if (ua.includes('Windows')) return 'win'
   if (ua.includes('Mac')) return 'mac'
   if (ua.includes('Linux')) return 'linux'
   return null
 }
 
-const OS_NAME: Record<string, string> = { win: 'Windows', mac: 'macOS', linux: 'Linux' }
+const OS_NAME: Record<string, string> = { win: 'Windows', mac: 'macOS', linux: 'Linux', android: 'Android' }
 
 export function LandingPage() {
   const { t } = useTranslation()
@@ -207,6 +209,11 @@ export function LandingPage() {
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
                   <Download size={14} />
                   {t('desktop.linux')}
+                </a>
+                <a href={DL.android}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                  <Download size={14} />
+                  Android APK
                 </a>
               </div>
             )}

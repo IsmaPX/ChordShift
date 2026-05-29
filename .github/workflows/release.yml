@@ -64,3 +64,93 @@ jobs:
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_WHATSAPP_NUMBER: ${{ secrets.TWILIO_WHATSAPP_NUMBER }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+  build-android-apk:
+    name: Build Android APK
+    needs: [release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "value=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "value=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Capacitor
+        run: npm install @capacitor/cli @capacitor/android
+        working-directory: ./apps/web
+
+      - name: Initialize Capacitor
+        run: npx cap init "ChordShift" com.chordshift.app --web-dir=dist
+        working-directory: ./apps/web
+
+      - name: Add Android platform
+        run: npx cap add android
+        working-directory: ./apps/web
+
+      - name: Build web app
+        run: npm run build
+        working-directory: ./apps/web
+        env:
+          VITE_APP_ENV: production
+
+      - name: Sync to Android
+        run: npx cap sync android
+        working-directory: ./apps/web
+
+      - name: Fix Kotlin stdlib conflict
+        run: |
+          echo "" >> android/app/build.gradle
+          echo "configurations.all {" >> android/app/build.gradle
+          echo "    resolutionStrategy {" >> android/app/build.gradle
+          echo "        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'" >> android/app/build.gradle
+          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'" >> android/app/build.gradle
+          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'" >> android/app/build.gradle
+          echo "    }" >> android/app/build.gradle
+          echo "}" >> android/app/build.gradle
+        working-directory: ./apps/web
+
+      - name: Build APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+        working-directory: ./apps/web
+
+      - name: Rename APK
+        run: |
+          mv android/app/build/outputs/apk/debug/app-debug.apk \
+             ChordShift-${{ steps.version.outputs.value }}.apk
+        working-directory: ./apps/web
+
+      - name: Upload APK to Release
+        run: |
+          gh release upload v${{ steps.version.outputs.value }} \
+            ./apps/web/ChordShift-${{ steps.version.outputs.value }}.apk \
+            --repo IsmaPX/ChordShift --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
