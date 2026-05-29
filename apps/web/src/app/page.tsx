@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Music2, Music3, Headphones, Download, Monitor, Smartphone, ChevronDown } from 'lucide-react'
+import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
 import { Toast } from '../components/ui/Toast'
 import { APP_VERSION } from '../lib/version'
 
