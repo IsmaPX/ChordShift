@@ -84,6 +84,18 @@ jobs:
         run: npx cap sync android
         working-directory: ./apps/web
 
+      - name: Fix Kotlin stdlib conflict
+        run: |
+          echo "" >> android/app/build.gradle
+          echo "configurations.all {" >> android/app/build.gradle
+          echo "    resolutionStrategy {" >> android/app/build.gradle
+          echo "        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'" >> android/app/build.gradle
+          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'" >> android/app/build.gradle
+          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'" >> android/app/build.gradle
+          echo "    }" >> android/app/build.gradle
+          echo "}" >> android/app/build.gradle
+        working-directory: ./apps/web
+
       - name: Build APK
         run: |
           cd android
