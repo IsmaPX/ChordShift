@@ -189,7 +189,7 @@ export function SettingsPage() {
       setPinMode('none')
       setPinValue('')
       setPinConfirm('')
-    } catch (err) {
+    } catch {
       showToast(t('settings.pinError'), 'error')
     }
   }
@@ -198,7 +198,7 @@ export function SettingsPage() {
     try {
       await setPin.mutateAsync(null)
       showToast(t('settings.pinRemoved'))
-    } catch (err) {
+    } catch {
       showToast(t('settings.pinRemoveError'), 'error')
     }
   }
@@ -228,7 +228,7 @@ export function SettingsPage() {
       await sendOTP.mutateAsync({ phone: phoneInput, code })
       setOtpSent(true)
       showToast(t('settings.whatsappCodeSent'))
-    } catch (err) {
+    } catch {
       showToast(t('settings.whatsappCodeError'), 'error')
     } finally {
       setSendingOtp(false)

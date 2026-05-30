@@ -24,6 +24,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('send-otp', async (_event, phone: string, code: string) => {
     const { sid, token, from } = getTwilioConfig()
     if (!sid || !token || !from) {
+      console.warn('[IPC] send-otp simulated: missing Twilio credentials')
       return { success: true, simulated: true }
     }
     try {
@@ -43,6 +44,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('send-whatsapp', async (_event, phone: string, message: string) => {
     const { sid, token, from } = getTwilioConfig()
     if (!sid || !token || !from) {
+      console.warn('[IPC] send-whatsapp simulated: missing Twilio credentials')
       return { success: true, simulated: true }
     }
     try {

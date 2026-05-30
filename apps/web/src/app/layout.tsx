@@ -9,6 +9,8 @@ import {
   Piano,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { motion, AnimatePresence } from 'framer-motion'
+import { layoutTransitions } from '@/lib/animations'
 
 export function AppLayout() {
   const { t } = useTranslation()
@@ -31,10 +33,14 @@ export function AppLayout() {
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-3 group">
-                  <div className="relative">
+                  <motion.div 
+                    className="relative"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
                     <Piano className="text-accent group-hover:text-accent-hover transition-colors" size={26} />
                     <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent animate-pulse" />
-                  </div>
+                  </motion.div>
                   <span className="text-text-primary font-semibold hidden sm:block tracking-tight">
                     <span className="text-gradient-green">Worship</span> Piano
                   </span>
@@ -56,7 +62,12 @@ export function AppLayout() {
                         }`}
                         aria-label={item.label}
                       >
-                        <Icon size={22} />
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Icon size={22} />
+                        </motion.div>
                       </Link>
                     )
                   })}
@@ -66,7 +77,18 @@ export function AppLayout() {
           </header>
 
           <main className="flex-1 container mx-auto px-4 py-6">
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                variants={layoutTransitions}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
 
           <nav className="sticky bottom-0 z-40 bg-bg-primary/80 backdrop-blur-lg border-t border-border sm:hidden">
@@ -85,7 +107,11 @@ export function AppLayout() {
                         : 'text-text-secondary'
                     }`}
                   >
-                    <Icon size={20} />
+                    <motion.div
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Icon size={20} />
+                    </motion.div>
                     <span className="text-xs">{item.label}</span>
                   </Link>
                 )

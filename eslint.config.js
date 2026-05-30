@@ -15,7 +15,7 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-redeclare': 'off',
-      'no-console': 'off',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'off',
     },
   }

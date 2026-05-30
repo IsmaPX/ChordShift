@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { popIn } from '@/lib/animations'
 
 interface ChordDisplayProps {
   chord: string
@@ -10,12 +11,15 @@ interface ChordDisplayProps {
 export function ChordDisplay({ chord, isActive = false, className }: ChordDisplayProps) {
   return (
     <motion.div
-      initial={false}
-      animate={{
-        scale: isActive ? 1 : 0.95,
-        opacity: isActive ? 1 : 0.4,
+      initial="initial"
+      animate={isActive ? "animate" : "initial"}
+      variants={popIn}
+      transition={{ 
+        duration: 0.3, 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 20 
       }}
-      transition={{ duration: 0.2 }}
       className={cn(
         'font-mono font-bold tracking-wide transition-all',
         isActive ? 'text-text-primary text-[48px] md:text-[64px]' : 'text-text-secondary text-2xl',

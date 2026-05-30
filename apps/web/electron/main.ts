@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, session, Tray, nativeImage, globalShortcut, Notification, dialog, ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import crypto from 'crypto'
 import { registerIpcHandlers } from './ipc-handlers'
 import { setupAutoUpdater } from './updater'
 
@@ -27,6 +28,7 @@ process.on('unhandledRejection', (reason) => {
 
 const isDev = !app.isPackaged
 const PROTOCOL = 'worship-piano'
+const CSP_NONCE = crypto.randomBytes(16).toString('base64')
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
@@ -145,7 +147,7 @@ function createWindow(): void {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      webSecurity: false,
+      webSecurity: isDev,
     },
   })
 
@@ -189,6 +191,16 @@ function createWindow(): void {
   ])
   Menu.setApplicationMenu(menu)
 
+  const cspDirectives = [
+    `default-src 'self'`,
+    `script-src 'nonce-${CSP_NONCE}' 'strict-dynamic' 'unsafe-eval'`,
+    `style-src 'self' 'unsafe-inline'`,
+    `connect-src 'self' https://*.supabase.co https://api.twilio.com wss://*.supabase.co`,
+    `media-src 'self' blob:`,
+    `img-src 'self' data:`,
+    `font-src 'self' data:`,
+  ].join('; ')
+
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const url = details.url || ''
     if (!url.startsWith('http')) {
@@ -198,9 +210,7 @@ function createWindow(): void {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.twilio.com; media-src 'self' blob:; img-src 'self' data:; font-src 'self' data:;",
-        ],
+        'Content-Security-Policy': [cspDirectives],
       },
     })
   })
@@ -211,6 +221,12 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html')).catch((err) => logError('LOADFILE', err))
   }
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.executeJavaScript(
+      `document.querySelectorAll('script').forEach(s => s.setAttribute('nonce', '${CSP_NONCE}'))`
+    ).catch(() => {})
+  })
 
   mainWindow.on('close', (event) => {
     if (!isQuitting) {

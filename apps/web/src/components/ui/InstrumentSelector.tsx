@@ -1,6 +1,7 @@
 import type { InstrumentName } from '@/types/music'
 import { INSTRUMENTS } from '@/types/music'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 interface InstrumentSelectorProps {
   value: InstrumentName
@@ -12,8 +13,10 @@ export function InstrumentSelector({ value, onChange, size = 'md' }: InstrumentS
   return (
     <div className={cn('flex gap-1', size === 'sm' ? 'gap-1' : 'gap-2')}>
       {INSTRUMENTS.map((inst) => (
-        <button
+        <motion.button
           key={inst.value}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => onChange(inst.value)}
           className={cn(
             'flex items-center gap-1.5 rounded-xl border transition-colors',
@@ -25,7 +28,7 @@ export function InstrumentSelector({ value, onChange, size = 'md' }: InstrumentS
         >
           <span className={size === 'sm' ? 'text-sm' : 'text-base'}>{inst.icon}</span>
           {size !== 'sm' && <span>{inst.label}</span>}
-        </button>
+        </motion.button>
       ))}
     </div>
   )

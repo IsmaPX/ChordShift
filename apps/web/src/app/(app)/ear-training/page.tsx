@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Volume2, Loader2 } from 'lucide-react'
 import { FeedbackCanvas } from '@/components/ui/FeedbackCanvas'
 import { StreakIndicator } from '@/components/ui/StreakIndicator'
@@ -16,6 +16,7 @@ import {
 } from '@/audio/ExerciseGenerator'
 import { useTranslation } from 'react-i18next'
 import type { Exercise, InstrumentName } from '@/types/music'
+import { slideUp, popIn } from '@/lib/animations'
 
 type ExerciseType = 'interval' | 'triad' | 'seventh_chord'
 
@@ -137,12 +138,29 @@ export function EarTrainingPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">{t('earTraining.title')}</h1>
-        <p className="text-text-secondary">
+    <motion.div 
+      className="space-y-6"
+      variants={slideUp}
+      initial="initial"
+      animate="animate"
+    >
+      <div className="flex flex-col gap-2">
+        <motion.h1 
+          className="text-3xl font-bold text-text-primary mb-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          {t('earTraining.title')}
+        </motion.h1>
+        <motion.p 
+          className="text-text-secondary"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           {t('earTraining.subtitle')}
-        </p>
+        </motion.p>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-xl border border-border">
@@ -150,14 +168,23 @@ export function EarTrainingPage() {
           <StreakIndicator count={streak} />
           <span className="text-text-secondary text-sm">{t('earTraining.streak')}</span>
         </div>
-        <div className="text-accent font-medium">{xp} XP</div>
+        <motion.div 
+          className="text-accent font-medium"
+          key={xp}
+          initial={{ scale: 1.2, color: '#ffffff' }}
+          animate={{ scale: 1, color: 'var(--accent)' }}
+        >
+          {xp} XP
+        </motion.div>
       </div>
 
       <div className="flex items-center justify-between gap-4">
         <div className="flex gap-2 overflow-x-auto pb-2">
         {(['interval', 'triad', 'seventh_chord'] as ExerciseType[]).map((type) => (
-          <button
+          <motion.button
             key={type}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               setSelectedType(type)
               loadNewExercise()
@@ -169,9 +196,9 @@ export function EarTrainingPage() {
             }`}
           >
             {t('earTraining.' + type)}
-          </button>
+          </motion.button>
         ))}
-      </div>
+        </div>
         <div className="flex-shrink-0">
           <InstrumentSelector value={instrument} onChange={handleInstrumentChange} size="sm" />
         </div>
@@ -187,7 +214,12 @@ export function EarTrainingPage() {
             className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center hover:bg-accent/30 transition-colors disabled:opacity-50"
           >
             {isPlaying ? (
-              <Loader2 className="text-accent animate-spin" size={32} />
+              <motion.div 
+                animate={{ rotate: 360 }} 
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              >
+                <Loader2 className="text-accent" size={32} />
+              </motion.div>
             ) : (
               <Volume2 className="text-accent" size={32} />
             )}
@@ -202,32 +234,51 @@ export function EarTrainingPage() {
           />
         </div>
 
-        {exercise && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {exercise.options.map((option) => (
-              <button
-                key={option}
-                onClick={() => handleAnswer(option)}
-                disabled={isCorrect !== null}
-                className="p-4 rounded-xl bg-bg-primary border border-border text-text-primary hover:border-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {getDisplayName(option)}
-              </button>
-            ))}
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {exercise && (
+            <motion.div 
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+              key={exercise.type}
+              variants={popIn}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              {exercise.options.map((option) => (
+                <motion.button
+                  key={option}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(var(--accent-rgb), 0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={isCorrect !== null ? (option === exercise.answer ? "correct" : "wrong") : "initial"}
+                  variants={{
+                    initial: { opacity: 1 },
+                    correct: { scale: 1.05, outline: '2px solid var(--accent)', outlineOffset: '2px' },
+                    wrong: { x: [0, -5, 5, -5, 5, 0], opacity: 0.6 }
+                  }}
+                  onClick={() => handleAnswer(option)}
+                  disabled={isCorrect !== null}
+                  className="p-4 rounded-xl bg-bg-primary border border-border text-text-primary hover:border-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {getDisplayName(option)}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {!exercise && (
           <div className="text-center">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={loadNewExercise}
               className="px-6 py-3 bg-accent text-white rounded-xl font-medium hover:bg-accent/90 transition-colors"
             >
               {t('earTraining.startExercise')}
-            </button>
+            </motion.button>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

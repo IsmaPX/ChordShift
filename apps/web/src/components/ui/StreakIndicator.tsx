@@ -18,10 +18,18 @@ export function StreakIndicator({ count, className }: StreakIndicatorProps) {
           initial={false}
           animate={{
             scale: i < filledDots ? 1 : 0.8,
-            backgroundColor: i < filledDots ? '#22c55e' : 'rgba(255,255,255,0.1)',
+            opacity: i < filledDots ? 1 : 0.3,
           }}
-          transition={{ duration: 0.2 }}
-          className="w-2 h-2 rounded-full"
+          transition={{ 
+            delay: i * 0.05, 
+            type: "spring", 
+            stiffness: 300, 
+            damping: 15 
+          }}
+          className={cn(
+            "w-2 h-2 rounded-full transition-colors",
+            i < filledDots ? "bg-success" : "bg-border"
+          )}
         />
       ))}
     </div>
