@@ -21,11 +21,13 @@ export const DURATIONS = {
 export const variants: {
   fadeIn: Variants
   fadeInUp: Variants
+  fadeInDown: Variants
   scaleIn: Variants
   slideLeft: Variants
   slideRight: Variants
   staggerContainer: Variants
   modal: Variants
+  shake: Variants
 } = {
   fadeIn: {
     initial: { opacity: 0 },
@@ -46,6 +48,23 @@ export const variants: {
     exit: { 
       opacity: 0, 
       y: 10,
+      transition: { duration: DURATIONS.fast }
+    },
+  },
+  fadeInDown: {
+    initial: { opacity: 0, y: -20 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: 'spring',
+        ...SPRING_CONFIG,
+        duration: DURATIONS.normal,
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -10,
       transition: { duration: DURATIONS.fast }
     },
   },
@@ -115,6 +134,14 @@ export const variants: {
       transition: { duration: DURATIONS.fast }
     },
   },
+  shake: {
+    initial: { x: 0 },
+    animate: { x: 0 },
+    error: {
+      x: [-10, 10, -10, 10, 0],
+      transition: { duration: 0.4 },
+    },
+  },
 }
 
 export const interactiveVariants = {
@@ -140,4 +167,10 @@ export const interactiveVariants = {
     },
     tap: { scale: 0.99 },
   },
+  input: {
+    focus: {
+      scale: 1.01,
+      transition: { duration: 0.2 },
+    },
+  }
 }

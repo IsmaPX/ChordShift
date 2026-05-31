@@ -1,10 +1,11 @@
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Music2, Music3, Headphones, Download, Monitor, ChevronDown } from 'lucide-react'
 import { Toast } from '../components/ui/Toast'
 import { APP_VERSION } from '../lib/version'
+import { variants, interactiveVariants } from '../lib/animations/variants'
 
 const VERSION = `v${APP_VERSION}`
 const DL_BASE = `https://github.com/IsmaPX/ChordShift/releases/download/${VERSION}`
@@ -77,9 +78,9 @@ export function LandingPage() {
 
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          variants={variants.fadeInUp}
+          initial="initial"
+          animate="animate"
           className="text-center max-w-md"
         >
           <motion.div
@@ -119,25 +120,30 @@ export function LandingPage() {
           </p>
 
           <div className="flex flex-col gap-4">
-            <Link
-              to="/register"
-              className="w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl text-center hover:bg-accent-hover glow-green transition-all"
-            >
-              Comenzar Gratis
-            </Link>
-            <Link
-              to="/login"
-              className="w-full py-3 px-6 bg-bg-card border border-border text-text-primary font-medium rounded-xl text-center hover:border-accent/50 hover:bg-accent-light transition-all"
-            >
-              Ya tengo cuenta
-            </Link>
+            <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
+              <Link
+                to="/register"
+                className="block w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl text-center hover:bg-accent-hover glow-green transition-all"
+              >
+                Comenzar Gratis
+              </Link>
+            </motion.div>
+            <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
+              <Link
+                to="/login"
+                className="block w-full py-3 px-6 bg-bg-card border border-border text-text-primary font-medium rounded-xl text-center hover:border-accent/50 hover:bg-accent-light transition-all"
+              >
+                Ya tengo cuenta
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
+          variants={variants.staggerContainer}
+          initial="initial"
+          animate="animate"
+          transition={{ delay: 0.5 }}
           className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl"
         >
           {[
@@ -147,19 +153,25 @@ export function LandingPage() {
           ].map((feature, index) => {
             const Icon = feature.icon
             return (
-              <div key={index} className="p-4 bg-bg-card rounded-xl border border-border hover:border-accent/30 transition-all">
+              <motion.div 
+                key={index} 
+                variants={{ ...variants.fadeInUp, ...interactiveVariants.card }}
+                whileHover="hover"
+                className="p-4 bg-bg-card rounded-xl border border-border hover:border-accent/30 transition-all cursor-default"
+              >
                 <Icon className="text-accent mb-3" size={24} />
                 <h3 className="text-text-primary font-medium mb-1">{feature.title}</h3>
                 <p className="text-text-secondary text-sm">{feature.desc}</p>
-              </div>
+              </motion.div>
             )
           })}
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
+          variants={variants.fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ delay: 0.7 }}
           className="mt-16 mb-16 max-w-lg mx-auto w-full"
         >
           <div className="bg-bg-card rounded-2xl border border-border p-8 text-center">
@@ -173,14 +185,16 @@ export function LandingPage() {
               {t('desktop.desc')}
             </p>
 
-            <a
-              href={primaryUrl}
-              onClick={() => setShowToast(true)}
-              className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
-            >
-              <Download size={18} />
-              {t('desktop.download', { os: OS_NAME[primaryOS] })}
-            </a>
+            <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
+              <a
+                href={primaryUrl}
+                onClick={() => setShowToast(true)}
+                className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
+              >
+                <Download size={18} />
+                {t('desktop.download', { os: OS_NAME[primaryOS] })}
+              </a>
+            </motion.div>
 
             <button
               onClick={() => setShowAll(!showAll)}
@@ -193,30 +207,37 @@ export function LandingPage() {
               />
             </button>
 
-            {showAll && (
-              <div className="flex flex-col sm:flex-row gap-3 justify-center mt-3">
-                <a href={DL.win}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                  <Download size={14} />
-                  {t('desktop.windows')}
-                </a>
-                <a href={DL.mac}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                  <Download size={14} />
-                  {t('desktop.mac')}
-                </a>
-                <a href={DL.linux}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                  <Download size={14} />
-                  {t('desktop.linux')}
-                </a>
-                <a href={DL.android}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                  <Download size={14} />
-                  Android APK
-                </a>
-              </div>
-            )}
+            <AnimatePresence>
+              {showAll && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="flex flex-col sm:flex-row gap-3 justify-center mt-3 overflow-hidden"
+                >
+                  <a href={DL.win}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                    <Download size={14} />
+                    {t('desktop.windows')}
+                  </a>
+                  <a href={DL.mac}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                    <Download size={14} />
+                    {t('desktop.mac')}
+                  </a>
+                  <a href={DL.linux}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                    <Download size={14} />
+                    {t('desktop.linux')}
+                  </a>
+                  <a href={DL.android}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                    <Download size={14} />
+                    Android APK
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <p className="text-text-secondary text-xs mt-4">
               {t('desktop.benefits')}
