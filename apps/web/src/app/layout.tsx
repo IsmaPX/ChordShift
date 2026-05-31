@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { layoutTransitions } from '@/lib/animations'
+import { layoutTransitions, slideLeft, slideRight } from '@/lib/animations'
 
 export function AppLayout() {
   const { t } = useTranslation()
@@ -24,6 +24,13 @@ export function AppLayout() {
     { path: '/encyclopedia', icon: BookOpen, label: t('nav.encyclopedia') },
     { path: '/settings', icon: Settings, label: t('nav.settings') },
   ]
+
+  const getTransition = () => {
+    const path = location.pathname
+    if (path.includes('/practice/')) return slideRight
+    if (path === '/practice') return slideLeft
+    return layoutTransitions
+  }
 
   return (
     <AudioGate>
@@ -80,11 +87,11 @@ export function AppLayout() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                variants={layoutTransitions}
+                variants={getTransition()}
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={{ duration: 0.2, ease: "easeOut" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <Outlet />
               </motion.div>
@@ -123,3 +130,4 @@ export function AppLayout() {
     </AudioGate>
   )
 }
+

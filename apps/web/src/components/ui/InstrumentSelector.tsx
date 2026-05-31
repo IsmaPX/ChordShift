@@ -2,6 +2,7 @@ import type { InstrumentName } from '@/types/music'
 import { INSTRUMENTS } from '@/types/music'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import { interactiveVariants } from '@/lib/animations/variants'
 
 interface InstrumentSelectorProps {
   value: InstrumentName
@@ -15,19 +16,20 @@ export function InstrumentSelector({ value, onChange, size = 'md' }: InstrumentS
       {INSTRUMENTS.map((inst) => (
         <motion.button
           key={inst.value}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          variants={interactiveVariants.button}
+          whileHover="hover"
+          whileTap="tap"
           onClick={() => onChange(inst.value)}
           className={cn(
             'flex items-center gap-1.5 rounded-xl border transition-colors',
             size === 'sm' ? 'px-2 py-1 text-xs' : 'px-3 py-2 text-sm',
             value === inst.value
-              ? 'border-accent bg-accent/10 text-accent'
+              ? 'border-accent bg-accent/10 text-accent shadow-sm'
               : 'border-border text-text-secondary hover:border-accent/50 hover:text-text-primary'
           )}
         >
           <span className={size === 'sm' ? 'text-sm' : 'text-base'}>{inst.icon}</span>
-          {size !== 'sm' && <span>{inst.label}</span>}
+          {size !== 'sm' && <span className="font-medium">{inst.label}</span>}
         </motion.button>
       ))}
     </div>

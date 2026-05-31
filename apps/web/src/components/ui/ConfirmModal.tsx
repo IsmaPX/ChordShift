@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, X } from 'lucide-react'
+import { variants, interactiveVariants } from '@/lib/animations/variants'
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -27,45 +28,75 @@ export function ConfirmModal({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/50"
+            variants={variants.fadeIn}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={onCancel}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            variants={variants.modal}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             className="relative bg-bg-secondary border border-border rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
           >
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
               onClick={onCancel}
               className="absolute top-4 right-4 text-text-secondary hover:text-text-primary transition-colors"
             >
               <X size={20} />
-            </button>
+            </motion.button>
 
             <div className="flex flex-col items-center text-center gap-4">
-              <div className={`p-3 rounded-full ${
-                variant === 'danger' ? 'bg-danger/20' : 'bg-warning/20'
-              }`}>
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', bounce: 0.5, delay: 0.1 }}
+                className={`p-3 rounded-full ${
+                  variant === 'danger' ? 'bg-danger/20' : 'bg-warning/20'
+                }`}
+              >
                 <AlertTriangle className={variant === 'danger' ? 'text-danger' : 'text-warning'} size={28} />
+              </motion.div>
+
+              <div className="space-y-1">
+                <motion.h3 
+                  variants={variants.fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  className="text-lg font-medium text-text-primary"
+                >
+                  {title}
+                </motion.h3>
+                <motion.p 
+                  variants={variants.fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  transition={{ delay: 0.1 }}
+                  className="text-text-secondary text-sm"
+                >
+                  {message}
+                </motion.p>
               </div>
 
-              <div>
-                <h3 className="text-lg font-medium text-text-primary mb-1">{title}</h3>
-                <p className="text-text-secondary text-sm">{message}</p>
-              </div>
-
-              <div className="flex gap-3 w-full">
-                <button
+              <div className="flex gap-3 w-full mt-2">
+                <motion.button
+                  variants={interactiveVariants.button}
+                  whileHover="hover"
+                  whileTap="tap"
                   onClick={onCancel}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all"
                 >
                   {cancelLabel}
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  variants={interactiveVariants.button}
+                  whileHover="hover"
+                  whileTap="tap"
                   onClick={onConfirm}
                   className={`flex-1 px-4 py-2.5 rounded-xl text-white font-medium transition-colors ${
                     variant === 'danger'
@@ -74,7 +105,7 @@ export function ConfirmModal({
                   }`}
                 >
                   {confirmLabel}
-                </button>
+                </motion.button>
               </div>
             </div>
           </motion.div>

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import type { Style } from '@/types/music'
+import { interactiveVariants } from '@/lib/animations/variants'
 
 interface StyleCardProps {
   style: Style
@@ -11,12 +12,13 @@ interface StyleCardProps {
 export function StyleCard({ style, onClick, className }: StyleCardProps) {
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      variants={interactiveVariants.card}
+      whileHover="hover"
+      whileTap="tap"
       onClick={onClick}
       className={cn(
         'w-full text-left bg-bg-secondary border border-border rounded-xl p-4',
-        'hover:border-accent/50 transition-colors',
+        'hover:border-accent/50 transition-colors shadow-sm hover:shadow-md',
         className
       )}
     >
