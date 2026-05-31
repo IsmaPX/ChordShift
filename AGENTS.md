@@ -1,168 +1,91 @@
 # Worship Piano App / ChordShift
 
-Monorepo (Turborepo npm): `apps/web` (Vite + React 19 + Electron 33), `packages/audio` (Tone.js), `packages/db` (tipos compartidos), `packages/ui` (solo `cn` utility).
+**Idioma Principal**: Todo el desarrollo, documentación y comunicación de este repositorio debe ser en **Español**.
+
+Monorepo (Turborepo): `apps/web` (Vite + React 19 + Electron 33), `packages/audio` (Tone.js), `packages/db` (Tipos), `packages/ui` (Utilidad `cn`).
 
 ## Stack
-
-- **Web/Desktop**: React 19 + Vite 6 + Electron 33 + TailwindCSS 4 + TanStack Query + React Router v7
-- **Audio**: Tone.js 15 (dos implementaciones independientes — ver abajo)
-- **DB local**: Dexie (IndexedDB)
-- **Backend**: Supabase Auth + PostgreSQL, Vercel serverless (Twilio)
-- **i18n**: i18next + react-i18next
-- **Testing**: Vitest, jsdom, @testing-library/react, fake-indexeddb
+- **Core**: React 19 + Vite 6 + Electron 33 + TailwindCSS 4 + TanStack Query + React Router v7.
+- **Audio**: Tone.js 15 (Dual implementation).
+- **DB**: Dexie (IndexedDB) + Supabase.
+- **Testing**: Vitest + jsdom (Web), Vitest + Node (Audio).
 
 ## Comandos
+Ejecutar `turbo <cmd>` desde root o `npm run <cmd>` en la carpeta correspondiente.
 
-Ejecutar desde `apps/web/` para comandos específicos, desde raíz para turbo.
+| Ámbito | `dev` | `build` | `test` | `lint` | `typecheck` |
+|---|---|---|---|---|---|
+| **Root** | `npm run dev` | `npm run build` | `npm run test` | `npm run lint` | `npm run typecheck` |
+| **Web** | `npm run dev` | `npm run build` | `npm run test` | `npm run lint` | `npm run typecheck` |
+| **Audio** | — | `npm run build` | `npm run test` | — | — |
 
-### Raíz del monorepo
-| Comando | Acción |
-|---------|--------|
-| `npm run dev` | `turbo dev` (dev servers paralelos) |
-| `npm run build` | `turbo build` |
-| `npm run lint` | `turbo lint` (depende de `^build`) |
-| `npm run typecheck` | `turbo typecheck` (depende de `^build`) |
-| `npm run test` | `turbo test` (depende de `^build`) |
+**Web/Electron Specifics**:
+- `npm run dev:electron`: Dev con hot reload.
+- `npm run build:electron`: Build con `VITE_ELECTRON_BUILD=true`.
+- `npm run dist:win/mac/linux`: Packaging vía electron-builder.
 
-### apps/web/
-| Comando | Acción |
-|---------|--------|
-| `npm run dev` | Vite (puerto 5173) |
-| `npm run dev:electron` | Vite + Electron hot reload |
-| `npm run build` | `tsc -b && vite build` |
-| `npm run build:electron` | `tsc -b && cross-env VITE_ELECTRON_BUILD=true vite build` |
-| `npm run lint` | `eslint .` |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run test` | Vitest (jsdom) |
-| `npm run dist:win` | Build + package Windows NSIS |
-| `npm run dist:mac` | Build + package macOS DMG |
-| `npm run dist:linux` | Build + package Linux AppImage/deb |
-| `npm run release` | Build + publish a GitHub Releases |
+## Arquitectura y Quirks
+- **Sin `App.tsx`**: `main.tsx` renderiza el `RouterProvider` directamente.
+- **Router**: React Router v7. Usa `createHashRouter` si `VITE_ELECTRON_BUILD=true`, sino `createBrowserRouter`.
+- **Transiciones globales**: `RootLayout` en `layouts/` envuelve rutas con `AnimatePresence` + `PageTransition` (variants: fade, slide, wave, curtain).
+- **Dual Audio Engine (CRÍTICO)**:
+    1. `packages/audio/`: Lógica compartida. Tests en Node.
+    2. `apps/web/src/audio/`: Wrapper web (Singleton). Tests mockean `@/audio/AudioEngine`.
+    - **Regla**: No importar clases de `packages/audio` dentro de `apps/web/src/`.
+- **Paquetes**: `packages/db` solo contiene interfaces; `packages/ui` solo exporta `cn`.
+- **Tailwind 4**: Usa `@import "tailwindcss"` y variables en `@theme`.
+- **PWA**: SW en `main.tsx` solo si `!('isElectron' in window)`.
 
-### packages/audio/
-| Comando | Acción |
-|---------|--------|
-| `npm run test` | Vitest (entorno **node**, no jsdom) |
-| `npm run build` | `tsc` |
+## Arquitectura Modular (Nueva)
+`src/` se organiza en:
+- **`modules/`**: Feature modules (home, auth, gallery, music, profile). Cada módulo tiene su página y lógica encapsulada.
+- **`components/animations/`**: Animaciones aisladas. Cada una sigue el patrón `index.ts`, `Component.tsx`, `animation.ts`, `types.ts`.
+- **`components/effects/`**: Efectos decorativos anime-musicales (`FloatingNotes`, `RhythmPulse`, `AudioWave`).
+- **`components/transitions/`**: Transiciones de página (`PageTransition` con variants fade/slide/wave/curtain).
+- **`components/carousels/`**: Sistema de carruseles (`BaseCarousel`, `HeroCarousel`, `CharacterCarousel`, `CoverflowCarousel`).
+- **`components/gallery/`**: Sistema de galerías (`GridGallery`, `MasonryGallery`, `InfiniteGallery`).
+- **`components/ui/`**: Componentes base existentes (no modificar).
+- **`hooks/`**: Custom hooks (ej: `useReducedMotion` para accesibilidad).
+- **`layouts/`**: Layouts root (`RootLayout` con AnimatePresence).
 
-## TypeScript
+### Patrón de animación
+Cada animación en `components/animations/` contiene 4 archivos:
+- `animation.ts`: Variants de Framer Motion.
+- `types.ts`: Props del componente.
+- `Component.tsx`: Implementación React.
+- `index.ts`: Re-export.
 
-- `strict: true`, `noUnusedLocals: true`, `noUnusedParameters: true`, `noFallthroughCasesInSwitch: true`
-- Variables o parámetros sin uso rompen `tsc -b` / `tsc --noEmit`
-- `@/` → `apps/web/src/` (configurado en vite.config.ts y vitest.config.ts)
-- `import.meta.env.VITE_APP_VERSION` definido vía `define` en vite (lee de package.json), **no** de `.env`
+**Regla**: Las animaciones NO contienen lógica de negocio.
 
-## ESLint
+### Tema anime-musical
+Colores disponibles en Tailwind 4 (`@theme`):
+- `anime-pink`, `anime-blue`, `anime-purple`, `anime-glow`, `neon-cyan`, `neon-pink`
+- Utilities: `glow-pink`, `glow-blue`, `text-gradient-anime`
+- Efectos: `FloatingNotes` (notas flotando), `AudioWave` (visualizador), `RhythmPulse` (pulso rítmico)
 
-- `prefer-const: off` — no exige `const` sobre `let`
-- `no-console: warn`, solo permite `warn`/`error`
-- `@typescript-eslint/no-unused-vars: warn`
+### Accesibilidad
+- Hook `useReducedMotion` basado en `framermotion` respeta `prefers-reduced-motion`.
+- Los carruseles soportan navegación por teclado y autoplay configurable.
 
-## Arquitectura
+## TypeScript & Lint
+- `strict: true`. Variables/parámetros sin uso rompen el build (`tsc -b`).
+- `@/` → `apps/web/src/`.
+- `import.meta.env.VITE_APP_VERSION` se define en `vite.config.ts`, no en `.env`.
 
-### No existe `App.tsx`
-`main.tsx` renderiza `RouterProvider` directamente (sin componente `<App>` wrapper). Cadena: `StrictMode → QueryClientProvider → LanguageProvider → RouterProvider`.
+## Testing (Web)
+- Setup: `src/test/setup.tsx` mockea `framer-motion` y `@/audio/AudioEngine`.
+- Dexie: Usa `fake-indexeddb/auto`.
+- Seed: Obligatorio en `beforeEach` para evitar fallos en `useAuth.seedIfEmpty`.
+- Utility: `renderWithProviders(<Component />, { initialEntries: ['/path'] })`.
 
-### Router
-React Router v7. Usa `react-router` (no `react-router-dom`). Router condicional:
-- `VITE_ELECTRON_BUILD=true` → `createHashRouter`
-- caso contrario → `createBrowserRouter`
-El tipo de router se hornea en build time, no se detecta en runtime.
+## Electron
+- `loadFile()` requiere `.catch()` para evitar crashes silenciosos.
+- `app.requestSingleInstanceLock()` es obligatorio.
+- `extraResources`: Twilio usa `process.resourcesPath` en producción.
+- Atajos: `Ctrl+Shift+P/E/S` → practice/ear-training/settings.
 
-Directorios `(app)/` y `(auth)/` son solo agrupación visual (Next.js App Router style), no afectan rutas.
-
-| Ruta | Componente | Layout |
-|------|-----------|--------|
-| `/` | LandingPage | — |
-| `/login` | LoginPage | — |
-| `/register` | RegisterPage | — |
-| `/practice` | PracticePage | AppLayout |
-| `/practice/:songId` | PracticePlayerPage | AppLayout |
-| `/ear-training` | EarTrainingPage | AppLayout |
-| `/encyclopedia` | EncyclopediaPage | AppLayout |
-| `/settings` | SettingsPage | AppLayout |
-
-### Paquetes
-- `packages/db` — solo **tipos** (`interface`), sin runtime
-- `packages/ui` — solo exporta `cn(...classes)` (filtra falsy y join con espacio, **no** tailwind-merge)
-- `packages/audio` — lógica de audio compartida, **no importar sus clases de audio en apps/web/src/**
-
-### Motor de audio dual
-Dos implementaciones independientes que **no se importan entre sí**:
-
-1. `packages/audio/` — `AudioEngine`, `ChordPlayer`, generación de ejercicios. Tests en node, mockea `tone` directamente.
-2. `apps/web/src/audio/` — wrapper web: `AudioEngine.ts` (singleton con flag `_initializing`), `ChordPlayer.ts`, `ExerciseGenerator.ts`, instrumentos (piano/guitar/trumpet). Tests lo mockean completamente via `setup.tsx`.
-
-Ambos usan Tone.js pero con cadenas de audio independientes. El web nunca debe importar de `packages/audio` las clases de audio.
-
-### TailwindCSS 4
-Usa `@import "tailwindcss"` en CSS (no el plugin PostCSS de Tailwind v3). Variables en `@theme`, utilities con `@utility`.
-
-### PWA
-Service worker (`/sw.js`) se registra en `main.tsx` solo cuando **no** es Electron (`!('isElectron' in window)`).
-
-### Variables de entorno requeridas (dev)
-```
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_APP_ENV=development
-```
-
-## Tests
-
-### Configuración
-- **apps/web**: vitest + jsdom, setup en `src/test/setup.tsx`
-- **packages/audio**: vitest + node, sin setup global ni vitest.config.ts
-
-### Setup de tests web (setup.tsx)
-- Mockea `framer-motion` (AnimatePresence, motion → divs)
-- Mockea `@/audio/AudioEngine` completo (singleton con vi.fn())
-- Activa `fake-indexeddb/auto` para Dexie
-- Polyfills: `structuredClone`, `crypto.randomUUID`, `crypto.subtle.digest`
-- **Seed obligatorio** en `beforeEach`: estilos, tips y song mínimos para evitar que `seedIfEmpty` de `useAuth` intente escribir
-
-### Utilities de test
-```ts
-import { renderWithProviders } from '@/test/utils'
-// Envuelve en QueryClientProvider + LanguageProvider + MemoryRouter
-renderWithProviders(<MyComponent />, { initialEntries: ['/custom-path'] })
-```
-
-### Mock de audio en tests
-`@/audio/AudioEngine` está mockeado globalmente en `setup.tsx`. No escribir tests que dependan de audio real.
-
-## Electron Desktop
-
-- `electron/main.ts` — BrowserWindow con `loadFile()` **requiere `.catch()`** (Promise no manejada = crash silencioso)
-- `app.requestSingleInstanceLock()` obligatorio; `second-instance` maneja deep links
-- `preload.ts` — contextBridge expone `window.isElectron` + `window.electronAPI`
-- `electron-builder.yml`: `asar: false` (necesario para twilio extraResources), deep link `worship-piano://`
-- CSP en `session.webRequest` solo para URLs http/https (no file://)
-- Atajos globales: Ctrl+Shift+P/E/S → practice/ear-training/settings
-- Twilio via IPC: simula respuesta exitosa si faltan credenciales
-
-## CI/CD
-
-- **Push a main/develop**: `ci.yml` → typecheck + lint (paralelo) → test (web + audio, paralelo) → build (secuencial, depende de tests)
-- **Push a main**: `deploy.yml` → build + deploy a Vercel (project `prj_shAUREiwHUTCPTzEzU1weF5Hzzcy`)
-- **workflow_dispatch**: `deploy.yml` build-android → Capacitor + Java 21
-- **Tags v\***: `release.yml` → Electron build (Win/Mac/Linux, matrix) + GitHub Release + APK
-- Lint/typecheck en CI corren solo en `apps/web/`, no en packages (excepto test de audio)
-- VITE_ELECTRON_BUILD **no** se setea en CI normal — solo en release workflow
-
-## API (Vercel Serverless + Electron IPC)
-
-`apps/web/api/` contiene Twilio serverless functions (`send-otp`, `send-whatsapp`). Duplicado como IPC handlers en `electron/ipc-handlers.ts` (usa `process.resourcesPath/node_modules/twilio` en prod). Ambos devuelven éxito simulado si faltan credenciales.
-
-## Errores Conocidos (no repetir)
-
-### AudioEngine (apps/web/src/audio/AudioEngine.ts)
-- Singleton con flag `_initializing` — evitar race conditions en llamadas concurrentes a `initialize()`
-- `Tone.Recorder` conectar solo durante `startRecording()`, desconectar en `stopRecording()`
-- `new Tone.Recorder()` en try-catch (falla sin MediaRecorder)
-
-### Electron
-- `loadFile()` requiere `.catch()` — Promise rechazada = crash
-- `app.requestSingleInstanceLock()` obligatorio
-- `extraResources` para twilio: `require()` usa `process.resourcesPath` en prod
-- `npx cap add android` → conflicto kotlin-stdlib → parchear `build.gradle`
+## CI/CD & API
+- **CI**: `typecheck + lint` → `test` → `build`.
+- **Deploy**: Vercel (main) y GitHub Releases (Tags `v*`).
+- **Android**: Capacitor + Java 21. Requiere parche de `kotlin-stdlib` en `build.gradle`.
+- **API**: Funciones Twilio duplicadas en `apps/web/api/` (serverless) y `electron/ipc-handlers.ts` (IPC).

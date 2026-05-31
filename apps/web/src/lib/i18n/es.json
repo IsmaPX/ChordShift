@@ -200,5 +200,21 @@
     "otherPlatforms": "Otras plataformas",
     "benefits": "Sin conexión • Notificaciones nativas • Atajos de teclado",
     "downloadStarted": "Descarga iniciada — revisa tu carpeta de descargas"
+  },
+  "onboarding": {
+    "welcomeTitle": "¡Bienvenido a Worship Piano!",
+    "welcomeDesc": "Permítenos mostrarte la app para que empieces a practicar tus canciones y entrenar tu oído.",
+    "welcomeStart": "Empezar Tour",
+    "welcomeSkip": "Omitir",
+    "welcomeNext": "Siguiente",
+    "welcomePrev": "Anterior",
+    "welcomeFinish": "Finalizar",
+    "stepPractice": "Aquí puedes importar tus canciones de adoración favoritas o crear nuevas para practicar.",
+    "stepEarTraining": "Entrena tu oído para reconocer los intervalos y acordes usados en la música de adoración.",
+    "stepEncyclopedia": "Explora diferentes estilos de adoración y aprende la teoría detrás de ellos.",
+    "stepSettings": "Personaliza tu experiencia, cambia de instrumento o configura recordatorios de práctica.",
+    "recommendation": "¡¿Quieres un tour rápido por la app?! ¡Lo recomendamos para nuevos usuarios!",
+    "recommendationStart": "¡Claro, muéstrame!",
+    "recommendationSkip": "No, gracias"
   }
 }

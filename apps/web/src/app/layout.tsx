@@ -11,6 +11,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { layoutTransitions, slideLeft, slideRight } from '@/lib/animations'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { OnboardingWelcome } from '@/components/ui/OnboardingWelcome'
 
 export function AppLayout() {
   const { t } = useTranslation()
@@ -19,10 +21,10 @@ export function AppLayout() {
   useWhatsAppReminder()
 
   const navItems = [
-    { path: '/practice', icon: Music2, label: t('nav.practice') },
-    { path: '/ear-training', icon: Brain, label: t('nav.earTraining') },
-    { path: '/encyclopedia', icon: BookOpen, label: t('nav.encyclopedia') },
-    { path: '/settings', icon: Settings, label: t('nav.settings') },
+    { path: '/practice', icon: Music2, label: t('nav.practice'), id: 'nav-practice' },
+    { path: '/ear-training', icon: Brain, label: t('nav.earTraining'), id: 'nav-ear-training' },
+    { path: '/encyclopedia', icon: BookOpen, label: t('nav.encyclopedia'), id: 'nav-encyclopedia' },
+    { path: '/settings', icon: Settings, label: t('nav.settings'), id: 'nav-settings' },
   ]
 
   const getTransition = () => {
@@ -36,6 +38,8 @@ export function AppLayout() {
     <AudioGate>
       <div className="min-h-screen bg-bg-primary flex flex-col">
         <div className="relative z-10 flex flex-col min-h-screen">
+          <OnboardingTour />
+          <OnboardingWelcome />
           <header className="sticky top-0 z-40 bg-bg-primary/80 backdrop-blur-lg border-b border-border">
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
@@ -62,6 +66,7 @@ export function AppLayout() {
                       <Link
                         key={item.path}
                         to={item.path}
+                        id={item.id}
                         className={`p-2 rounded-lg transition-all ${
                           isActive
                             ? 'text-accent bg-accent-light'
@@ -108,6 +113,7 @@ export function AppLayout() {
                   <Link
                     key={item.path}
                     to={item.path}
+                    id={item.id}
                     className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${
                       isActive
                         ? 'text-accent'

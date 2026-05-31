@@ -8,45 +8,51 @@ import { EarTrainingPage } from '../app/(app)/ear-training/page'
 import { EncyclopediaPage } from '../app/(app)/encyclopedia/page'
 import { SettingsPage } from '../app/(app)/settings/page'
 import { LandingPage } from '../app/page'
+import { RootLayout } from '../layouts/RootLayout'
 
 const isElectron = import.meta.env.VITE_ELECTRON_BUILD === 'true'
 const createRouter = isElectron ? createHashRouter : createBrowserRouter
 
 export const router = createRouter([
   {
-    path: '/',
-    element: <LandingPage />,
-  },
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />,
-  },
-  {
-    element: <AppLayout />,
+    element: <RootLayout />,
     children: [
       {
-        path: '/practice',
-        element: <PracticePage />,
+        path: '/',
+        element: <LandingPage />,
       },
       {
-        path: '/practice/:songId',
-        element: <PracticePlayerPage />,
+        path: '/login',
+        element: <LoginPage />,
       },
       {
-        path: '/ear-training',
-        element: <EarTrainingPage />,
+        path: '/register',
+        element: <RegisterPage />,
       },
       {
-        path: '/encyclopedia',
-        element: <EncyclopediaPage />,
-      },
-      {
-        path: '/settings',
-        element: <SettingsPage />,
+        element: <AppLayout />,
+        children: [
+          {
+            path: '/practice',
+            element: <PracticePage />,
+          },
+          {
+            path: '/practice/:songId',
+            element: <PracticePlayerPage />,
+          },
+          {
+            path: '/ear-training',
+            element: <EarTrainingPage />,
+          },
+          {
+            path: '/encyclopedia',
+            element: <EncyclopediaPage />,
+          },
+          {
+            path: '/settings',
+            element: <SettingsPage />,
+          },
+        ],
       },
     ],
   },

@@ -200,5 +200,21 @@
     "otherPlatforms": "Other platforms",
     "benefits": "Offline • Native notifications • Keyboard shortcuts",
     "downloadStarted": "Download started — check your downloads folder"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to Worship Piano!",
+    "welcomeDesc": "Let us show you around so you can start practicing your songs and training your ear.",
+    "welcomeStart": "Start Tour",
+    "welcomeSkip": "Skip",
+    "welcomeNext": "Next",
+    "welcomePrev": "Previous",
+    "welcomeFinish": "Finish",
+    "stepPractice": "This is where you can import your favorite worship songs or create new ones to practice.",
+    "stepEarTraining": "Train your ear to recognize the intervals and chords used in worship music.",
+    "stepEncyclopedia": "Explore different worship styles and learn the theory behind them.",
+    "stepSettings": "Customize your experience, change instruments, or set up practice reminders.",
+    "recommendation": "Want a quick tour of the app? We recommend it for new users!",
+    "recommendationStart": "Sure, show me!",
+    "recommendationSkip": "No thanks"
   }
 }
