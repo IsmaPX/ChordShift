@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
@@ -6,14 +6,20 @@ export default defineConfig({
   retries: 1,
   reporter: 'list',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://web-maikel-js-projects.vercel.app',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+  },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: true,
+    timeout: 120000,
   },
   projects: [
     {
       name: 'chromium',
-      use: { browserName: 'chromium' },
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 })
