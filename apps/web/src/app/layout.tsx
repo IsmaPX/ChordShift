@@ -1,5 +1,4 @@
 import { Outlet, Link, useLocation } from 'react-router'
-import { AudioGate } from '@/components/ui/AudioGate'
 import { useWhatsAppReminder } from '@/hooks/useWhatsAppReminder'
 import { 
   Music2, 
@@ -35,12 +34,11 @@ export function AppLayout() {
   }
 
   return (
-    <AudioGate>
-      <div className="min-h-screen bg-bg-primary flex flex-col">
-        <div className="relative z-10 flex flex-col min-h-screen">
-          <OnboardingTour />
-          <OnboardingWelcome />
-          <header className="sticky top-0 z-40 bg-bg-primary/80 backdrop-blur-lg border-b border-border">
+    <div className="min-h-screen bg-bg-primary flex flex-col">
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <OnboardingTour />
+        <OnboardingWelcome />
+        <header className="sticky top-0 z-40 bg-bg-primary/80 backdrop-blur-lg border-b border-border">
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-3 group">
@@ -133,7 +131,6 @@ export function AppLayout() {
           </nav>
         </div>
       </div>
-    </AudioGate>
   )
 }
 

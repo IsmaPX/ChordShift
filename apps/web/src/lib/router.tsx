@@ -9,6 +9,7 @@ import { EncyclopediaPage } from '../app/(app)/encyclopedia/page'
 import { SettingsPage } from '../app/(app)/settings/page'
 import { LandingPage } from '../app/page'
 import { RootLayout } from '../layouts/RootLayout'
+import { EffectsDemoPage } from '../app/(demo)/effects/page'
 
 const isElectron = import.meta.env.VITE_ELECTRON_BUILD === 'true'
 const createRouter = isElectron ? createHashRouter : createBrowserRouter
@@ -51,6 +52,10 @@ export const router = createRouter([
           {
             path: '/settings',
             element: <SettingsPage />,
+          },
+          {
+            path: '/demo/effects',
+            element: <EffectsDemoPage />,
           },
         ],
       },

@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { router } from './lib/router'
 import { LanguageProvider } from './lib/i18n/LanguageProvider'
 import { OnboardingProvider } from './contexts/OnboardingContext'
+import { AudioGateProvider } from './contexts/AudioGateContext'
+import { AudioGate } from './components/ui/AudioGate'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -28,7 +30,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <OnboardingProvider>
-          <RouterProvider router={router} />
+          <AudioGateProvider>
+            <AudioGate>
+              <RouterProvider router={router} />
+            </AudioGate>
+          </AudioGateProvider>
         </OnboardingProvider>
       </LanguageProvider>
     </QueryClientProvider>

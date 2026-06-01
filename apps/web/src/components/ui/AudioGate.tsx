@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AudioEngine } from '@/audio/AudioEngine'
 import { useTranslation } from 'react-i18next'
+import { useAudioGate } from '@/contexts/AudioGateContext'
 
 interface AudioGateProps {
   children: React.ReactNode
@@ -9,21 +8,7 @@ interface AudioGateProps {
 
 export function AudioGate({ children }: AudioGateProps) {
   const { t } = useTranslation()
-  const [isAudioReady, setIsAudioReady] = useState(false)
-  const [showGate, setShowGate] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleStartAudio = async () => {
-    try {
-      setError(null)
-      await AudioEngine.initialize()
-      setIsAudioReady(true)
-      setShowGate(false)
-    } catch (err) {
-      console.error('Failed to initialize audio:', err)
-      setError(t('audio.error'))
-    }
-  }
+  const { isAudioReady, showGate, error, handleStartAudio } = useAudioGate()
 
   return (
     <>
