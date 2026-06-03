@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { db } from '@/lib/db'
-import { useAuth } from './useAuth'
+import { earTrainingRepository } from '@/lib/repositories/EarTrainingRepository'
 import type { EarTrainingResult } from '@/lib/db'
 
 interface EarTrainingResultInput {
@@ -14,20 +13,20 @@ interface EarTrainingResultInput {
 
 export function useEarTrainingResult() {
   const queryClient = useQueryClient()
-  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async (result: EarTrainingResultInput) => {
-      if (!user) throw new Error('Not authenticated')
+      const activeId = localStorage.getItem('worship_piano_active_profile')
+      if (!activeId) throw new Error('Not authenticated')
 
       const entry: EarTrainingResult = {
         id: crypto.randomUUID(),
-        user_id: user.id,
+        user_id: activeId,
         ...result,
         created_at: new Date().toISOString(),
       }
 
-      await db.ear_training_results.add(entry)
+      await earTrainingRepository.create(entry)
       return entry
     },
     onSuccess: () => {
@@ -37,16 +36,12 @@ export function useEarTrainingResult() {
 }
 
 export function useEarTrainingStats() {
-  const { user } = useAuth()
-
   return useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error('Not authenticated')
+      const activeId = localStorage.getItem('worship_piano_active_profile')
+      if (!activeId) throw new Error('Not authenticated')
 
-      const data = await db.ear_training_results
-        .where('user_id')
-        .equals(user.id)
-        .toArray()
+      const data = await earTrainingRepository.getByUserId(activeId)
 
       data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       const recent = data.slice(0, 100)

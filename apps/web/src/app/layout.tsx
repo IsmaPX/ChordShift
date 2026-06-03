@@ -34,11 +34,11 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col">
+    <div className="min-h-screen bg-[#06060a]/90 backdrop-blur-md flex flex-col">
       <div className="relative z-10 flex flex-col min-h-screen">
         <OnboardingTour />
         <OnboardingWelcome />
-        <header className="sticky top-0 z-40 bg-bg-primary/80 backdrop-blur-lg border-b border-border">
+        <header className="sticky top-0 z-40 bg-[#0c0c14]/50 backdrop-blur-lg border-b border-white/[0.06]">
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-3 group">
@@ -101,7 +101,7 @@ export function AppLayout() {
             </AnimatePresence>
           </main>
 
-          <nav className="sticky bottom-0 z-40 bg-bg-primary/80 backdrop-blur-lg border-t border-border sm:hidden">
+          <nav className="sticky bottom-0 z-40 bg-[#0c0c14]/50 backdrop-blur-lg border-t border-white/[0.06] sm:hidden">
             <div className="flex items-center justify-around py-2">
               {navItems.map((item) => {
                 const isActive = location.pathname.startsWith(item.path)

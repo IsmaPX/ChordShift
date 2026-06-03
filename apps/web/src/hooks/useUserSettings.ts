@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { db, DEFAULT_SETTINGS } from '@/lib/db'
 import { useAuth } from './useAuth'
+import { settingsRepository } from '@/lib/repositories/SettingsRepository'
+import { practiceSessionRepository } from '@/lib/repositories/SessionRepository'
+import { earTrainingRepository } from '@/lib/repositories/EarTrainingRepository'
+import { hashPin } from '@/lib/crypto'
 import type { UserSettings } from '@/types/music'
+import { DEFAULT_SETTINGS } from '@/lib/db'
 
 export function useUserSettings() {
   const { user } = useAuth()
@@ -10,7 +14,7 @@ export function useUserSettings() {
     queryKey: ['user-settings'],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
-      const profile = await db.users.get(user.id)
+      const profile = await settingsRepository.getByProfileId(user.id)
       return profile?.settings ?? DEFAULT_SETTINGS
     },
     enabled: !!user,
@@ -24,9 +28,9 @@ export function useUpdateSettings() {
     mutationFn: async (updates: Partial<UserSettings>) => {
       const id = localStorage.getItem('worship_piano_active_profile')
       if (!id) throw new Error('Not authenticated')
-      const profile = await db.users.get(id)
+      const profile = await settingsRepository.getByProfileId(id)
       const newSettings = { ...profile?.settings, ...updates } as UserSettings
-      await db.users.update(id, { settings: newSettings })
+      await settingsRepository.updateSettings(id, updates)
       return newSettings
     },
     onSuccess: () => {
@@ -42,11 +46,10 @@ export function useAddXP() {
   return useMutation({
     mutationFn: async (amount: number) => {
       if (!user) throw new Error('Not authenticated')
-      const profile = await db.users.get(user.id)
+      const profile = await settingsRepository.getByProfileId(user.id)
       const currentXP = profile?.settings?.xp || 0
       const newXP = currentXP + amount
-      const newSettings = { ...profile?.settings, xp: newXP } as UserSettings
-      await db.users.update(user.id, { settings: newSettings })
+      await settingsRepository.addXP(user.id, amount)
       return newXP
     },
     onSuccess: () => {
@@ -63,7 +66,7 @@ export function useClearPracticeHistory() {
   return useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated')
-      await db.practice_sessions.where('user_id').equals(user.id).delete()
+      await practiceSessionRepository.deleteByUserId(user.id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-stats'] })
@@ -78,7 +81,7 @@ export function useClearEarTrainingResults() {
   return useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated')
-      await db.ear_training_results.where('user_id').equals(user.id).delete()
+      await earTrainingRepository.deleteByUserId(user.id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ear-training-stats'] })
@@ -93,11 +96,9 @@ export function useSetPin() {
   return useMutation({
     mutationFn: async (pin: string | null) => {
       if (!user) throw new Error('Not authenticated')
-      const pin_hash = pin ? await hashPin(pin) : null
-      await db.users.update(user.id, { pin_hash })
-      const newSettings = { ...user.settings, pin_enabled: !!pin } as UserSettings
-      await db.users.update(user.id, { settings: newSettings })
-      return pin_hash
+      const pin_hash_val = pin ? await hashPin(pin) : null
+      await settingsRepository.setPin(user.id, pin_hash_val)
+      return pin_hash_val
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-settings'] })
@@ -143,11 +144,4 @@ export function useSendWhatsApp() {
       return res.json()
     },
   })
-}
-
-async function hashPin(pin: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(pin + 'worship-piano-salt')
-  const hash = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
 }

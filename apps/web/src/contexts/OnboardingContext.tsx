@@ -1,18 +1,41 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import Dexie, { type Table } from 'dexie'
+import { db } from '@/lib/db'
 
-class OnboardingDB extends Dexie {
-  settings!: Table<{ id: string; value: boolean }>
+interface OnboardingSetting {
+  id: string
+  value: boolean
+}
+
+class LegacyOnboardingDB extends Dexie {
+  settings!: Table<OnboardingSetting, string>
 
   constructor() {
     super('WorshipPianoOnboarding')
     this.version(1).stores({
-      settings: 'id'
+      settings: 'id',
     })
   }
 }
 
-const db = new OnboardingDB()
+const legacyDb = new LegacyOnboardingDB()
+
+let _hasCompletedTour: boolean | null = null
+
+async function migrateFromLegacy(): Promise<boolean> {
+  try {
+    const legacySetting = await legacyDb.settings.get('hasCompletedTour')
+    if (legacySetting) {
+      await db.onboarding.put({ id: 'hasCompletedTour', value: legacySetting.value })
+      await legacyDb.settings.delete('hasCompletedTour')
+      return true
+    }
+  } catch {
+    // no-op — migration or DB read error, proceed with default
+    void 0
+  }
+  return false
+}
 
 interface OnboardingStep {
   targetId: string
@@ -68,15 +91,26 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     async function checkTourStatus() {
-      const val = await db.settings.get('hasCompletedTour')
-      setCompletedTourState(val?.value === true)
+      if (_hasCompletedTour !== null) {
+        setCompletedTourState(_hasCompletedTour)
+        return
+      }
+      let setting = await db.onboarding.get('hasCompletedTour')
+      if (!setting) {
+        const migrated = await migrateFromLegacy()
+        if (migrated) {
+          setting = await db.onboarding.get('hasCompletedTour')
+        }
+      }
+      _hasCompletedTour = setting?.value === true
+      setCompletedTourState(_hasCompletedTour)
     }
     checkTourStatus()
   }, [])
 
   const setCompletedTour = async (val: boolean) => {
     setCompletedTourState(val)
-    await db.settings.put({ id: 'hasCompletedTour', value: val })
+    await db.onboarding.put({ id: 'hasCompletedTour', value: val })
   }
 
   const startTour = () => {

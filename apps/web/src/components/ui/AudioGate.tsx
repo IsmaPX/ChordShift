@@ -8,16 +8,17 @@ interface AudioGateProps {
 
 export function AudioGate({ children }: AudioGateProps) {
   const { t } = useTranslation()
-  const { isAudioReady, showGate, error, handleStartAudio } = useAudioGate()
+  const { showGate, error, handleStartAudio } = useAudioGate()
 
   return (
     <>
+      {children}
       <AnimatePresence>
         {showGate && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary"
             onClick={handleStartAudio}
           >
@@ -63,7 +64,6 @@ export function AudioGate({ children }: AudioGateProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      {isAudioReady && children}
     </>
   )
 }

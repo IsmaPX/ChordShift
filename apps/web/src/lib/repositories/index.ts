@@ -1,0 +1,1 @@
+export { userRepository, DexieUserRepository, type IUserRepository } from './UserRepository'

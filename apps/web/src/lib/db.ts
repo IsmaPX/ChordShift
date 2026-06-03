@@ -35,6 +35,13 @@ interface EarTrainingResult {
   created_at: string
 }
 
+interface OnboardingSetting {
+  id: string
+  value: boolean
+}
+
+let _seeded = false
+
 export class AppDatabase extends Dexie {
   users!: Table<LocalProfile, string>
   styles!: Table<Style, string>
@@ -43,10 +50,11 @@ export class AppDatabase extends Dexie {
   song_audio!: Table<SongAudio, string>
   ear_training_results!: Table<EarTrainingResult, string>
   tips!: Table<Tip, string>
+  onboarding!: Table<OnboardingSetting, string>
 
   constructor() {
     super('WorshipPianoApp')
-    this.version(2).stores({
+    this.version(3).stores({
       users: 'id, display_name, created_at, last_active',
       styles: 'id, name, difficulty',
       songs: 'id, title, style_id, difficulty, is_published',
@@ -54,10 +62,14 @@ export class AppDatabase extends Dexie {
       song_audio: 'id, song_id',
       ear_training_results: 'id, user_id, exercise_type, created_at',
       tips: 'id, category, style_id, difficulty_min',
+      onboarding: 'id',
     })
   }
 
   async seedIfEmpty(): Promise<void> {
+    if (_seeded) return
+    _seeded = true
+
     const styleCount = await this.styles.count()
     if (styleCount === 0) {
       await this.styles.bulkAdd(SEED_STYLES as Style[]).catch(() => {})
@@ -76,4 +88,4 @@ export class AppDatabase extends Dexie {
 export const db = new AppDatabase()
 
 export { DEFAULT_SETTINGS }
-export type { EarTrainingResult }
+export type { EarTrainingResult, OnboardingSetting }

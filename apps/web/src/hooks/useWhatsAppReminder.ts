@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from './useAuth'
 import { useUserSettings, useSendWhatsApp } from './useUserSettings'
+import { settingsRepository } from '@/lib/repositories/SettingsRepository'
 
 export function useWhatsAppReminder() {
   const { user } = useAuth()
@@ -45,14 +46,9 @@ export function useWhatsAppReminder() {
       { phone: settings.phone_number, message: randomMsg },
       {
         onSuccess: async () => {
-          const { db } = await import('@/lib/db')
           const id = localStorage.getItem('worship_piano_active_profile')
           if (id) {
-            const profile = await db.users.get(id)
-            if (profile) {
-              const newSettings = { ...profile.settings, last_reminder_sent: todayStr }
-              await db.users.update(id, { settings: newSettings })
-            }
+            await settingsRepository.updateSettings(id, { last_reminder_sent: todayStr })
           }
         },
       }

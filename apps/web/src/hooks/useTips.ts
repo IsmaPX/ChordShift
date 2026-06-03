@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { db } from '@/lib/db'
+import { tipRepository } from '@/lib/repositories/TipRepository'
 import type { Tip } from '@/types/music'
 
 interface UseTipsOptions {
@@ -12,7 +12,7 @@ export function useTips(options: UseTipsOptions = {}) {
   return useQuery({
     queryKey: ['tips', options],
     queryFn: async () => {
-      let results = await db.tips.toArray()
+      let results = await tipRepository.getAll()
 
       if (options.category) {
         results = results.filter(t => t.category === options.category)
@@ -35,13 +35,12 @@ export function useRandomTip(difficultyMin: number = 1) {
   return useQuery({
     queryKey: ['tip', 'random', difficultyMin],
     queryFn: async () => {
-      const data = await db.tips
-        .filter(t => t.difficulty_min <= difficultyMin)
-        .toArray()
+      const data = await tipRepository.getAll()
+      const filtered = data.filter(t => t.difficulty_min <= difficultyMin)
 
-      if (data.length === 0) return null
-      const randomIndex = Math.floor(Math.random() * data.length)
-      return data[randomIndex] as Tip
+      if (filtered.length === 0) return null
+      const randomIndex = Math.floor(Math.random() * filtered.length)
+      return filtered[randomIndex] as Tip
     },
   })
 }

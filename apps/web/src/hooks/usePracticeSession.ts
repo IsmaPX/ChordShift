@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { db } from '@/lib/db'
 import { useAuth } from './useAuth'
+import { practiceSessionRepository } from '@/lib/repositories/SessionRepository'
+import { songRepository } from '@/lib/repositories/SongRepository'
+import { settingsRepository } from '@/lib/repositories/SettingsRepository'
 import type { PracticeSession } from '@/types/music'
 
 interface PracticeSessionInput {
@@ -11,22 +13,22 @@ interface PracticeSessionInput {
 
 export function usePracticeSession() {
   const queryClient = useQueryClient()
-  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async (session: PracticeSessionInput) => {
-      if (!user) throw new Error('Not authenticated')
+      const activeId = localStorage.getItem('worship_piano_active_profile')
+      if (!activeId) throw new Error('Not authenticated')
 
       const newSession: PracticeSession = {
         id: crypto.randomUUID(),
-        user_id: user.id,
+        user_id: activeId,
         song_id: session.song_id,
         started_at: new Date().toISOString(),
         duration_s: session.duration_s || 0,
         completed: session.completed || false,
       }
 
-      await db.practice_sessions.add(newSession)
+      await practiceSessionRepository.create(newSession)
       return newSession
     },
     onSuccess: () => {
@@ -44,14 +46,11 @@ export function usePracticeSessions() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
 
-      const sessions = await db.practice_sessions
-        .where('user_id')
-        .equals(user.id)
-        .toArray()
+      const sessions = await practiceSessionRepository.getByUserId(user.id)
 
       const enriched = await Promise.all(
         sessions.map(async (s) => {
-          const song = await db.songs.get(s.song_id)
+          const song = await songRepository.getById(s.song_id)
           return {
             ...s,
             songs: song ? { id: song.id, title: song.title, artist: song.artist, key_signature: song.key_signature, bpm: song.bpm } : null,
@@ -74,12 +73,8 @@ export function useUserStats() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
 
-      const sessions = await db.practice_sessions
-        .where('user_id')
-        .equals(user.id)
-        .toArray()
-
-      const profile = await db.users.get(user.id)
+      const sessions = await practiceSessionRepository.getByUserId(user.id)
+      const profile = await settingsRepository.getByProfileId(user.id)
 
       const totalPracticeTime = sessions.reduce((sum, s) => sum + (s.duration_s || 0), 0)
       const completedSessions = sessions.filter(s => s.completed).length

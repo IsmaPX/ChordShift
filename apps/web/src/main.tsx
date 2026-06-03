@@ -7,6 +7,7 @@ import { LanguageProvider } from './lib/i18n/LanguageProvider'
 import { OnboardingProvider } from './contexts/OnboardingContext'
 import { AudioGateProvider } from './contexts/AudioGateContext'
 import { AudioGate } from './components/ui/AudioGate'
+import { ErrorBoundary } from './components/error'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -27,16 +28,18 @@ if (!('isElectron' in window) && 'serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <OnboardingProvider>
-          <AudioGateProvider>
-            <AudioGate>
-              <RouterProvider router={router} />
-            </AudioGate>
-          </AudioGateProvider>
-        </OnboardingProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <OnboardingProvider>
+            <AudioGateProvider>
+              <AudioGate>
+                <RouterProvider router={router} />
+              </AudioGate>
+            </AudioGateProvider>
+          </OnboardingProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 )
