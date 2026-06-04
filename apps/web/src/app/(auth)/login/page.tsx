@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { Music2, Headphones, User, Lock, Loader2, LogIn } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { variants, interactiveVariants } from '@/lib/animations/variants'
+import { LoginBackgroundGallery } from '@/components/auth/LoginBackgroundGallery'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -12,20 +13,6 @@ export function LoginPage() {
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [bgIndex, setBgIndex] = useState(0)
-
-  const images = [
-    'https://images.unsplash.com/photo-1520523839897-bd01H2fb39c1?auto=format&fit=crop&q=80&w=1920',
-    'https://images.unsplash.com/photo-1552425211-f7B39797674e?auto=format&fit=crop&q=80&w=1920',
-    'https://images.unsplash.com/photo-151411966C-628d-424f-84dc-3960da5a849a?auto=format&fit=crop&q=80&w=1920',
-  ]
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBgIndex((prev) => (prev + 1) % images.length)
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
 
   const handleSelectProfile = async (profileId: string) => {
     const profile = profiles.find(p => p.id === profileId)
@@ -68,24 +55,8 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col overflow-hidden relative">
-      <div className="fixed inset-0 z-0">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={bgIndex}
-            initial={{ opacity: 0, scale: 1 }}
-            animate={{ opacity: 1, scale: 1.05 }}
-            exit={{ opacity: 0, scale: 1 }}
-            transition={{ duration: 1.5 }}
-            className="absolute inset-0"
-          >
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-all duration-1000" 
-              style={{ backgroundImage: `url(${images[bgIndex]})` }}
-            />
-            <div className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm" />
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      {/* Galería de fondo con músicos anime y tinte verde */}
+      <LoginBackgroundGallery duration={75} tinted />
 
       <div className="fixed inset-0 pointer-events-none z-1">
         <div className="absolute top-20 right-10 text-accent/5">

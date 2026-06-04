@@ -1,0 +1,5 @@
+export { PianistSVG } from './PianistSVG'
+export { GuitaristSVG } from './GuitaristSVG'
+export { TrumpetSVG } from './TrumpetSVG'
+export { DrummerSVG } from './DrummerSVG'
+export { ViolinistSVG } from './ViolinistSVG'
