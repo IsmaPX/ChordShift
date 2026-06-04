@@ -280,671 +280,678 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <Toast
-        message={toastMessage}
-        type={toastType}
-        isVisible={toastVisible}
-        onClose={() => setToastVisible(false)}
-      />
+    <div className="settings-bg -m-4 sm:-m-6 p-4 sm:p-6 min-h-[calc(100vh-80px)]">
+      <div className="relative space-y-5 max-w-2xl mx-auto">
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          isVisible={toastVisible}
+          onClose={() => setToastVisible(false)}
+        />
 
-      <ConfirmModal
-        isOpen={deleteModalOpen}
-        title={t('settings.confirmDeleteTitle')}
-        message={t('settings.confirmDeleteMsg')}
-        confirmLabel={t('settings.confirmDeleteBtn')}
-        cancelLabel={t('practice.cancel')}
-        variant="danger"
-        onConfirm={handleDeleteProfile}
-        onCancel={() => setDeleteModalOpen(false)}
-      />
+        <ConfirmModal
+          isOpen={deleteModalOpen}
+          title={t('settings.confirmDeleteTitle')}
+          message={t('settings.confirmDeleteMsg')}
+          confirmLabel={t('settings.confirmDeleteBtn')}
+          cancelLabel={t('practice.cancel')}
+          variant="danger"
+          onConfirm={handleDeleteProfile}
+          onCancel={() => setDeleteModalOpen(false)}
+        />
 
-      <ConfirmModal
-        isOpen={clearPracticeModalOpen}
-        title={t('settings.confirmClearPracticeTitle')}
-        message={t('settings.confirmClearPracticeMsg')}
-        confirmLabel={t('settings.confirmClearBtn')}
-        cancelLabel={t('practice.cancel')}
-        variant="warning"
-        onConfirm={handleClearPractice}
-        onCancel={() => setClearPracticeModalOpen(false)}
-      />
+        <ConfirmModal
+          isOpen={clearPracticeModalOpen}
+          title={t('settings.confirmClearPracticeTitle')}
+          message={t('settings.confirmClearPracticeMsg')}
+          confirmLabel={t('settings.confirmClearBtn')}
+          cancelLabel={t('practice.cancel')}
+          variant="warning"
+          onConfirm={handleClearPractice}
+          onCancel={() => setClearPracticeModalOpen(false)}
+        />
 
-      <ConfirmModal
-        isOpen={clearEarModalOpen}
-        title={t('settings.confirmClearEarTitle')}
-        message={t('settings.confirmClearEarMsg')}
-        confirmLabel={t('settings.confirmClearBtn')}
-        cancelLabel={t('practice.cancel')}
-        variant="warning"
-        onConfirm={handleClearEarTraining}
-        onCancel={() => setClearEarModalOpen(false)}
-      />
+        <ConfirmModal
+          isOpen={clearEarModalOpen}
+          title={t('settings.confirmClearEarTitle')}
+          message={t('settings.confirmClearEarMsg')}
+          confirmLabel={t('settings.confirmClearBtn')}
+          cancelLabel={t('practice.cancel')}
+          variant="warning"
+          onConfirm={handleClearEarTraining}
+          onCancel={() => setClearEarModalOpen(false)}
+        />
 
-      <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">{t('settings.title')}</h1>
-        <p className="text-text-secondary">
-          {t('settings.subtitle')}
-        </p>
-      </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="settings-section-num">01</span>
+            <span className="text-xs uppercase tracking-widest text-accent font-mono">Panel de Control</span>
+          </div>
+          <h1 className="text-3xl font-bold text-text-primary mb-1">{t('settings.title')}</h1>
+          <p className="text-text-secondary text-sm">
+            {t('settings.subtitle')}
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Settings className="text-accent" size={20} />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="settings-panel space-y-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="settings-section-num">01</span>
+              <Settings className="text-accent" size={18} />
+              <h2 className="text-lg font-medium text-text-primary">{t('settings.general')}</h2>
             </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.general')}</h2>
-          </div>
 
-          <div>
-            <label className="block text-text-primary text-sm mb-2">
-              {t('settings.language')}
-            </label>
-            <select
-              {...register('language')}
-              className="w-full px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
-            >
-              {languages.map((lang) => (
-                <option key={lang.value} value={lang.value}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
+                {t('settings.language')}
+              </label>
+              <select
+                {...register('language')}
+                className="w-full px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent transition-colors"
+              >
+                {languages.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-text-primary text-sm mb-2">
-              {t('settings.tempo', { bpm: watch('tempo_bpm') })}
-            </label>
-            <input
-              type="range"
-              min="60"
-              max="200"
-              {...register('tempo_bpm', { valueAsNumber: true })}
-              className="w-full accent-accent"
-            />
-          </div>
+            <div>
+              <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
+                {t('settings.tempo', { bpm: watch('tempo_bpm') })}
+              </label>
+              <input
+                type="range"
+                min="60"
+                max="200"
+                {...register('tempo_bpm', { valueAsNumber: true })}
+                className="w-full accent-accent"
+              />
+            </div>
 
-          <div>
-            <label className="block text-text-primary text-sm mb-2">
-              {t('settings.difficulty')}
+            <div>
+              <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
+                {t('settings.difficulty')}
+              </label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setValue('difficulty', d)}
+                    className={cn(
+                      'flex-1 px-3 py-2 rounded-sm border text-sm font-bold transition-colors',
+                      watch('difficulty') === d
+                        ? 'border-accent bg-accent/15 text-accent glow-green'
+                        : 'border-accent/20 text-text-secondary hover:border-accent/50'
+                    )}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+              <p className="text-text-secondary text-xs mt-1 font-mono">
+                {difficultyLabels[watch('difficulty')]}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-text-primary text-sm mb-3 font-mono uppercase tracking-wider text-xs">
+                {t('settings.instrument')}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {INSTRUMENTS.map((inst) => (
+                  <label
+                    key={inst.value}
+                    className={cn(
+                      'flex flex-col items-center gap-2 p-3 rounded-sm border cursor-pointer transition-colors',
+                      watch('preferred_instrument') === inst.value
+                        ? 'border-accent bg-accent/10 glow-green'
+                        : 'border-accent/20 hover:border-accent/50'
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={inst.value}
+                      {...register('preferred_instrument')}
+                      className="sr-only"
+                    />
+                    <span className="text-2xl">{inst.icon}</span>
+                    <span className="text-text-primary text-sm font-medium">{t('instruments.' + inst.value)}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="settings-panel space-y-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="settings-section-num">02</span>
+              <Music2 className="text-accent" size={18} />
+              <h2 className="text-lg font-medium text-text-primary">{t('settings.metronome')}</h2>
+            </div>
+
+            <label className="flex items-center justify-between cursor-pointer py-2">
+              <span className="text-text-secondary text-sm">{t('settings.metronomeToggle')}</span>
+              <div
+                role="switch"
+                tabIndex={0}
+                aria-checked={watch('metronome_enabled') ? 'true' : 'false'}
+                className="settings-toggle"
+                data-on={watch('metronome_enabled') ? 'true' : 'false'}
+                onClick={() => setValue('metronome_enabled', !watch('metronome_enabled'), { shouldDirty: true })}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault()
+                    setValue('metronome_enabled', !watch('metronome_enabled'), { shouldDirty: true })
+                  }
+                }}
+              />
             </label>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((d) => (
+
+            {watch('metronome_enabled') && (
+              <div>
+                <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
+                  {t('settings.metronomeVolume', { pct: Math.round(watch('metronome_volume') * 100) })}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  {...register('metronome_volume', { valueAsNumber: true })}
+                  className="w-full accent-accent"
+                />
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="settings-panel space-y-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="settings-section-num">03</span>
+              <Bell className="text-accent" size={18} />
+              <h2 className="text-lg font-medium text-text-primary">{t('settings.notifications')}</h2>
+            </div>
+
+            <label className="flex items-center justify-between cursor-pointer py-2">
+              <span className="text-text-secondary text-sm">{t('settings.notificationsToggle')}</span>
+              <div
+                role="switch"
+                tabIndex={0}
+                aria-checked={watch('notifications_enabled') ? 'true' : 'false'}
+                className="settings-toggle"
+                data-on={watch('notifications_enabled') ? 'true' : 'false'}
+                onClick={() => setValue('notifications_enabled', !watch('notifications_enabled'), { shouldDirty: true })}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault()
+                    setValue('notifications_enabled', !watch('notifications_enabled'), { shouldDirty: true })
+                  }
+                }}
+              />
+            </label>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="settings-panel space-y-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="settings-section-num">04</span>
+              <Smartphone className="text-accent" size={18} />
+              <h2 className="text-lg font-medium text-text-primary">{t('settings.whatsapp')}</h2>
+            </div>
+
+            {!phoneVerified ? (
+              <div className="space-y-3">
+                <p className="text-text-secondary text-sm">
+                  {t('settings.whatsappDesc')}
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    placeholder={t('settings.whatsappPhonePlaceholder')}
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value.replace(/[^0-9+]/g, ''))}
+                    className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendOTP}
+                    disabled={sendingOtp || phoneInput.length < 10}
+                    className="px-4 py-3 bg-accent text-white font-medium rounded-sm hover:bg-accent-hover glow-green transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {sendingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappSendCode')}
+                  </button>
+                </div>
+
+                {otpSent && (
+                  <div className="space-y-2">
+                    <p className="text-text-secondary text-sm">
+                      {t('settings.whatsappEnterCode')}
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder={t('settings.whatsappOtpPlaceholder')}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                        className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyOTP}
+                        disabled={verifyingOtp || otpCode.length < 6}
+                        className="px-4 py-3 bg-accent text-white font-medium rounded-sm hover:bg-accent-hover glow-green transition-colors disabled:opacity-50"
+                      >
+                        {verifyingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappVerify')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-success/10 border border-success/30">
+                  <div>
+                    <p className="text-text-primary text-sm font-medium">{t('settings.whatsappVerified')}</p>
+                    <p className="text-success text-sm font-mono">{phoneInput}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhone}
+                    className="p-2 text-danger hover:bg-danger/10 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
+                    {t('settings.whatsappHour')}
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={reminderHour}
+                      onChange={(e) => setReminderHour(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent font-mono"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={String(i).padStart(2, '0')}>
+                          {String(i).padStart(2, '0')}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="flex items-center text-text-secondary font-mono">:</span>
+                    <select
+                      value={reminderMinute}
+                      onChange={(e) => setReminderMinute(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent font-mono"
+                    >
+                      {['00', '15', '30', '45'].map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
+                    {t('settings.whatsappDays')}
+                  </label>
+                  <div className="flex gap-1.5">
+                    {[
+                      { n: 0, key: 'sun' },
+                      { n: 1, key: 'mon' },
+                      { n: 2, key: 'tue' },
+                      { n: 3, key: 'wed' },
+                      { n: 4, key: 'thu' },
+                      { n: 5, key: 'fri' },
+                      { n: 6, key: 'sat' },
+                    ].map(({ n, key }) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => {
+                          setSelectedDays((prev) =>
+                            prev.includes(n) ? prev.filter((d) => d !== n) : [...prev, n]
+                          )
+                        }}
+                        className={cn(
+                          'flex-1 px-2 py-2 rounded-sm border text-xs font-mono font-bold transition-colors',
+                          selectedDays.includes(n)
+                            ? 'border-accent bg-accent/15 text-accent'
+                            : 'border-accent/20 text-text-secondary hover:border-accent/50'
+                        )}
+                      >
+                        {t('days.' + key).slice(0, 3).toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <button
-                  key={d}
                   type="button"
-                  onClick={() => setValue('difficulty', d)}
-                  className={cn(
-                    'flex-1 px-3 py-2 rounded-xl border text-sm font-medium transition-colors',
-                    watch('difficulty') === d
-                      ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-border text-text-secondary hover:border-accent/50'
-                  )}
+                  onClick={handleSaveReminderSettings}
+                  className="w-full py-2.5 bg-accent text-white font-medium rounded-sm hover:bg-accent-hover glow-green transition-colors text-sm"
                 >
-                  {d}
+                  {t('settings.whatsappSaveSchedule')}
                 </button>
-              ))}
-            </div>
-            <p className="text-text-secondary text-xs mt-1">
-              {difficultyLabels[watch('difficulty')]}
-            </p>
-          </div>
+              </div>
+            )}
+          </motion.div>
 
-          <div>
-            <label className="block text-text-primary text-sm mb-3">
-              {t('settings.instrument')}
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {INSTRUMENTS.map((inst) => (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="settings-panel space-y-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="settings-section-num">05</span>
+              <Shield className="text-accent" size={18} />
+              <h2 className="text-lg font-medium text-text-primary">{t('settings.security')}</h2>
+            </div>
+
+            {pinMode === 'none' && (
+              <div className="flex gap-3">
+                {settings?.pin_enabled ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => { setPinMode('change'); setPinValue(''); setPinConfirm('') }}
+                      className="flex-1 px-4 py-2.5 rounded-sm border border-accent/20 text-text-secondary hover:text-accent hover:border-accent/50 transition-all text-sm font-mono uppercase tracking-wider"
+                    >
+                      {t('settings.pinChangeBtn')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemovePin}
+                      className="flex-1 px-4 py-2.5 rounded-sm text-danger hover:bg-danger/10 transition-colors text-sm font-mono uppercase tracking-wider"
+                    >
+                      {t('settings.pinRemoveBtn')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setPinMode('set'); setPinValue(''); setPinConfirm('') }}
+                    className="w-full px-4 py-2.5 rounded-sm border border-accent/20 text-text-secondary hover:text-accent hover:border-accent/50 transition-all text-sm font-mono uppercase tracking-wider"
+                  >
+                    {t('settings.pinSetBtn')}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {(pinMode === 'set' || pinMode === 'change') && (
+              <div className="space-y-3">
+                <p className="text-text-secondary text-sm font-mono">
+                  {pinMode === 'set' ? t('settings.pinSet') : t('settings.pinChange')}
+                </p>
+                <input
+                  type="password"
+                  maxLength={6}
+                  placeholder={t('settings.pinNew')}
+                  value={pinValue}
+                  onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest font-mono"
+                />
+                <input
+                  type="password"
+                  maxLength={6}
+                  placeholder={t('settings.pinConfirm')}
+                  value={pinConfirm}
+                  onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest font-mono"
+                />
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPinMode('none')}
+                    className="flex-1 px-4 py-2.5 rounded-sm border border-accent/20 text-text-secondary hover:text-accent transition-all text-sm font-mono uppercase tracking-wider"
+                  >
+                    {t('settings.pinCancelBtn')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSavePin}
+                    className="flex-1 px-4 py-2.5 rounded-sm bg-accent text-white font-medium hover:bg-accent-hover glow-green transition-colors text-sm font-mono uppercase tracking-wider"
+                  >
+                    {t('settings.pinSaveBtn')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="settings-panel space-y-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="settings-section-num">06</span>
+              <Eye className="text-accent" size={18} />
+              <h2 className="text-lg font-medium text-text-primary">{t('settings.feedback')}</h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              {feedbackOptions.map((option) => (
                 <label
-                  key={inst.value}
+                  key={option.value}
                   className={cn(
-                    'flex flex-col items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors',
-                    watch('preferred_instrument') === inst.value
+                    'flex items-center gap-4 p-4 rounded-sm border cursor-pointer transition-colors',
+                    watch('feedback_concept') === option.value
                       ? 'border-accent bg-accent/10'
-                      : 'border-border hover:border-accent/50'
+                      : 'border-accent/20 hover:border-accent/50'
                   )}
                 >
                   <input
                     type="radio"
-                    value={inst.value}
-                    {...register('preferred_instrument')}
+                    value={option.value}
+                    {...register('feedback_concept')}
                     className="sr-only"
                   />
-                  <span className="text-2xl">{inst.icon}</span>
-                  <span className="text-text-primary text-sm font-medium">{t('instruments.' + inst.value)}</span>
+                  <div
+                    className={cn(
+                      'w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-colors',
+                      watch('feedback_concept') === option.value
+                        ? 'border-accent bg-accent'
+                        : 'border-accent/30'
+                    )}
+                  >
+                    {watch('feedback_concept') === option.value && (
+                      <div className="w-2 h-2 rounded-sm bg-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-text-primary font-medium">{option.label}</p>
+                    <p className="text-text-secondary text-sm">{option.description}</p>
+                  </div>
                 </label>
               ))}
             </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Music2 className="text-accent" size={20} />
-            </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.metronome')}</h2>
-          </div>
-
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-text-secondary">{t('settings.metronomeToggle')}</span>
-            <div className="relative">
-              <input
-                type="checkbox"
-                {...register('metronome_enabled')}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-border rounded-full peer-checked:bg-accent transition-colors" />
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5" />
-            </div>
-          </label>
-
-          {watch('metronome_enabled') && (
-            <div>
-              <label className="block text-text-primary text-sm mb-2">
-                {t('settings.metronomeVolume', { pct: Math.round(watch('metronome_volume') * 100) })}
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                {...register('metronome_volume', { valueAsNumber: true })}
-                className="w-full accent-accent"
-              />
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Bell className="text-accent" size={20} />
-            </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.notifications')}</h2>
-          </div>
-
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-text-secondary">{t('settings.notificationsToggle')}</span>
-            <div className="relative">
-              <input
-                type="checkbox"
-                {...register('notifications_enabled')}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-border rounded-full peer-checked:bg-accent transition-colors" />
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5" />
-            </div>
-          </label>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Smartphone className="text-accent" size={20} />
-            </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.whatsapp')}</h2>
-          </div>
-
-          {!phoneVerified ? (
-            <div className="space-y-3">
-              <p className="text-text-secondary text-sm">
-                {t('settings.whatsappDesc')}
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  placeholder={t('settings.whatsappPhonePlaceholder')}
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value.replace(/[^0-9+]/g, ''))}
-                  className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
-                />
-                <button
-                  type="button"
-                  onClick={handleSendOTP}
-                  disabled={sendingOtp || phoneInput.length < 10}
-                  className="px-4 py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50 whitespace-nowrap"
-                >
-                  {sendingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappSendCode')}
-                </button>
-              </div>
-
-              {otpSent && (
-                <div className="space-y-2">
-                  <p className="text-text-secondary text-sm">
-                    {t('settings.whatsappEnterCode')}
-                  </p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      maxLength={6}
-                      placeholder={t('settings.whatsappOtpPlaceholder')}
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                      className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyOTP}
-                      disabled={verifyingOtp || otpCode.length < 6}
-                      className="px-4 py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50"
-                    >
-                      {verifyingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappVerify')}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-success/10 border border-success/20">
-                <div>
-                  <p className="text-text-primary text-sm font-medium">{t('settings.whatsappVerified')}</p>
-                  <p className="text-success text-sm">{phoneInput}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleRemovePhone}
-                  className="p-2 rounded-lg text-danger hover:bg-danger/10 transition-colors"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-text-primary text-sm mb-2">
-                  {t('settings.whatsappHour')}
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    value={reminderHour}
-                    onChange={(e) => setReminderHour(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
-                  >
-                    {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={String(i).padStart(2, '0')}>
-                        {String(i).padStart(2, '0')}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="flex items-center text-text-secondary">:</span>
-                  <select
-                    value={reminderMinute}
-                    onChange={(e) => setReminderMinute(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent"
-                  >
-                    {['00', '15', '30', '45'].map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-text-primary text-sm mb-2">
-                  {t('settings.whatsappDays')}
-                </label>
-                <div className="flex gap-2">
-                  {[
-                    { n: 0, key: 'sun' },
-                    { n: 1, key: 'mon' },
-                    { n: 2, key: 'tue' },
-                    { n: 3, key: 'wed' },
-                    { n: 4, key: 'thu' },
-                    { n: 5, key: 'fri' },
-                    { n: 6, key: 'sat' },
-                  ].map(({ n, key }) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => {
-                        setSelectedDays((prev) =>
-                          prev.includes(n) ? prev.filter((d) => d !== n) : [...prev, n]
-                        )
-                      }}
-                      className={cn(
-                        'flex-1 px-2 py-2 rounded-xl border text-xs font-medium transition-colors',
-                        selectedDays.includes(n)
-                          ? 'border-accent bg-accent/10 text-accent'
-                          : 'border-border text-text-secondary hover:border-accent/50'
-                      )}
-                    >
-                      {t('days.' + key)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSaveReminderSettings}
-                className="w-full py-2.5 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors text-sm"
-              >
-                {t('settings.whatsappSaveSchedule')}
-              </button>
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Shield className="text-accent" size={20} />
-            </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.security')}</h2>
-          </div>
-
-          {pinMode === 'none' && (
-            <div className="flex gap-3">
-              {settings?.pin_enabled ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => { setPinMode('change'); setPinValue(''); setPinConfirm('') }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all text-sm"
-                  >
-                    {t('settings.pinChangeBtn')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleRemovePin}
-                    className="flex-1 px-4 py-2.5 rounded-xl text-danger hover:bg-danger/10 transition-colors text-sm"
-                  >
-                    {t('settings.pinRemoveBtn')}
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => { setPinMode('set'); setPinValue(''); setPinConfirm('') }}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all text-sm"
-                >
-                  {t('settings.pinSetBtn')}
-                </button>
-              )}
-            </div>
-          )}
-
-          {(pinMode === 'set' || pinMode === 'change') && (
-            <div className="space-y-3">
-              <p className="text-text-secondary text-sm">
-                {pinMode === 'set' ? t('settings.pinSet') : t('settings.pinChange')}
-              </p>
-              <input
-                type="password"
-                maxLength={6}
-                placeholder={t('settings.pinNew')}
-                value={pinValue}
-                onChange={(e) => setPinValue(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
-              />
-              <input
-                type="password"
-                maxLength={6}
-                placeholder={t('settings.pinConfirm')}
-                value={pinConfirm}
-                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-4 py-3 bg-bg-primary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest"
-              />
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPinMode('none')}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:text-text-primary transition-all text-sm"
-                >
-                  {t('settings.pinCancelBtn')}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSavePin}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors text-sm"
-                >
-                  {t('settings.pinSaveBtn')}
-                </button>
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Eye className="text-accent" size={20} />
-            </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.feedback')}</h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {feedbackOptions.map((option) => (
-              <label
-                key={option.value}
-                className={cn(
-                  'flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-colors',
-                  watch('feedback_concept') === option.value
-                    ? 'border-accent bg-accent/10'
-                    : 'border-border hover:border-accent/50'
-                )}
-              >
-                <input
-                  type="radio"
-                  value={option.value}
-                  {...register('feedback_concept')}
-                  className="sr-only"
-                />
-                <div
-                  className={cn(
-                    'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
-                    watch('feedback_concept') === option.value
-                      ? 'border-accent bg-accent'
-                      : 'border-border'
-                  )}
-                >
-                  {watch('feedback_concept') === option.value && (
-                    <div className="w-2 h-2 rounded-full bg-white" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-text-primary font-medium">{option.label}</p>
-                  <p className="text-text-secondary text-sm">{option.description}</p>
-                </div>
-              </label>
-            ))}
-          </div>
-        </motion.div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-3 bg-accent text-white font-medium rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50"
-        >
-          {isSubmitting ? t('settings.savingBtn') : t('settings.saveBtn')}
-        </button>
-      </form>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-      >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Database className="text-accent" size={20} />
-            </div>
-            <h2 className="text-lg font-medium text-text-primary">{t('settings.data')}</h2>
-          </div>
-
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => setClearPracticeModalOpen(true)}
-            disabled={clearPractice.isPending}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-warning/50 transition-all disabled:opacity-50"
-          >
-            <span className="text-sm">{t('settings.dataClearPractice')}</span>
-            {clearPractice.isPending ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <Trash2 size={16} className="text-warning" />
-            )}
-          </button>
+          </motion.div>
 
           <button
-            type="button"
-            onClick={() => setClearEarModalOpen(true)}
-            disabled={clearEarTraining.isPending}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-warning/50 transition-all disabled:opacity-50"
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3 bg-accent text-white font-bold uppercase tracking-wider rounded-sm hover:bg-accent-hover glow-green transition-colors disabled:opacity-50 font-mono text-sm"
           >
-            <span className="text-sm">{t('settings.dataClearEar')}</span>
-            {clearEarTraining.isPending ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <Trash2 size={16} className="text-warning" />
-            )}
+            {isSubmitting ? t('settings.savingBtn') : t('settings.saveBtn')}
           </button>
-        </div>
-      </motion.div>
+        </form>
 
-      {window.isElectron && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
+          className="settings-panel space-y-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-accent/20">
-              <Download className="text-accent" size={20} />
-            </div>
-            <div>
-              <p className="text-text-primary font-medium">{t('settings.updates')}</p>
-              <p className="text-text-secondary text-sm">{t('settings.updatesDesc')}</p>
-            </div>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="settings-section-num">07</span>
+            <Database className="text-accent" size={18} />
+            <h2 className="text-lg font-medium text-text-primary">{t('settings.data')}</h2>
           </div>
 
-          <div className="flex items-center gap-3">
-            {(updateState === 'idle' || updateState === 'checking') && (
-              <button
-                onClick={handleCheckForUpdates}
-                disabled={updateState === 'checking'}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent/90 transition-colors disabled:opacity-50"
-              >
-                {updateState === 'checking' ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <RefreshCw size={18} />
-                )}
-                {t('settings.checkUpdates')}
-              </button>
-            )}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setClearPracticeModalOpen(true)}
+              disabled={clearPractice.isPending}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-sm border border-accent/20 text-text-secondary hover:text-warning hover:border-warning/50 transition-all disabled:opacity-50 font-mono text-sm"
+            >
+              <span>{t('settings.dataClearPractice')}</span>
+              {clearPractice.isPending ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                <Trash2 size={16} className="text-warning" />
+              )}
+            </button>
 
-            {updateState === 'available' && (
-              <p className="text-text-secondary text-sm">
-                {t('settings.updateAvailable', { version: updateVersion })}
-              </p>
-            )}
-
-            {updateState === 'downloading' && (
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-text-secondary">{t('settings.downloading')}</span>
-                  <span className="text-accent">{Math.round(updateProgress)}%</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-bg-primary overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-accent transition-all duration-300"
-                    style={{ width: `${updateProgress}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {updateState === 'downloaded' && (
-              <button
-                onClick={handleInstallUpdate}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent/90 transition-colors"
-              >
-                <Download size={18} />
-                {t('settings.restartInstall')}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setClearEarModalOpen(true)}
+              disabled={clearEarTraining.isPending}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-sm border border-accent/20 text-text-secondary hover:text-warning hover:border-warning/50 transition-all disabled:opacity-50 font-mono text-sm"
+            >
+              <span>{t('settings.dataClearEar')}</span>
+              {clearEarTraining.isPending ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                <Trash2 size={16} className="text-warning" />
+              )}
+            </button>
           </div>
         </motion.div>
-      )}
 
-      {!window.isElectron && (
-        <DesktopDownloadSection
-          showAll={showAllPlatforms}
-          onToggle={() => setShowAllPlatforms(!showAllPlatforms)}
-          t={t}
-        />
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="bg-bg-secondary rounded-xl p-6 border border-border space-y-4"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-accent/20">
-            <User className="text-accent" size={20} />
-          </div>
-          <div>
-            <p className="text-text-primary font-medium">{user?.display_name}</p>
-            <p className="text-text-secondary text-sm">{user?.settings?.xp || 0} XP</p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={handleSwitchProfile}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all"
+        {window.isElectron && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="settings-panel space-y-4"
           >
-            <LogOut size={18} />
-            {t('settings.profileSwitch')}
-          </button>
-          <button
-            onClick={() => setDeleteModalOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-danger hover:bg-danger/10 transition-colors"
-          >
-            <Trash2 size={18} />
-            {t('settings.profileDelete')}
-          </button>
-        </div>
-      </motion.div>
+            <div className="flex items-center gap-3">
+              <span className="settings-section-num">08</span>
+              <Download className="text-accent" size={18} />
+              <div>
+                <p className="text-text-primary font-medium">{t('settings.updates')}</p>
+                <p className="text-text-secondary text-sm">{t('settings.updatesDesc')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {(updateState === 'idle' || updateState === 'checking') && (
+                <button
+                  onClick={handleCheckForUpdates}
+                  disabled={updateState === 'checking'}
+                  className="flex items-center gap-2 px-4 py-2 rounded-sm bg-accent text-white hover:bg-accent-hover glow-green transition-colors disabled:opacity-50 font-mono text-sm uppercase tracking-wider"
+                >
+                  {updateState === 'checking' ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    <RefreshCw size={18} />
+                  )}
+                  {t('settings.checkUpdates')}
+                </button>
+              )}
+
+              {updateState === 'available' && (
+                <p className="text-text-secondary text-sm">
+                  {t('settings.updateAvailable', { version: updateVersion })}
+                </p>
+              )}
+
+              {updateState === 'downloading' && (
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between text-sm font-mono">
+                    <span className="text-text-secondary">{t('settings.downloading')}</span>
+                    <span className="text-accent">{Math.round(updateProgress)}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-bg-primary overflow-hidden">
+                    <div
+                      className="h-full bg-accent transition-all duration-300 glow-green"
+                      style={{ width: `${updateProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {updateState === 'downloaded' && (
+                <button
+                  onClick={handleInstallUpdate}
+                  className="flex items-center gap-2 px-4 py-2 rounded-sm bg-accent text-white hover:bg-accent-hover glow-green transition-colors"
+                >
+                  <Download size={18} />
+                  {t('settings.restartInstall')}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {!window.isElectron && (
+          <DesktopDownloadSection
+            showAll={showAllPlatforms}
+            onToggle={() => setShowAllPlatforms(!showAllPlatforms)}
+            t={t}
+          />
+        )}
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="settings-panel space-y-4"
+        >
+          <div className="flex items-center gap-3">
+            <span className="settings-section-num">99</span>
+            <User className="text-accent" size={18} />
+            <div>
+              <p className="text-text-primary font-medium">{user?.display_name}</p>
+              <p className="text-text-secondary text-sm font-mono">{user?.settings?.xp || 0} XP</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleSwitchProfile}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-sm border border-accent/20 text-text-secondary hover:text-accent hover:border-accent/50 transition-all font-mono text-sm uppercase tracking-wider"
+            >
+              <LogOut size={18} />
+              {t('settings.profileSwitch')}
+            </button>
+            <button
+              onClick={() => setDeleteModalOpen(true)}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-sm text-danger hover:bg-danger/10 transition-colors font-mono text-sm uppercase tracking-wider"
+            >
+              <Trash2 size={18} />
+              {t('settings.profileDelete')}
+            </button>
+          </div>
+        </motion.div>
+      </div>
     </div>
   )
 }

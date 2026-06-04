@@ -86,161 +86,179 @@ export function PracticePage() {
   }, [newTitle, newArtist, newKey, newBpm, createSong, styleFilter, styles])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary mb-2">{t('practice.title')}</h1>
-          <p className="text-text-secondary">{t('practice.subtitle')}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowImport(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-secondary border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 transition-all"
-          >
-            <Upload size={18} />
-            {t('practice.import')}
-          </button>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover transition-all"
-          >
-            <Plus size={18} />
-            {t('practice.create')}
-          </button>
-        </div>
+    <div className="practice-list-bg -m-4 sm:-m-6 p-4 sm:p-6 min-h-[calc(100vh-80px)]">
+      {/* Fondo decorativo: partitura sutil */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.04]" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="staff-lines" x="0" y="0" width="200" height="60" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="10" x2="200" y2="10" stroke="#22c55e" strokeWidth="1" />
+              <line x1="0" y1="20" x2="200" y2="20" stroke="#22c55e" strokeWidth="1" />
+              <line x1="0" y1="30" x2="200" y2="30" stroke="#22c55e" strokeWidth="1" />
+              <line x1="0" y1="40" x2="200" y2="40" stroke="#22c55e" strokeWidth="1" />
+              <line x1="0" y1="50" x2="200" y2="50" stroke="#22c55e" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#staff-lines)" />
+        </svg>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          {tabValues.map((value) => (
+      <div className="relative space-y-6">
+        {/* Header estilo "estante de vinilos" */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px w-8 bg-accent/60" />
+              <span className="text-xs uppercase tracking-widest text-accent font-mono">Colección</span>
+            </div>
+            <h1 className="text-3xl font-bold text-text-primary mb-1">{t('practice.title')}</h1>
+            <p className="text-text-secondary text-sm">{t('practice.subtitle')}</p>
+          </div>
+          <div className="flex gap-2">
             <button
-              key={value}
-              onClick={() => setTab(value)}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                tab === value
-                  ? 'bg-accent text-white'
-                  : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
-              )}
+              onClick={() => setShowImport(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-primary/60 border border-accent/20 text-text-secondary hover:text-accent hover:border-accent/50 transition-all"
             >
-              {t('practice.tab' + value.charAt(0).toUpperCase() + value.slice(1))}
+              <Upload size={18} />
+              <span className="hidden sm:inline">{t('practice.import')}</span>
             </button>
-          ))}
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover glow-green transition-all"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">{t('practice.create')}</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-bg-secondary border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent transition-colors"
-              placeholder={t('practice.search')}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
-                <X size={18} />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            {tabValues.map((value) => (
+              <button
+                key={value}
+                onClick={() => setTab(value)}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                  tab === value
+                    ? 'bg-accent text-white glow-green'
+                    : 'bg-bg-primary/40 text-text-secondary hover:text-accent border border-transparent hover:border-accent/30'
+                )}
+              >
+                {t('practice.tab' + value.charAt(0).toUpperCase() + value.slice(1))}
               </button>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-accent/60" size={18} />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-bg-primary/60 backdrop-blur border border-accent/20 rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-all"
+                placeholder={t('practice.search')}
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-accent">
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-accent/60 pointer-events-none" size={18} />
+              <select
+                value={styleFilter}
+                onChange={e => setStyleFilter(e.target.value)}
+                className="pl-10 pr-8 py-2 bg-bg-primary/60 backdrop-blur border border-accent/20 rounded-xl text-text-primary focus:outline-none focus:border-accent/60 transition-all appearance-none"
+              >
+                <option value="">{t('practice.filter')}</option>
+                {styles?.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {isLoading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="animate-spin text-accent" size={32} />
+          </div>
+        )}
+
+        {error && (
+          <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger">
+            {t('practice.error')}
+          </div>
+        )}
+
+        {songs && songs.length === 0 && (
+          <div className="text-center py-16 bg-bg-primary/40 rounded-2xl border border-dashed border-accent/20">
+            <div className="practice-vinyl mx-auto mb-4 opacity-50" />
+            <p className="text-text-secondary mb-2 font-medium">
+              {tab === 'mine' ? t('practice.emptyMine') : t('practice.emptyOther')}
+            </p>
+            <p className="text-text-secondary text-sm mb-6 max-w-xs mx-auto">
+              {tab === 'mine' ? t('practice.emptyMineDesc') : t('practice.emptyOtherDesc')}
+            </p>
+            {tab === 'mine' && (
+              <div className="flex justify-center gap-2">
+                <button onClick={() => setShowImport(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-primary border border-accent/20 text-text-secondary hover:text-accent transition-all">
+                  <Upload size={18} /> {t('practice.import')}
+                </button>
+                <button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover glow-green transition-all">
+                  <Plus size={18} /> {t('practice.create')}
+                </button>
+              </div>
             )}
           </div>
+        )}
 
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" size={18} />
-            <select
-              value={styleFilter}
-              onChange={e => setStyleFilter(e.target.value)}
-              className="pl-10 pr-8 py-2 bg-bg-secondary border border-border rounded-xl text-text-primary focus:outline-none focus:border-accent transition-colors appearance-none"
-            >
-              <option value="">{t('practice.filter')}</option>
-              {styles?.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-
-
-        </div>
-      </div>
-
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="animate-spin text-accent" size={32} />
-        </div>
-      )}
-
-      {error && (
-        <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger">
-          {t('practice.error')}
-        </div>
-      )}
-
-      {songs && songs.length === 0 && (
-        <div className="text-center py-12">
-          <Music2 className="mx-auto text-text-secondary mb-4" size={48} />
-          <p className="text-text-secondary mb-2">
-            {tab === 'mine' ? t('practice.emptyMine') : t('practice.emptyOther')}
-          </p>
-          <p className="text-text-secondary text-sm mb-6">
-            {tab === 'mine' ? t('practice.emptyMineDesc') : t('practice.emptyOtherDesc')}
-          </p>
-          {tab === 'mine' && (
-            <div className="flex justify-center gap-2">
-              <button onClick={() => setShowImport(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-bg-secondary border border-border text-text-secondary hover:text-text-primary transition-all">
-                <Upload size={18} /> {t('practice.import')}
-              </button>
-              <button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover transition-all">
-                <Plus size={18} /> {t('practice.create')}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-            {songs && songs.length > 0 && (
-        <div className="space-y-3">
-          {songs.map((song, index) => {
-            const style = styles?.find(s => s.id === song.style_id)
-            return (
-              <motion.div
-                key={song.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Link
-                  to={`/practice/${song.id}`}
-                  className="flex items-center justify-between p-4 bg-bg-secondary rounded-xl border border-border hover:border-accent/50 transition-colors"
+        {songs && songs.length > 0 && (
+          <div className="space-y-2.5">
+            {songs.map((song, index) => {
+              const style = styles?.find(s => s.id === song.style_id)
+              return (
+                <motion.div
+                  key={song.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.04 }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                      <Music2 className="text-accent" size={24} />
+                  <Link
+                    to={`/practice/${song.id}`}
+                    className="practice-song-card"
+                  >
+                    <div className="practice-vinyl">
+                      <Music2 className="text-accent relative z-10" size={20} />
                     </div>
-                    <div>
-                      <h3 className="text-text-primary font-medium">{song.title}</h3>
-                      <p className="text-text-secondary text-sm">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-text-primary font-medium truncate">{song.title}</h3>
+                      <p className="text-text-secondary text-sm truncate">
                         {song.artist || t('practice.unknownArtist')}
                         {style ? ` · ${style.name}` : ''}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-text-secondary text-sm">{t('practice.key')}</p>
-                      <p className="text-text-primary font-medium">{song.key_signature || '—'}</p>
+                    <div className="flex items-center gap-5">
+                      <div className="text-right hidden sm:block">
+                        <p className="text-text-secondary text-xs uppercase tracking-wider">{t('practice.key')}</p>
+                        <p className="text-text-primary font-bold text-lg">{song.key_signature || '—'}</p>
+                      </div>
+                      <div className="text-right hidden sm:block">
+                        <p className="text-text-secondary text-xs uppercase tracking-wider">BPM</p>
+                        <p className="text-text-primary font-bold text-lg">{song.bpm || '—'}</p>
+                      </div>
+                      <ChevronRight className="text-accent/60 group-hover:text-accent" size={22} />
                     </div>
-                    <div className="text-right hidden sm:block">
-                      <p className="text-text-secondary text-sm">BPM</p>
-                      <p className="text-text-primary font-medium">{song.bpm || '—'}</p>
-                    </div>
-                    <ChevronRight className="text-text-secondary" size={20} />
-                  </div>
-                </Link>
-              </motion.div>
-            )
-          })}
-        </div>
-      )}
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </div>
+        )}
 
         {showImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -332,6 +350,7 @@ export function PracticePage() {
           </motion.div>
         </div>
       )}
+      </div>
     </div>
   )
 }

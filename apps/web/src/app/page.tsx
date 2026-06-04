@@ -37,19 +37,40 @@ export function LandingPage() {
   const primaryUrl = DL[primaryOS]
 
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col overflow-x-hidden">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 text-accent/5">
-          <Music3 size={120} />
+    <div className="min-h-screen landing-bg flex flex-col overflow-x-hidden">
+      {/* ===== FONDO: Ecualizador animado en los costados ===== */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        {/* Ecualizador izquierdo */}
+        <div className="absolute left-8 top-1/2 -translate-y-1/2 flex items-end gap-1.5 h-64 opacity-30">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={`l-${i}`}
+              className="landing-eq-bar"
+              style={{
+                height: '100%',
+                animationDelay: `${i * 0.08}s`,
+                animationDuration: `${0.8 + (i % 4) * 0.2}s`,
+              }}
+            />
+          ))}
         </div>
-        <div className="absolute bottom-40 right-10 text-accent/5">
-          <Music2 size={100} />
+        {/* Ecualizador derecho */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex items-end gap-1.5 h-64 opacity-30">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={`r-${i}`}
+              className="landing-eq-bar"
+              style={{
+                height: '100%',
+                animationDelay: `${i * 0.1}s`,
+                animationDuration: `${0.9 + (i % 3) * 0.2}s`,
+              }}
+            />
+          ))}
         </div>
-        <div className="absolute top-1/3 right-1/4 text-accent/4">
-          <Headphones size={80} />
-        </div>
-        <div className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full bg-accent/5 blur-3xl" />
-        <div className="absolute top-1/4 right-1/3 w-96 h-96 rounded-full bg-accent/5 blur-3xl" />
+        {/* Ondas radiales centrales */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-accent/8 blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-accent/5 blur-3xl" />
       </div>
 
       <header className="relative z-10 p-6">
@@ -83,47 +104,41 @@ export function LandingPage() {
           animate="animate"
           className="text-center max-w-md"
         >
+          {/* Ecualizador central pequeño sobre el título */}
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-            className="mb-8"
+            className="mb-8 flex items-end justify-center gap-1 h-12"
           >
-            <svg
-              viewBox="0 0 400 120"
-              className="w-full max-w-xs mx-auto text-accent"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <motion.path
-                d="M50 90 Q80 30 110 60 Q140 90 170 50 Q200 10 230 40 Q260 70 290 30 Q320 -10 350 20"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1.5, delay: 0.3 }}
-                strokeLinecap="round"
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div
+                key={i}
+                className="landing-eq-bar"
+                style={{
+                  height: '100%',
+                  animationDelay: `${i * 0.1}s`,
+                  animationDuration: `${0.6 + (i % 3) * 0.2}s`,
+                }}
               />
-              <circle cx="50" cy="90" r="4" fill="currentColor" stroke="none" />
-              <circle cx="170" cy="50" r="4" fill="currentColor" stroke="none" />
-              <circle cx="290" cy="30" r="4" fill="currentColor" stroke="none" />
-            </svg>
+            ))}
           </motion.div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 leading-tight">
             <span className="text-gradient-green">Practica.</span>{' '}
             <span className="text-text-primary">Entrena.</span>{' '}
             <span className="text-gradient-green">Adora.</span>
           </h1>
-          <p className="text-text-secondary text-lg mb-8">
-            La herramienta definitiva para músicos de adoración. 
+          <p className="text-text-secondary text-lg mb-10 max-w-sm mx-auto">
+            La herramienta definitiva para músicos de adoración.
             Practica canciones, entrena tu oído y domina los estilos.
           </p>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
               <Link
                 to="/register"
-                className="block w-full py-3 px-6 bg-accent text-white font-semibold rounded-xl text-center hover:bg-accent-hover glow-green transition-all"
+                className="block w-full py-4 px-6 bg-gradient-to-r from-accent to-accent-hover text-white font-bold rounded-xl text-center glow-green transition-all text-lg"
               >
                 Comenzar Gratis
               </Link>
@@ -131,7 +146,7 @@ export function LandingPage() {
             <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
               <Link
                 to="/login"
-                className="block w-full py-3 px-6 bg-bg-card border border-border text-text-primary font-medium rounded-xl text-center hover:border-accent/50 hover:bg-accent-light transition-all"
+                className="block w-full py-4 px-6 bg-bg-card/60 backdrop-blur border border-accent/20 text-text-primary font-medium rounded-xl text-center hover:border-accent/50 hover:bg-accent-light transition-all"
               >
                 Ya tengo cuenta
               </Link>
@@ -139,12 +154,13 @@ export function LandingPage() {
           </div>
         </motion.div>
 
+        {/* ===== FEATURES: Tarjetas con identidad épica ===== */}
         <motion.div
           variants={variants.staggerContainer}
           initial="initial"
           animate="animate"
           transition={{ delay: 0.5 }}
-          className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl"
+          className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-5 max-w-2xl w-full"
         >
           {[
             { title: 'Práctica', desc: 'Visualiza acordes en tiempo real', icon: Music2 },
@@ -153,95 +169,104 @@ export function LandingPage() {
           ].map((feature, index) => {
             const Icon = feature.icon
             return (
-              <motion.div 
-                key={index} 
+              <motion.div
+                key={index}
                 variants={{ ...variants.fadeInUp, ...interactiveVariants.card }}
                 whileHover="hover"
-                className="p-4 bg-bg-card rounded-xl border border-border hover:border-accent/30 transition-all cursor-default"
+                className="landing-card"
               >
-                <Icon className="text-accent mb-3" size={24} />
-                <h3 className="text-text-primary font-medium mb-1">{feature.title}</h3>
-                <p className="text-text-secondary text-sm">{feature.desc}</p>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-accent/15 border border-accent/30">
+                      <Icon className="text-accent" size={20} />
+                    </div>
+                    <h3 className="text-text-primary font-semibold">{feature.title}</h3>
+                  </div>
+                  <p className="text-text-secondary text-sm leading-relaxed">{feature.desc}</p>
+                </div>
               </motion.div>
             )
           })}
         </motion.div>
 
+        {/* ===== DOWNLOAD: Card de descarga con estilo propio ===== */}
         <motion.div
           variants={variants.fadeInUp}
           initial="initial"
           animate="animate"
           transition={{ delay: 0.7 }}
-          className="mt-16 mb-16 max-w-lg mx-auto w-full"
+          className="mt-20 mb-16 max-w-lg mx-auto w-full"
         >
-          <div className="bg-bg-card rounded-2xl border border-border p-8 text-center">
-            <div className="p-3 rounded-xl bg-accent/20 w-fit mx-auto mb-4">
-              <Monitor className="text-accent" size={28} />
-            </div>
-            <h2 className="text-xl font-bold text-text-primary mb-2">
-              {t('desktop.title')}
-            </h2>
-            <p className="text-text-secondary text-sm mb-4">
-              {t('desktop.desc')}
-            </p>
+          <div className="landing-card text-center">
+            <div className="relative z-10">
+              <div className="p-3 rounded-xl bg-accent/20 border border-accent/40 w-fit mx-auto mb-4 glow-green">
+                <Monitor className="text-accent" size={28} />
+              </div>
+              <h2 className="text-xl font-bold text-text-primary mb-2">
+                {t('desktop.title')}
+              </h2>
+              <p className="text-text-secondary text-sm mb-5">
+                {t('desktop.desc')}
+              </p>
 
-            <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
-              <a
-                href={primaryUrl}
-                onClick={() => setShowToast(true)}
-                className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
-              >
-                <Download size={18} />
-                {t('desktop.download', { os: OS_NAME[primaryOS] })}
-              </a>
-            </motion.div>
-
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="flex items-center justify-center gap-1 w-full text-xs text-text-secondary hover:text-text-primary transition-colors"
-            >
-              {t('desktop.otherPlatforms')}
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${showAll ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            <AnimatePresence>
-              {showAll && (
-                <motion.div 
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="flex flex-col sm:flex-row gap-3 justify-center mt-3 overflow-hidden"
+              <motion.div variants={interactiveVariants.button} whileHover="hover" whileTap="tap">
+                <a
+                  href={primaryUrl}
+                  onClick={() => setShowToast(true)}
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-hover glow-green transition-all text-sm mb-3"
                 >
-                  <a href={DL.win}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                    <Download size={14} />
-                    {t('desktop.windows')}
-                  </a>
-                  <a href={DL.mac}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                    <Download size={14} />
-                    {t('desktop.mac')}
-                  </a>
-                  <a href={DL.linux}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                    <Download size={14} />
-                    {t('desktop.linux')}
-                  </a>
-                  <a href={DL.android}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-secondary text-text-primary font-medium rounded-xl border border-border hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
-                    <Download size={14} />
-                    Android APK
-                  </a>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <Download size={18} />
+                  {t('desktop.download', { os: OS_NAME[primaryOS] })}
+                </a>
+              </motion.div>
 
-            <p className="text-text-secondary text-xs mt-4">
-              {t('desktop.benefits')}
-            </p>
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="flex items-center justify-center gap-1 w-full text-xs text-text-secondary hover:text-accent transition-colors"
+              >
+                {t('desktop.otherPlatforms')}
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${showAll ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {showAll && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="flex flex-col sm:flex-row gap-3 justify-center mt-3 overflow-hidden"
+                  >
+                    <a href={DL.win}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-primary/60 text-text-primary font-medium rounded-xl border border-accent/15 hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                      <Download size={14} />
+                      {t('desktop.windows')}
+                    </a>
+                    <a href={DL.mac}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-primary/60 text-text-primary font-medium rounded-xl border border-accent/15 hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                      <Download size={14} />
+                      {t('desktop.mac')}
+                    </a>
+                    <a href={DL.linux}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-primary/60 text-text-primary font-medium rounded-xl border border-accent/15 hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                      <Download size={14} />
+                      {t('desktop.linux')}
+                    </a>
+                    <a href={DL.android}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-bg-primary/60 text-text-primary font-medium rounded-xl border border-accent/15 hover:border-accent/50 hover:bg-accent-light transition-all text-sm flex-1">
+                      <Download size={14} />
+                      Android APK
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <p className="text-text-secondary text-xs mt-4">
+                {t('desktop.benefits')}
+              </p>
+            </div>
           </div>
         </motion.div>
       </main>

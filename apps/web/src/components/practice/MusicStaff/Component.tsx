@@ -1,0 +1,248 @@
+/**
+ * MusicStaff — Pentagrama con línea amarilla de progreso temporal.
+ *
+ * Visualiza los acordes de la canción en un pentagrama musical con
+ * 5 líneas verdes tenues, marca los beats/compases con líneas verticales
+ * y muestra una línea amarilla vertical que se desplaza de izquierda
+ * a derecha al ritmo de la canción.
+ *
+ * La sincronización se hace con CSS `animation` (no rAF en JS) para
+ * mantener 60fps sin recálculos por frame. El padre controla play/pause
+ * vía `isPlaying` y resetea la posición incrementando `resetKey`.
+ */
+import { useMemo, useEffect } from 'react'
+import { cn } from '@/lib/utils'
+import { ensureStaffKeyframes, cursorStyle } from './animation'
+import type { MusicStaffProps, ChordNote, StaffTimeline, BeatMark } from './types'
+
+/** Hash determinístico simple: convierte un string en 0–4. */
+function chordLineIndex(chordName: string): number {
+  let hash = 0
+  for (let i = 0; i < chordName.length; i++) {
+    hash = (hash * 31 + chordName.charCodeAt(i)) | 0
+  }
+  return Math.abs(hash) % 5
+}
+
+/** Formatea segundos a mm:ss. */
+function formatTime(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds))
+  const m = Math.floor(safe / 60)
+  const s = safe % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+export function MusicStaff({
+  sections,
+  currentSectionIndex,
+  currentChordIndex,
+  isPlaying,
+  bpm,
+  resetKey = 0,
+  className,
+}: MusicStaffProps) {
+  // Inyecta los keyframes una sola vez (idempotente, SSR-safe).
+  useEffect(() => {
+    ensureStaffKeyframes()
+  }, [])
+
+  const { timeline, notes, beatMarks } = useMemo(() => {
+    const beatDuration = 60 / Math.max(1, bpm)
+    interface NoteRaw { chord: ChordNote['chord']; endTime: number; line: number; isCurrent: boolean }
+    interface MarkRaw { time: number; label?: string }
+    const noteRaws: NoteRaw[] = []
+    const markRaws: MarkRaw[] = []
+    let elapsed = 0
+    let beatCount = 0
+    let currentSeconds = 0
+
+    sections.forEach((section, sIdx) => {
+      section.chords.forEach((chord, cIdx) => {
+        const chordSeconds = beatDuration * Math.max(0.1, chord.duration)
+        const endTime = elapsed + chordSeconds
+
+        noteRaws.push({
+          chord,
+          endTime,
+          line: chordLineIndex(chord.chord),
+          isCurrent: sIdx === currentSectionIndex && cIdx === currentChordIndex,
+        })
+
+        if (
+          sIdx < currentSectionIndex ||
+          (sIdx === currentSectionIndex && cIdx < currentChordIndex)
+        ) {
+          currentSeconds = endTime
+        }
+
+        const beatsInChord = Math.max(1, Math.round(chord.duration))
+        for (let b = 0; b < beatsInChord; b++) {
+          beatCount += 1
+          if (beatCount > 1 && beatCount % 4 === 0) {
+            const beatTime = elapsed + chordSeconds * (b / beatsInChord)
+            markRaws.push({ time: beatTime })
+          }
+        }
+
+        elapsed = endTime
+      })
+
+      if (sIdx > 0) {
+        const lastChord = section.chords[section.chords.length - 1]
+        const lastChordSeconds = beatDuration * Math.max(0.1, lastChord?.duration || 1)
+        markRaws.push({ time: elapsed - lastChordSeconds, label: section.name })
+      }
+    })
+
+    const totalSeconds = elapsed
+    const safeTotal = Math.max(0.001, totalSeconds)
+
+    const noteAcc: ChordNote[] = noteRaws.map((n) => ({
+      chord: n.chord,
+      position: (n.endTime / safeTotal) * 100,
+      line: n.line,
+      isCurrent: n.isCurrent,
+    }))
+
+    const markAcc: BeatMark[] = markRaws
+      .map((m) => ({ position: (m.time / safeTotal) * 100, isBar: true as const, label: m.label }))
+      .sort((a, b) => a.position - b.position)
+
+    const timelineAcc: StaffTimeline = {
+      totalSeconds,
+      totalLabel: formatTime(totalSeconds),
+      currentSeconds,
+      currentLabel: formatTime(currentSeconds),
+    }
+
+    return { timeline: timelineAcc, notes: noteAcc, beatMarks: markAcc }
+  }, [sections, currentSectionIndex, currentChordIndex, bpm])
+
+  const remainingSeconds = Math.max(0.1, timeline.totalSeconds - timeline.currentSeconds)
+  const cursorAnim = cursorStyle(remainingSeconds, isPlaying)
+
+  if (timeline.totalSeconds <= 0) {
+    return null
+  }
+
+  return (
+    <div
+      data-testid="music-staff"
+      data-version="music-staff-v1.0"
+      data-current-section={currentSectionIndex}
+      data-current-chord={currentChordIndex}
+      data-is-playing={isPlaying ? 'true' : 'false'}
+      className={cn('music-staff', className)}
+      role="region"
+      aria-label="Pentagrama de la canción con línea de tiempo"
+    >
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
+          <span className="text-anime-glow">♪</span>
+          <span className="uppercase tracking-widest">Pentagrama</span>
+        </div>
+        <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
+          <span className={cn(isPlaying ? 'text-warning' : 'text-text-secondary')}>
+            {timeline.currentLabel}
+          </span>
+          <span>/</span>
+          <span>{timeline.totalLabel}</span>
+        </div>
+      </div>
+
+      <div className="music-staff-track relative h-28 rounded-lg overflow-hidden border border-accent/15 bg-bg-primary/40">
+        {/* Símbolo de clave al inicio */}
+        <svg
+          className="music-staff-clef absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
+          width="32"
+          height="80"
+          viewBox="0 0 32 80"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M16 8 C 12 12, 10 18, 12 24 C 14 30, 18 32, 20 28 C 22 24, 18 18, 14 22 C 10 26, 8 32, 12 40 C 16 48, 22 52, 22 60 C 22 68, 16 72, 12 68 M 14 22 L 14 72 M 20 28 L 20 8"
+            stroke="#22c55e"
+            strokeWidth="2"
+            strokeLinecap="round"
+            opacity="0.55"
+          />
+        </svg>
+
+        {/* 5 líneas del pentagrama */}
+        <div className="music-staff-lines absolute inset-y-3 left-12 right-2 pointer-events-none">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="music-staff-line absolute left-0 right-0 h-px"
+              style={{ top: `${(i / 4) * 100}%` }}
+            />
+          ))}
+        </div>
+
+        {/* Marcas de beats/compases */}
+        {beatMarks.map((m, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              'music-staff-bar absolute top-3 bottom-3 pointer-events-none',
+              m.label && 'music-staff-bar--labeled'
+            )}
+            style={{ left: `calc(48px + (100% - 56px) * ${m.position / 100})` }}
+            aria-hidden="true"
+          >
+            {m.label && (
+              <span className="music-staff-section-label absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-mono uppercase tracking-wider whitespace-nowrap">
+                {m.label}
+              </span>
+            )}
+          </div>
+        ))}
+
+        {/* Acordes como cabezas de nota */}
+        {notes.map((n, idx) => {
+          // Posición vertical: 0 = línea superior, 4 = línea inferior
+          const topPercent = (n.line / 4) * 100
+          return (
+            <div
+              key={`${idx}-${n.chord.chord}`}
+              className="music-staff-note-group absolute"
+              style={{
+                left: `calc(48px + (100% - 56px) * ${n.position / 100})`,
+                top: `${topPercent}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              <div
+                className={cn(
+                  'music-staff-note',
+                  n.isCurrent && 'music-staff-note--current'
+                )}
+                data-testid="music-staff-note"
+                data-chord={n.chord.chord}
+              />
+              <span className="music-staff-note-label absolute left-1/2 -translate-x-1/2 top-4 text-[10px] font-mono font-bold whitespace-nowrap pointer-events-none">
+                {n.chord.chord}
+              </span>
+            </div>
+          )
+        })}
+
+        {/* Línea amarilla de progreso (cursor temporal) */}
+        <div
+          key={resetKey}
+          className="music-staff-cursor absolute top-0 bottom-0 pointer-events-none"
+          style={{
+            left: '48px',
+            width: '3px',
+            ...cursorAnim,
+          }}
+          aria-hidden="true"
+        >
+          {/* Cabeza del cursor (circulo amarillo) */}
+          <div className="music-staff-cursor-head" />
+        </div>
+      </div>
+    </div>
+  )
+}

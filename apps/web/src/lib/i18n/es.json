@@ -160,14 +160,18 @@
     "trumpet": "Trompeta"
   },
   "interval": {
-    "major_2nd": "2da M",
-    "minor_3rd": "3ra m",
-    "major_3rd": "3ra M",
-    "perfect_4th": "4ta J",
-    "perfect_5th": "5ta J",
-    "major_6th": "6ta M",
-    "minor_7th": "7ma m",
-    "octave": "8va"
+    "minor_2nd": "Segunda menor",
+    "major_2nd": "Segunda mayor",
+    "minor_3rd": "Tercera menor",
+    "major_3rd": "Tercera mayor",
+    "perfect_4th": "Cuarta justa",
+    "tritone": "Tritono",
+    "perfect_5th": "Quinta justa",
+    "minor_6th": "Sexta menor",
+    "major_6th": "Sexta mayor",
+    "minor_7th": "Séptima menor",
+    "major_7th": "Séptima mayor",
+    "octave": "Octava"
   },
   "triad": {
     "major": "Mayor",

@@ -160,14 +160,18 @@
     "trumpet": "Trumpet"
   },
   "interval": {
-    "major_2nd": "M2",
-    "minor_3rd": "m3",
-    "major_3rd": "M3",
-    "perfect_4th": "P4",
-    "perfect_5th": "P5",
-    "major_6th": "M6",
-    "minor_7th": "m7",
-    "octave": "Oct"
+    "minor_2nd": "Minor 2nd",
+    "major_2nd": "Major 2nd",
+    "minor_3rd": "Minor 3rd",
+    "major_3rd": "Major 3rd",
+    "perfect_4th": "Perfect 4th",
+    "tritone": "Tritone",
+    "perfect_5th": "Perfect 5th",
+    "minor_6th": "Minor 6th",
+    "major_6th": "Major 6th",
+    "minor_7th": "Minor 7th",
+    "major_7th": "Major 7th",
+    "octave": "Octave"
   },
   "triad": {
     "major": "Major",
