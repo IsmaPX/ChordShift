@@ -1,30 +1,24 @@
 import { describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils'
 import { LandingPage } from './page'
 
 describe('LandingPage', () => {
-  it('renders all three hero words', () => {
+  it('renders the main heading', () => {
     renderWithProviders(<LandingPage />)
-    expect(screen.getByText('Practica.')).toBeInTheDocument()
-    expect(screen.getByText('Entrena.')).toBeInTheDocument()
-    expect(screen.getByText('Adora.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Practica. Entrena. Adora.')
   })
 
-  it('renders register link and login button', () => {
+  it('renders register and login links', () => {
     renderWithProviders(<LandingPage />)
     expect(screen.getByText('Comenzar Gratis')).toBeInTheDocument()
     expect(screen.getByText('Ya tengo cuenta')).toBeInTheDocument()
   })
 
-  it('shows login form when clicking Ya tengo cuenta', async () => {
-    const user = userEvent.setup()
+  it('renders feature cards', () => {
     renderWithProviders(<LandingPage />)
-    const loginBtn = screen.getByText('Ya tengo cuenta')
-    await user.click(loginBtn)
-    expect(screen.getByText('Bienvenido de vuelta')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('tu@email.com')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
+    expect(screen.getByText('Práctica')).toBeInTheDocument()
+    expect(screen.getByText('Ear Training')).toBeInTheDocument()
+    expect(screen.getByText('Enciclopedia')).toBeInTheDocument()
   })
 })

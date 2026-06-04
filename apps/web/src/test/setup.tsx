@@ -20,6 +20,7 @@ beforeAll(() => {
 
 beforeEach(async () => {
   await Promise.all(db.tables.map(t => t.clear()))
+  // Seed a minimal set so useAuth's seedIfEmpty is a no-op
   await db.styles.add({ id: 'test-style', name: 'Test', difficulty: 1, theory_required: [], techniques: [], description: '' })
   await db.tips.add({ id: 'test-tip', content: 'Test', category: 'teoría', style_id: null, difficulty_min: 1 })
   await db.songs.add({ id: 'test-song', title: 'Test', artist: 'T', style_id: 'test-style', difficulty: 1, key_signature: 'C', bpm: 120, instrument: 'piano', chord_data: { sections: [] }, is_published: true, created_at: '2024-01-01' })
@@ -29,31 +30,27 @@ afterEach(() => {
   cleanup()
 })
 
-function createMotionComponent(props: { children?: ReactNode; [key: string]: unknown }): React.ReactElement {
-  const { children, ...rest } = props
-  return <div data-testid="motion-component" {...rest}>{children}</div>
-}
-
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('framer-motion')
   return {
     ...actual,
     motion: new Proxy({}, {
-      get: (_target, prop) => {
-        if (prop === 'div') {
-          return createMotionComponent
+      get: () => {
+        const skipKeys = new Set(['initial', 'animate', 'exit', 'transition', 'whileTap', 'whileHover', 'onAnimationComplete', 'layout', 'layoutId', 'variants'])
+        return (props: Record<string, unknown>) => {
+          const children = props.children as ReactNode
+          const sanitized: Record<string, unknown> = {}
+          for (const [k, v] of Object.entries(props)) {
+            if (k === 'children' || skipKeys.has(k)) continue
+            if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || typeof v === 'function') {
+              sanitized[k] = v
+            }
+          }
+          return <div {...sanitized}>{children}</div>
         }
-        return createMotionComponent
       },
-    }) as unknown as typeof actual.motion,
-    AnimatePresence: ({ children }: { children?: ReactNode }) => <>{children}</>,
-    useAnimation: () => ({
-      start: vi.fn(),
     }),
-    useScroll: () => ({
-      scrollYProgress: { get current() { return 0 } },
-    }),
-    useTransform: () => (v: unknown) => v,
+    AnimatePresence: ({ children }: Record<string, unknown>) => <>{children}</>,
   }
 })
 
