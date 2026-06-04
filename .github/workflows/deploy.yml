@@ -27,8 +27,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        run: pnpm run build
-        working-directory: ./apps/web
+        run: pnpm --filter=web build
         env:
           VITE_APP_ENV: production
 

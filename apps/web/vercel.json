@@ -1,8 +1,8 @@
 {
   "framework": "vite",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm run build",
+  "devCommand": "pnpm run dev",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
