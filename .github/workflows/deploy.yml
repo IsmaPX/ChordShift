@@ -27,7 +27,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        run: pnpm --filter=web build
+        run: pnpm turbo build --filter=web
         env:
           VITE_APP_ENV: production
 
@@ -35,7 +35,7 @@ jobs:
         run: pnpm add -g vercel
 
       - name: Deploy to Vercel
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        run: vercel --prod --force --token=${{ secrets.VERCEL_TOKEN }} --yes
         working-directory: ./apps/web
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
