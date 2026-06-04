@@ -1,4 +1,3 @@
-import * as Tone from 'tone'
 import { AudioEngine } from './AudioEngine'
 
 const CHORD_MAPPINGS: Record<string, string[]> = {
