@@ -28,8 +28,11 @@ COPY packages/ui/package.json ./packages/ui/package.json
 COPY packages/audio/package.json ./packages/audio/package.json
 
 # Instala TODAS las deps (incluyendo dev) para compilar.
+# Usamos un install general del monorepo (sin --filter) para que las
+# devDependencies de cada workspace package (ej. `prisma` en apps/api)
+# queden disponibles durante el build.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter @chordshift/api... --filter @chordshift/db... --filter @chordshift/ui... --filter @chordshift/audio...
+    pnpm install --frozen-lockfile
 
 # Copiamos el código fuente necesario para compilar.
 COPY tsconfig.json ./
@@ -45,9 +48,10 @@ RUN pnpm prisma:generate
 # Compila TypeScript → dist/
 RUN pnpm build
 
-# Limpia devDependencies para que la imagen runtime sea más pequeña.
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm prune --prod --filter @chordshift/api
+# NOTA: Conservamos las devDependencies (prisma, etc) en la imagen
+# runtime porque los workspaces de pnpm enlazan node_modules de forma
+# compleja. Esto añade ~50 MB a la imagen pero garantiza que arranque.
+# Optimización futura: usar `pnpm deploy` para aplanar el workspace.
 
 # ---------- runtime ----------
 FROM node:20-alpine AS runtime
@@ -59,11 +63,17 @@ ENV NODE_ENV=production
 ENV PORT=3001
 WORKDIR /app
 
-# Copiamos solo lo necesario para correr.
-COPY --from=builder --chown=api:nodejs /repo/apps/api/dist ./dist
-COPY --from=builder --chown=api:nodejs /repo/apps/api/node_modules ./node_modules
-COPY --from=builder --chown=api:nodejs /repo/apps/api/prisma ./prisma
-COPY --from=builder --chown=api:nodejs /repo/apps/api/package.json ./package.json
+# Copiamos todo lo necesario para correr.
+# El workspace de pnpm requiere la estructura completa (root + packages)
+# para resolver las dependencias de workspaces como @chordshift/db.
+COPY --from=builder --chown=api:nodejs /repo/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=api:nodejs /repo/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder --chown=api:nodejs /repo/apps/api/prisma ./apps/api/prisma
+COPY --from=builder --chown=api:nodejs /repo/apps/api/package.json ./apps/api/package.json
+COPY --from=builder --chown=api:nodejs /repo/packages ./packages
+COPY --from=builder --chown=api:nodejs /repo/node_modules ./node_modules
+COPY --from=builder --chown=api:nodejs /repo/package.json ./package.json
+COPY --from=builder --chown=api:nodejs /repo/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 # healthcheck opcional (no es estrictamente necesario en Fly/Render).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
@@ -72,4 +82,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 USER api
 EXPOSE 3001
 
-CMD ["node", "dist/server.js"]
+CMD ["node", "apps/api/dist/server.js"]
