@@ -46,7 +46,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Update package.json version
-        run: npm version ${{ steps.version.outputs.value }} --no-git-tag-version --allow-same-version
+        run: pnpm pkg set version=${{ steps.version.outputs.value }}
         working-directory: ./apps/web
 
       - name: Build web + Electron
