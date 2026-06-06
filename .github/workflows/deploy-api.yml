@@ -1,0 +1,71 @@
+name: Deploy API (manual)
+
+# Workflow opcional para deployar la API a un server propio via SSH.
+# Configurar los secrets en el repo:
+#   DEPLOY_HOST       — host SSH (ej. deploy@api.chordshift.app)
+#   DEPLOY_SSH_KEY    — clave privada SSH
+#   DEPLOY_PATH       — directorio remoto (ej. /opt/chordshift-api)
+#   DEPLOY_PORT       — puerto SSH (opcional, default 22)
+#
+# Disparar manualmente desde GitHub Actions con input "environment".
+# Sólo se ejecuta con workflow_dispatch (no automático) para no romper
+# el flujo principal. Para CD automático, conectar ghcr.io a un cloud
+# provider (Railway/Render/Fly.io) que detecte el push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (production/staging)'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      image_tag:
+        description: 'Image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.4
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H -p ${{ secrets.DEPLOY_PORT || 22 }} ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy docker-compose + .env.example
+        run: |
+          scp -P ${{ secrets.DEPLOY_PORT || 22 }} \
+            docker-compose.yml \
+            docker-compose.prod.yml \
+            .env.example \
+            ${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
+
+      - name: Pull and restart
+        run: |
+          ssh ${{ secrets.DEPLOY_HOST }} << EOF
+            cd ${{ secrets.DEPLOY_PATH }}
+            export IMAGE_TAG=${{ inputs.image_tag }}
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull api
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm api pnpm prisma:deploy
+          EOF
+
+      - name: Healthcheck
+        run: |
+          sleep 10
+          curl -f https://api.chordshift.app/api/health || exit 1

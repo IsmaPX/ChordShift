@@ -21,7 +21,9 @@ import syncRoutes from './routes/sync.routes.js';
 import liveSessionRoutes from './routes/liveSession.routes.js';
 import qrTokenRoutes from './routes/qrToken.routes.js';
 import pushNotificationRoutes from './routes/pushNotification.routes.js';
-import './types/express.d.js';
+// Los archivos .d.ts se procesan automáticamente por TypeScript
+// cuando están en el programa (ver tsconfig.json include "types/**/*").
+// No es necesario importarlos en runtime.
 
 const app: express.Express = express();
 

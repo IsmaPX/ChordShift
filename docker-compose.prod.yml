@@ -1,0 +1,36 @@
+# =============================================================================
+# ChordShift / Worship Piano App — Docker Compose OVERRIDE para producción
+#
+# Este archivo complementa docker-compose.yml con ajustes de producción.
+# Úsalo con: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Diferencias vs. dev:
+#   - Sin healthcheck redundante (lo hace el provider de cloud)
+#   - Recursos limitados (memoria/CPU)
+#   - Logging en JSON (más fácil de ingestar)
+#   - Sin exponer Postgres al host
+# =============================================================================
+
+services:
+  postgres:
+    # No exponer al host en prod
+    expose:
+      - "5432"
+    ports: []  # override: eliminar ports del base
+    restart: always
+
+  api:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

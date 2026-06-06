@@ -1,0 +1,79 @@
+# =============================================================================
+# ChordShift / Worship Piano App — Docker Compose para desarrollo y demos
+#
+# Levanta:
+#   - postgres  (DB PostgreSQL 16)
+#   - api       (backend Express + Prisma, expuesto en :3001)
+#
+# Uso:
+#   1. cp apps/api/.env.example apps/api/.env (editar con secretos reales)
+#   2. docker compose up -d postgres
+#   3. docker compose run --rm api prisma migrate deploy
+#   4. docker compose run --rm api db:seed   (opcional: crea admin y datos seed)
+#   5. docker compose up -d api
+#   6. curl http://localhost:3001/api/health
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chordshift-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: worship_piano
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./apps/api/prisma/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d worship_piano"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    image: ghcr.io/ismapx/chordshift-api:v0.2.0
+    # Para builds locales en lugar de pull:
+    # build:
+    #   context: .
+    #   dockerfile: apps/api/Dockerfile
+    container_name: chordshift-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/worship_piano?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-me-please-this-is-a-development-secret-replace-in-prod}
+      JWT_EXPIRES_IN: 7d
+      BCRYPT_ROUNDS: 10
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 100
+      SESSION_TTL_MS: 3600000
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@worshippiano.app}
+    ports:
+      - "3001:3001"
+    volumes:
+      - api-storage:/app/apps/api/storage
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  postgres-data:
+    name: chordshift-postgres-data
+  api-storage:
+    name: chordshift-api-storage
