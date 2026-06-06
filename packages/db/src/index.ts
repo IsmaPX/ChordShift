@@ -100,3 +100,54 @@ export interface Notification {
   scheduled_at: string
   sent_at: string | null
 }
+
+// ============================================================================
+// Live sessions (WebSockets)
+// ============================================================================
+
+export type LiveSessionStatus = 'active' | 'paused' | 'ended';
+
+export interface LiveSessionState {
+  sessionId: string
+  hostId: string
+  songId: string
+  status: LiveSessionStatus
+  currentBeat: number
+  bpm: number
+  startedAtMs: number
+  participants: LiveSessionParticipant[]
+}
+
+export interface LiveSessionParticipant {
+  id: string
+  email: string
+  displayName: string | null
+}
+
+export interface BeatPayload {
+  sessionId: string
+  beat: number
+  emittedAtMs: number
+}
+
+// ============================================================================
+// Leaderboard (tiempo real)
+// ============================================================================
+
+export type LeaderboardCategory = 'total_minutes' | 'sessions_completed' | 'ear_training_accuracy';
+export type LeaderboardPeriod = 'daily' | 'weekly' | 'monthly' | 'all_time';
+
+export interface LeaderboardEntry {
+  rank: number
+  userId: string
+  displayName: string | null
+  score: number
+}
+
+export interface LeaderboardSnapshot {
+  category: LeaderboardCategory
+  period: LeaderboardPeriod
+  generatedAtMs: number
+  entries: LeaderboardEntry[]
+  myRank: number | null
+}
