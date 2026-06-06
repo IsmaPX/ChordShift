@@ -1,0 +1,270 @@
+// Worship Piano App / ChordShift — Prisma schema
+// Doc: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTH & PROFILES
+// ============================================================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  displayName   String?   @map("display_name")
+  pinHash       String?   @map("pin_hash")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastActiveAt  DateTime? @map("last_active_at")
+
+  // Settings (JSON para flexibilidad)
+  settings      Json      @default("{}")
+
+  // Relaciones
+  practiceSessions      PracticeSession[]
+  earTrainingResults    EarTrainingResult[]
+  songAudios            SongAudio[]
+  createdSongs          Song[]              @relation("SongCreator")
+  sharedWithMe          SongShare[]         @relation("SharedWithUser")
+  sharesCreated         SongShare[]         @relation("ShareCreator")
+  leaderboardEntries    Leaderboard[]
+  liveSessions          LiveSession[]         @relation("LiveSessionHost")
+  pushSubscriptions     PushSubscription[]
+
+  @@index([email])
+  @@index([displayName])
+  @@map("users")
+}
+
+// ============================================================================
+// CATÁLOGO (SEMILLA - lectura pública, admin puede escribir)
+// ============================================================================
+
+model Style {
+  id              String  @id @default(uuid())
+  name            String
+  difficulty      Int
+  theoryRequired  String[] @map("theory_required")
+  techniques      String[]
+  description     String
+
+  songs           Song[]
+  tips            Tip[]
+
+  @@index([difficulty])
+  @@map("styles")
+}
+
+model Song {
+  id            String   @id @default(uuid())
+  title         String
+  artist        String?
+  styleId       String   @map("style_id")
+  difficulty    Int
+  keySignature  String   @map("key_signature")
+  bpm           Int
+  chordData     Json     @map("chord_data")
+  isPublished   Boolean  @default(false) @map("is_published")
+  isPreset      Boolean  @default(false) @map("is_preset")
+  createdById   String?  @map("created_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  style         Style    @relation(fields: [styleId], references: [id])
+  createdBy     User?    @relation("SongCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  practiceSessions  PracticeSession[]
+  audios            SongAudio[]
+  shares            SongShare[]
+
+  @@index([title])
+  @@index([styleId])
+  @@index([difficulty])
+  @@index([isPublished])
+  @@index([createdById])
+  @@map("songs")
+}
+
+model Tip {
+  id            String  @id @default(uuid())
+  content       String
+  category      String
+  styleId       String? @map("style_id")
+  difficultyMin Int     @default(1) @map("difficulty_min")
+
+  style         Style?  @relation(fields: [styleId], references: [id])
+
+  @@index([category])
+  @@index([styleId])
+  @@index([difficultyMin])
+  @@map("tips")
+}
+
+// ============================================================================
+// ACTIVIDAD DEL USUARIO
+// ============================================================================
+
+model PracticeSession {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  songId        String   @map("song_id")
+  startedAt     DateTime @default(now()) @map("started_at")
+  durationS     Int      @map("duration_s")
+  completed     Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song          Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([songId])
+  @@index([startedAt])
+  @@index([userId, startedAt])
+  @@map("practice_sessions")
+}
+
+model EarTrainingResult {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  exerciseType  String   @map("exercise_type")
+  question      Json
+  answerGiven   String   @map("answer_given")
+  correctAnswer String   @map("correct_answer")
+  isCorrect     Boolean  @map("is_correct")
+  responseMs    Int      @map("response_ms")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([exerciseType])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("ear_training_results")
+}
+
+model SongAudio {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  songId        String   @map("song_id")
+  url           String
+  name          String
+  size          Int
+  mimeType      String   @map("mime_type")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song          Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([songId])
+  @@map("song_audio")
+}
+
+// ============================================================================
+// FUNCIONALIDADES SOCIALES
+// ============================================================================
+
+model SongShare {
+  id            String   @id @default(uuid())
+  songId        String   @map("song_id")
+  sharedById    String   @map("shared_by_id")
+  sharedWithId  String   @map("shared_with_id")
+  permission    String   @default("view")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  song          Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  sharedBy      User     @relation("ShareCreator", fields: [sharedById], references: [id], onDelete: Cascade)
+  sharedWith    User     @relation("SharedWithUser", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@unique([songId, sharedWithId])
+  @@index([sharedWithId])
+  @@index([sharedById])
+  @@map("song_shares")
+}
+
+model Leaderboard {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  category      String
+  score         Int
+  rank          Int?
+  period        String   @default("all_time")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, period])
+  @@index([category, period, score])
+  @@map("leaderboard")
+}
+
+// ============================================================================
+// LEADERBOARD SNAPSHOTS (cache pre-calculado)
+// ============================================================================
+// Tabla cache que contiene snapshots pre-calculados del leaderboard para
+// los periodos más consultados. Se regenera periódicamente por un job.
+
+model LeaderboardSnapshotCache {
+  id            String   @id @default(uuid())
+  category      String
+  period        String
+  generatedAt   DateTime @default(now()) @map("generated_at")
+  expiresAt     DateTime @map("expires_at")
+  payload       Json     // { entries: [...], myRanks: { userId: rank } }
+  totalUsers    Int      @map("total_users")
+
+  @@unique([category, period])
+  @@index([expiresAt])
+  @@map("leaderboard_snapshot_cache")
+}
+
+// ============================================================================
+// LIVE SESSIONS (tiempo real vía WebSockets)
+// ============================================================================
+
+model LiveSession {
+  id            String   @id @default(uuid())
+  hostId        String   @map("host_id")
+  songId        String   @map("song_id")
+  status        String   @default("active") // active | paused | ended
+  currentBeat   Int      @default(0) @map("current_beat")
+  bpm           Int
+  startedAt     DateTime @default(now()) @map("started_at")
+  endedAt       DateTime? @map("ended_at")
+
+  host          User     @relation("LiveSessionHost", fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@index([hostId])
+  @@index([songId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("live_sessions")
+}
+
+// ============================================================================
+// PUSH NOTIFICATIONS (Web Push API)
+// ============================================================================
+
+model PushSubscription {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  endpoint      String   @unique
+  p256dh        String
+  auth          String
+  userAgent     String?  @map("user_agent")
+  createdAt     DateTime @default(now()) @map("created_at")
+  lastUsedAt    DateTime? @map("last_used_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
