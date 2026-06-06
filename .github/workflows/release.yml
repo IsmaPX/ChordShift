@@ -71,6 +71,9 @@ jobs:
   build-android-apk:
     name: Build Android APK
     needs: [release]
+    # continue-on-error: si falla, no rompe el release de Electron
+    # (el APK se genera por separado y se sube al release si está disponible)
+    continue-on-error: true
     runs-on: ubuntu-latest
     permissions:
       contents: write
