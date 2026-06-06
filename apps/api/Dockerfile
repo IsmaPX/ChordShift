@@ -32,7 +32,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @chordshift/api... --filter @chordshift/db... --filter @chordshift/ui... --filter @chordshift/audio...
 
 # Copiamos el código fuente necesario para compilar.
-COPY tsconfig.base.json ./
+COPY tsconfig.json ./
 COPY apps/api ./apps/api
 COPY packages ./packages
 
