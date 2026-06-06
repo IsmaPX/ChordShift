@@ -300,4 +300,3 @@ function createStorageProvider(): StorageProvider {
 
 export const storage = createStorageProvider();
 export { STORAGE_DIR };
-export type { StorageProvider };

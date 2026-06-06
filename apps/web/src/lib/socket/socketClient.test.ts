@@ -8,22 +8,26 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Mockear socket.io-client
-const mockSocket = {
-  connected: false,
-  disconnected: true,
-  on: vi.fn(),
-  off: vi.fn(),
-  emit: vi.fn(),
-  disconnect: vi.fn(),
-  removeAllListeners: vi.fn(),
-  io: { opts: {} },
-};
-
-const mockIoFn = vi.fn(() => mockSocket);
+// Mockear socket.io-client (vi.hoisted para que esté disponible en el vi.mock)
+const { mockSocket, mockIoFn } = vi.hoisted(() => {
+  const socket = {
+    connected: false,
+    disconnected: true,
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+    disconnect: vi.fn(),
+    removeAllListeners: vi.fn(),
+    io: { opts: {} },
+  };
+  return {
+    mockSocket: socket,
+    mockIoFn: vi.fn(() => socket),
+  };
+});
 
 vi.mock('socket.io-client', () => ({
-  io: (...args: unknown[]) => mockIoFn(...args),
+  io: mockIoFn,
 }));
 
 // Mockear el token store
@@ -99,7 +103,7 @@ describe('SocketClient', () => {
 
     // Hacer join ANTES de conectar
     mockSocket.connected = false;
-    const joinPromise = client.joinSession('sess-1');
+    void client.joinSession('sess-1');
 
     // El comando debe estar encolado
     expect(mockSocket.emit).not.toHaveBeenCalled();
@@ -163,7 +167,7 @@ describe('SocketClient', () => {
     const unsubscribe = client.onStatusChange(handler);
 
     // Esperar al microtask que invoca el handler con el estado actual
-    await new Promise(r => queueMicrotask(r));
+    await new Promise<void>((r) => { queueMicrotask(r); });
     expect(handler).toHaveBeenCalledWith('connecting');
 
     // Simular connect

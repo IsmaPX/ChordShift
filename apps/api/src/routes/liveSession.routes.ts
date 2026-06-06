@@ -5,7 +5,7 @@
  * para crear y finalizar (operaciones menos frecuentes).
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import {
   postLiveSession,
@@ -14,7 +14,7 @@ import {
   postEndLiveSession,
 } from '../controllers/liveSession.controller.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.post('/', requireAuth, postLiveSession);
 router.get('/', requireAuth, getMyActiveSessions);

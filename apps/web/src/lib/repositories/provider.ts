@@ -54,7 +54,7 @@ function detectMode(): BackendMode {
 }
 
 class RepositoryProvider {
-  private mode: BackendMode = detectMode();
+  public mode: BackendMode = detectMode();
   private listeners = new Set<() => void>();
 
   getMode(): BackendMode {
@@ -119,6 +119,14 @@ class RepositoryProvider {
 }
 
 export const repositoryProvider = new RepositoryProvider();
+
+/** Sólo para tests. Reinicia el mode al default (dexie o api según env). */
+export function __resetRepositoryProviderForTests(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+  repositoryProvider.mode = 'dexie';
+}
 
 /**
  * Helpers de conveniencia para tests y feature flags.

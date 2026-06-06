@@ -2,7 +2,7 @@
  * Rutas de SongShare.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import {
   createShare,
   listSharedWithMe,
@@ -13,7 +13,7 @@ import { requireAuth } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 import { createShareSchema, listSharedWithMeSchema } from '../validators/share.validator.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.post(
   '/',
@@ -35,8 +35,10 @@ router.get(
   }),
 );
 
-router.get('/sent', requireAuth, asyncHandler(listMyShares));
+router.get('/sent', requireAuth, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+asyncHandler(listMyShares as any));
 
-router.delete('/:shareId', requireAuth, asyncHandler(revokeShare));
+router.delete('/:shareId', requireAuth, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+asyncHandler(revokeShare as any));
 
 export default router;

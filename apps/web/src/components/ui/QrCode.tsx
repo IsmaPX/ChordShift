@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { cn } from 'ui'
+import { cn } from '@/lib/utils'
 
 export type QrCodeProps = {
   /** Contenido a codificar (URL, texto, etc). */
@@ -43,7 +43,7 @@ export function QrCode({
       errorCorrectionLevel,
       color: { dark: fgColor, light: bgColor === 'transparent' ? '#00000000' : bgColor },
     })
-      .then(s => {
+      .then((s: string) => {
         if (!cancelled) setSvg(s)
       })
       .catch(() => {

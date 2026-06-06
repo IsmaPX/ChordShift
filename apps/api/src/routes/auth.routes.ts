@@ -2,13 +2,13 @@
  * Rutas de autenticación: register, login, me, updateProfile.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { register, login, me, updateProfile } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 import { registerSchema, loginSchema, updateProfileSchema } from '../validators/auth.validator.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 /**
  * POST /api/auth/register

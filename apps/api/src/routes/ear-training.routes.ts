@@ -2,7 +2,7 @@
  * Rutas de Ear Training: crear resultados, listar, estadísticas.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { createResult, listMyResults, getMyStats } from '../controllers/ear-training.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
@@ -11,7 +11,7 @@ import {
   listEarTrainingResultsSchema,
 } from '../validators/ear-training.validator.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.post(
   '/',
@@ -29,10 +29,12 @@ router.get(
   asyncHandler(async (req, res) => {
     const { query } = listEarTrainingResultsSchema.parse(req);
     Object.assign(req.query, query);
-    await listMyResults(req, res);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await listMyResults(req as any, res);
   }),
 );
 
-router.get('/stats/me', requireAuth, asyncHandler(getMyStats));
+router.get('/stats/me', requireAuth, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+asyncHandler(getMyStats as any));
 
 export default router;

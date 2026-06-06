@@ -5,7 +5,6 @@
     "moduleResolution": "bundler",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -23,6 +22,6 @@
       "@chordshift/db": ["../../packages/db/src/index.ts"]
     }
   },
-  "include": ["src/**/*", "prisma/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": ["src/**/*", "types/**/*"],
+  "exclude": ["node_modules", "dist", "tests", "prisma/seed.ts"]
 }

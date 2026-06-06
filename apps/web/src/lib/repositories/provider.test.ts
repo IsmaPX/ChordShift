@@ -3,15 +3,16 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { repositoryProvider, useApi, switchToApi, switchToDexie } from '../provider';
+import { repositoryProvider, useApi, switchToApi, switchToDexie, __resetRepositoryProviderForTests } from './provider';
 import { ApiAuthService } from '@/lib/api/ApiAuthService';
 import { ApiSongRepository } from '@/lib/api/ApiSongRepository';
 import { AuthService } from '@/services/AuthService';
-import { SongRepository } from '../SongRepository';
+import { SongRepository } from './SongRepository';
 
 describe('repositoryProvider', () => {
   beforeEach(() => {
     localStorage.removeItem('worship_piano_backend_mode');
+    __resetRepositoryProviderForTests();
   });
 
   it('default mode es dexie', () => {

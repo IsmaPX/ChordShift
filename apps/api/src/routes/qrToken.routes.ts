@@ -2,11 +2,11 @@
  * Rutas para tokens QR (guest join a live sessions).
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { postSessionQr, postRedeemQr } from '../controllers/qrToken.controller.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // El host genera un QR (autenticado)
 router.post('/live-sessions/:id/qr', requireAuth, postSessionQr);

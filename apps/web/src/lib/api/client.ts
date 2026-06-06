@@ -40,6 +40,7 @@ export interface RequestOptions {
   signal?: AbortSignal;
   headers?: Record<string, string>;
   query?: Record<string, string | number | boolean | undefined | null>;
+  body?: unknown;
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
@@ -112,9 +113,11 @@ async function request<T>(method: string, path: string, options: RequestOptions 
 export const apiClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>('GET', path, options),
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
-    request<T>('POST', path, { ...options, body } as RequestOptions & { body: unknown }),
+    request<T>('POST', path, { ...options, body }),
+  put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    request<T>('PUT', path, { ...options, body }),
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
-    request<T>('PATCH', path, { ...options, body } as RequestOptions & { body: unknown }),
+    request<T>('PATCH', path, { ...options, body }),
   delete: <T>(path: string, options?: RequestOptions) => request<T>('DELETE', path, options),
 } as const;
 

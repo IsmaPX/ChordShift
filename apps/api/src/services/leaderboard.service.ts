@@ -106,7 +106,7 @@ async function getFromCache(
   if (!cached) return null;
   if (cached.expiresAt < new Date()) return null;
 
-  const payload = cached.payload as {
+  const payload = cached.payload as unknown as {
     entries: LeaderboardEntry[];
     myRanks: Record<string, number>;
   };

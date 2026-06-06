@@ -9,7 +9,7 @@
  * El cache Dexie se mantiene como fallback de solo lectura.
  */
 
-import type { ISongRepository } from '../interfaces';
+import type { ISongRepository } from '@/lib/repositories/interfaces';
 import type { Song, SongAudio } from '@/types/music';
 import { apiClient } from '@/lib/api/client';
 import type { SongsListResponse, SongResponse } from '@/lib/api/types';
@@ -80,7 +80,7 @@ export class ApiSongRepository implements ISongRepository {
     styleId?: string;
     search?: string;
     tab?: 'all' | 'preset' | 'mine';
-  }): Promise<{ songs: Song[]; total: number }> {
+  }): Promise<{ songs: Song[]; total: number; limit: number; offset: number }> {
     const { songs, total, limit, offset } = await apiClient.get<SongsListResponse>(
       '/api/songs',
       {

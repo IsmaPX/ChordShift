@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { outboxRepository, outboxDb } from '../outbox';
+import { outboxRepository, outboxDb } from './outbox';
 
 describe('outboxRepository', () => {
   beforeEach(async () => {
@@ -71,10 +71,16 @@ describe('outboxRepository', () => {
   it('countPending cuenta solo pending + rejected', async () => {
     const id1 = await outboxRepository.add('create_song', { x: 1 });
     const id2 = await outboxRepository.add('create_song', { x: 2 });
+    const id3 = await outboxRepository.add('create_song', { x: 3 });
     await outboxRepository.markApplied(id1, 's1');
 
-    expect(await outboxRepository.countPending()).toBe(1);
-    await outboxRepository.markRejected(id2, 'err');
+    // id1=applied, id2=pending, id3=pending → countPending=2
     expect(await outboxRepository.countPending()).toBe(2);
+    await outboxRepository.markRejected(id2, 'err');
+    // id1=applied, id2=rejected, id3=pending → countPending=2 (rejected sí cuenta)
+    expect(await outboxRepository.countPending()).toBe(2);
+    await outboxRepository.markApplied(id3, 's3');
+    // id1=applied, id2=rejected, id3=applied → countPending=1
+    expect(await outboxRepository.countPending()).toBe(1);
   });
 });

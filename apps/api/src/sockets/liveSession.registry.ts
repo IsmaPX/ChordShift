@@ -18,10 +18,10 @@
  *   la registry a Prisma.
  */
 
-import type { LiveSessionState, SocketUser, BeatPayload } from './socket.types.js';
+import type { LiveSessionStatePayload, SocketUser, BeatPayload } from './socket.types.js';
 import { env } from '../config/env.js';
 
-type SessionInternal = LiveSessionState & {
+type SessionInternal = LiveSessionStatePayload & {
   lastBeatAtMs: number;
   // Offset en ms entre el reloj del servidor y el último beat
   beatOffsetMs: number;
@@ -65,7 +65,7 @@ class LiveSessionRegistry {
    * Crea o reemplaza una sesión. Si ya existía, se conservan los sockets
    * conectados pero se actualiza el estado base (bpm, song, etc).
    */
-  create(state: Omit<LiveSessionState, 'participants'>): LiveSessionState {
+  create(state: Omit<LiveSessionStatePayload, 'participants'>): LiveSessionStatePayload {
     const existing = this.sessions.get(state.sessionId);
     const session: SessionInternal = {
       ...state,
@@ -79,7 +79,7 @@ class LiveSessionRegistry {
     return this.toPublic(session);
   }
 
-  get(sessionId: string): LiveSessionState | undefined {
+  get(sessionId: string): LiveSessionStatePayload | undefined {
     const s = this.sessions.get(sessionId);
     return s ? this.toPublic(s) : undefined;
   }
@@ -93,14 +93,14 @@ class LiveSessionRegistry {
    * - Debug
    * - Recovery tras restart
    */
-  list(): LiveSessionState[] {
+  list(): LiveSessionStatePayload[] {
     return Array.from(this.sessions.values()).map(s => this.toPublic(s));
   }
 
   /**
    * Registra un socket como participante. Devuelve la lista actualizada.
    */
-  join(sessionId: string, socketId: string, user: SocketUser): LiveSessionState | undefined {
+  join(sessionId: string, socketId: string, user: SocketUser): LiveSessionStatePayload | undefined {
     const session = this.sessions.get(sessionId);
     if (!session) return undefined;
 
@@ -207,7 +207,7 @@ class LiveSessionRegistry {
     this.timers.set(sessionId, timer);
   }
 
-  private toPublic(s: SessionInternal): LiveSessionState {
+  private toPublic(s: SessionInternal): LiveSessionStatePayload {
     return {
       sessionId: s.sessionId,
       hostId: s.hostId,

@@ -2,7 +2,7 @@
  * ApiTipRepository — tips desde el backend (catálogo público).
  */
 
-import type { ITipRepository } from '../interfaces';
+import type { ITipRepository } from '@/lib/repositories/interfaces';
 import type { Tip } from '@/types/music';
 import { apiClient } from '@/lib/api/client';
 import type { CatalogTipsResponse } from '@/lib/api/types';

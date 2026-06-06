@@ -11,7 +11,8 @@ export async function listSongs(req: Request<{}, {}, {}, ListSongsQuery>, res: R
   const { search, styleId, tab = 'all', limit = 20, offset = 0 } = req.query;
   const userId = req.user?.id;
 
-  const where: Record<string, unknown> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {};
 
   if (tab === 'preset') {
     where.isPreset = true;

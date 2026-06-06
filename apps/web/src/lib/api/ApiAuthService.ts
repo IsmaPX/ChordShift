@@ -97,7 +97,7 @@ export class ApiAuthService implements IAuthService {
     return this.activeUser;
   }
 
-  async login(profileId: string, pin?: string): Promise<LocalProfile> {
+  async login(profileId: string, _pin?: string): Promise<LocalProfile> {
     // El login con PIN no está implementado en el backend actual.
     // En esta fase, login asume que el perfil ya está en la sesión activa
     // (login tradicional usa email+password — ver `loginWithCredentials`).

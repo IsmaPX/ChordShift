@@ -98,24 +98,22 @@ export const outboxRepository = {
   },
 
   async markRejected(id: string, error: string): Promise<void> {
-    await outboxDb.outbox
-      .where('id')
-      .equals(id)
-      .modify((entry: OutboxEntry) => {
-        entry.status = 'rejected';
-        entry.attempts += 1;
-        entry.lastError = error;
-      });
+    const current = await outboxDb.outbox.get(id);
+    if (!current) return;
+    await outboxDb.outbox.update(id, {
+      status: 'rejected',
+      attempts: current.attempts + 1,
+      lastError: error,
+    });
   },
 
   async recordAttempt(id: string): Promise<void> {
-    await outboxDb.outbox
-      .where('id')
-      .equals(id)
-      .modify((entry: OutboxEntry) => {
-        entry.attempts += 1;
-        entry.status = 'pending';
-      });
+    const current = await outboxDb.outbox.get(id);
+    if (!current) return;
+    await outboxDb.outbox.update(id, {
+      attempts: current.attempts + 1,
+      status: 'pending',
+    });
   },
 
   async clear(): Promise<void> {
@@ -129,9 +127,6 @@ export const outboxRepository = {
       .count();
   },
 };
-
-// Re-export del tipo para los tests
-export type { OutboxEntry };
 
 // Singleton db para tests
 export { outboxDb };

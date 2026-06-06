@@ -38,7 +38,7 @@ export async function postLiveSession(req: Request, res: Response, next: NextFun
     if (!parsed.success) {
       return res.status(400).json({ error: 'Datos inválidos', details: parsed.error.flatten() });
     }
-    const state = await createSession({ hostId: userId, ...parsed.data });
+    const state = await createSession({ hostId: userId, songId: parsed.data.songId, bpm: parsed.data.bpm ?? 0 });
     res.status(201).json({ state });
   } catch (err) {
     if (err instanceof LiveSessionServiceError) {

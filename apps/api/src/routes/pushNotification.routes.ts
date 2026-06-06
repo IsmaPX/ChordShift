@@ -2,7 +2,7 @@
  * Rutas para Web Push subscriptions.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import {
   getVapidKey,
@@ -11,7 +11,7 @@ import {
   postTestPush,
 } from '../controllers/pushNotification.controller.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Público: clave VAPID
 router.get('/vapid-key', getVapidKey);

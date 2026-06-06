@@ -38,12 +38,15 @@ export const offlineQueue = {
    */
   async createSong(data: SongCreateData, _userId: string): Promise<string> {
     const id = crypto.randomUUID();
-    const song: Song = {
+    // El caller persiste la canción en su repositorio local. Aquí sólo
+    // encolamos la operación para sincronizar.
+    const _songPayload: Song = {
       id,
       ...data,
       instrument: 'piano',
       created_at: new Date().toISOString(),
     };
+    void _songPayload;
 
     // Persistir local (Dexie) - el caller debe haber añadido la canción a su repositorio
     // El sync manager solo se encarga de propagar al backend.

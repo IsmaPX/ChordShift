@@ -2,7 +2,7 @@
  * ApiEarTrainingRepository — resultados de ear training contra el backend.
  */
 
-import type { IEarTrainingRepository } from '../interfaces';
+import type { IEarTrainingRepository } from '@/lib/repositories/interfaces';
 import type { EarTrainingResult } from '@/lib/db';
 import { apiClient } from '@/lib/api/client';
 

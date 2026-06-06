@@ -8,7 +8,6 @@
  * - Sync tras período largo offline
  */
 
-import Dexie from 'dexie';
 import { apiClient } from '@/lib/api/client';
 import { tokenStore } from '@/lib/api/tokenStore';
 import { db } from '@/lib/db';
@@ -108,7 +107,7 @@ export async function applySnapshot(snapshot: SnapshotResponse): Promise<void> {
       // 2. Sesiones
       await db.practice_sessions.clear();
       for (const session of snapshot.practiceSessions) {
-        await db.practice_sessions.add(session);
+        await db.practice_sessions.add(session as never);
       }
 
       // 3. Ear training
@@ -130,11 +129,11 @@ export async function applySnapshot(snapshot: SnapshotResponse): Promise<void> {
       // 4. Catálogo (estilos y tips) — reemplazar si vienen
       if (snapshot.styles.length > 0) {
         await db.styles.clear();
-        await db.styles.bulkAdd(snapshot.styles);
+        await db.styles.bulkAdd(snapshot.styles as never);
       }
       if (snapshot.tips.length > 0) {
         await db.tips.clear();
-        await db.tips.bulkAdd(snapshot.tips);
+        await db.tips.bulkAdd(snapshot.tips as never);
       }
 
       // 5. Perfil de usuario
@@ -143,7 +142,7 @@ export async function applySnapshot(snapshot: SnapshotResponse): Promise<void> {
           id: snapshot.user.id,
           display_name: snapshot.user.displayName ?? snapshot.user.email.split('@')[0] ?? 'Usuario',
           pin_hash: null,
-          settings: snapshot.user.settings as Dexie.Schema[string] & object as never,
+          settings: snapshot.user.settings as Record<string, unknown> as never,
           created_at: snapshot.user.createdAt,
           last_active: new Date().toISOString(),
         });

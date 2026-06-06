@@ -40,8 +40,6 @@ export function useSocket(): SocketClient {
 // useSocketStatus: estado reactivo de la conexión
 // =============================================================
 
-const SERVER_STATUS_KEY = '__socket_status__';
-
 function subscribeToStatus(callback: () => void): () => void {
   const socket = getSocketClient({ autoConnect: false });
   // Si no existe el singleton real, lo creamos

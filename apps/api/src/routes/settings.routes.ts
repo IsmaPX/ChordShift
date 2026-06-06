@@ -4,7 +4,7 @@
  * Las rutas son /api/users/:id/settings, /api/users/:id/xp, etc.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import {
   updateSettings,
   addXp,
@@ -19,7 +19,7 @@ import {
   setPhoneSchema,
 } from '../validators/settings.validator.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.patch(
   '/:id/settings',
@@ -28,7 +28,8 @@ router.patch(
     const { body, params } = updateSettingsSchema.parse({ body: req.body, params: req.params });
     req.body = body;
     req.params.id = params.id;
-    await updateSettings(req, res);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await updateSettings(req as any, res);
   }),
 );
 
@@ -39,7 +40,8 @@ router.post(
     const { body, params } = addXpSchema.parse({ body: req.body, params: req.params });
     req.body = body;
     req.params.id = params.id;
-    await addXp(req, res);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await addXp(req as any, res);
   }),
 );
 
@@ -50,14 +52,16 @@ router.put(
     const { body, params } = setPhoneSchema.parse({ body: req.body, params: req.params });
     req.body = body;
     req.params.id = params.id;
-    await setPhoneNumber(req, res);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await setPhoneNumber(req as any, res);
   }),
 );
 
 router.delete(
   '/:id/phone',
   requireAuth,
-  asyncHandler(clearPhoneNumber),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  asyncHandler(clearPhoneNumber as any),
 );
 
 export default router;

@@ -8,7 +8,7 @@
  * 4. El canje se hace en backend con `redeemQr()` (en la página /join)
  */
 
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
 
 export type QrSession = {

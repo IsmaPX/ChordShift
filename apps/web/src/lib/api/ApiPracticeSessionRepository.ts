@@ -2,7 +2,7 @@
  * ApiPracticeSessionRepository — sesiones de práctica contra el backend.
  */
 
-import type { IPracticeSessionRepository } from '../interfaces';
+import type { IPracticeSessionRepository } from '@/lib/repositories/interfaces';
 import type { PracticeSession } from '@/types/music';
 import { apiClient } from '@/lib/api/client';
 import { tokenStore } from '@/lib/api/tokenStore';

@@ -12,3 +12,6 @@ coverage/
 *.tsbuildinfo
 apk/
 *.apk
+
+# Storage local de apps/api (artefactos de tests + uploads dev)
+apps/api/storage/

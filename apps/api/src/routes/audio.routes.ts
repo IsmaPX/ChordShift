@@ -2,7 +2,7 @@
  * Rutas de audio: upload, download (stream), metadata.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
@@ -12,7 +12,7 @@ import { requireAuth } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 import { env } from '../config/env.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Multer con almacenamiento en memoria (los archivos van directo a storage)
 const upload = multer({
@@ -32,19 +32,22 @@ router.post(
   '/songs/:songId/audio',
   requireAuth,
   upload.single('audio'),
-  asyncHandler(uploadAudio),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  asyncHandler(uploadAudio as any),
 );
 
 router.get(
   '/songs/:songId/audio',
   requireAuth,
-  asyncHandler(getAudio),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  asyncHandler(getAudio as any),
 );
 
 router.delete(
   '/songs/:songId/audio',
   requireAuth,
-  asyncHandler(deleteAudio),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  asyncHandler(deleteAudio as any),
 );
 
 /**

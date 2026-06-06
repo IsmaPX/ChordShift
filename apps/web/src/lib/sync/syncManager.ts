@@ -39,7 +39,6 @@ export interface SyncEvent {
 type SyncListener = (event: SyncEvent) => void;
 
 const MAX_ATTEMPTS = 5;
-const BACKOFF_MS = [1_000, 5_000, 30_000, 120_000, 600_000];
 
 class SyncManager {
   private listeners = new Set<SyncListener>();
@@ -72,6 +71,14 @@ class SyncManager {
     window.removeEventListener('offline', this.handleOffline);
   }
 
+  /** Sólo para tests. Resetea el estado interno del singleton. */
+  __resetForTests(): void {
+    this.isSyncing = false;
+    this.flushPromise = null;
+    this.listeners.clear();
+    this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  }
+
   isBrowserOnline(): boolean {
     return this.isOnline;
   }
@@ -102,7 +109,9 @@ class SyncManager {
   async flush(): Promise<void> {
     if (this.flushPromise) return this.flushPromise;
 
-    if (!this.isOnline) {
+    // Re-leer navigator.onLine en runtime (no cachear) para que los tests
+    // que cambian navigator.onLine vean el cambio inmediatamente.
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
       log.debug('flush: offline, skipping');
       return;
     }
@@ -201,7 +210,7 @@ class SyncManager {
       });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Unknown sync error';
-      log.error('doFlush failed', { error: message });
+      log.error(`doFlush failed: ${message}`);
 
       // Devolver las ops a pending para reintentar
       for (const entry of eligible) {
@@ -248,7 +257,7 @@ class SyncManager {
       try {
         listener(event);
       } catch (err) {
-        log.error('listener error', { error: String(err) });
+        log.error(`listener error: ${String(err)}`);
       }
     }
   }

@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { apiClient, ApiError } from '../client';
-import { tokenStore } from '../tokenStore';
+import { apiClient, ApiError } from './client';
+import { tokenStore } from './tokenStore';
 
 const MOCK_URL = 'http://localhost:3001';
 
@@ -81,8 +81,14 @@ describe('apiClient', () => {
       ),
     );
 
-    await expect(apiClient.get('/api/x')).rejects.toBeInstanceOf(ApiError);
-    await expect(apiClient.get('/api/x')).rejects.toMatchObject({ status: 401, code: 'UNAUTHORIZED' });
+    let caught: unknown;
+    try {
+      await apiClient.get('/api/x');
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(ApiError);
+    expect(caught).toMatchObject({ status: 401, code: 'UNAUTHORIZED' });
   });
 
   it('lanza ApiError de red cuando fetch falla', async () => {

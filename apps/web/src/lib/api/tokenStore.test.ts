@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { tokenStore } from '../tokenStore';
+import { tokenStore } from './tokenStore';
 
 describe('tokenStore', () => {
   beforeEach(() => {

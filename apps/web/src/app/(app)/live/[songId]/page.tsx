@@ -18,7 +18,7 @@
  *   para mantener la posición sincronizada entre frames
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -31,7 +31,6 @@ import {
   Square,
   RefreshCw,
   Activity,
-  Clock,
   QrCode as QrIcon,
   X,
 } from 'lucide-react'
@@ -40,7 +39,7 @@ import { useLiveSession, useSocketStatus } from '@/lib/socket/useSocket'
 import { useAuth } from '@/hooks/useAuth'
 import { useGenerateQr } from '@/hooks/useQrToken'
 import { QrCode } from '@/components/ui/QrCode'
-import { cn } from 'ui'
+import { cn } from '@/lib/utils'
 
 type LiveSessionCreateResponse = {
   state: {
@@ -146,7 +145,6 @@ export function LiveSessionPage() {
 
     let lastFrameTime = performance.now()
     let localBeat = state.currentBeat
-    const startTime = lastFrameTime
 
     const tick = (now: number) => {
       const dt = now - lastFrameTime
@@ -370,6 +368,7 @@ export function LiveSessionPage() {
               <RefreshCw className={cn('w-4 h-4', isJoining && 'animate-spin')} /> Reconectar
             </button>
           </div>
+          {sessionId && <QrPanel sessionId={sessionId} />}
         </div>
       )}
 
@@ -397,7 +396,6 @@ function QrPanel({ sessionId }: { sessionId: string }) {
       setCountdown(prev => (prev > 0 ? prev - 1 : 0))
     }, 1000)
     return () => clearInterval(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   if (!open) {

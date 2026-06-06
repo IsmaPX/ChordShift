@@ -8,11 +8,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { syncManager } from '../syncManager';
-import { outboxRepository, type OutboxEntry } from '../outbox';
+import { syncManager } from './syncManager';
+import { outboxRepository, type OutboxEntry } from './outbox';
 
-vi.mock('../outbox', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../outbox')>();
+vi.mock('./outbox', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./outbox')>();
   return {
     ...actual,
     outboxRepository: {
@@ -76,14 +76,19 @@ function makePendingEntry(overrides: Partial<OutboxEntry> = {}): OutboxEntry {
 }
 
 describe('SyncManager', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    // Re-aplicar defaults que otros tests pueden haber sobreescrito
+    const { tokenStore } = await import('@/lib/api/tokenStore');
+    vi.mocked(tokenStore.getToken).mockReturnValue('test-token');
     // Reset singleton state via mock reset
     vi.mocked(outboxRepository.getPending).mockResolvedValue([]);
+    syncManager.__resetForTests();
   });
 
   afterEach(() => {
     syncManager.destroy();
+    syncManager.__resetForTests();
   });
 
   it('enqueue añade al outbox y dispara flush si online', async () => {
@@ -166,6 +171,8 @@ describe('SyncManager', () => {
     });
 
     await syncManager.flush();
+    // Asegurar que markRejected se procesa (es await dentro del for)
+    await new Promise<void>((r) => { setTimeout(r, 0); });
 
     expect(outboxRepository.markRejected).toHaveBeenCalledWith(entry.id, 'Max attempts reached');
     expect(apiClient.post).not.toHaveBeenCalled();
@@ -183,6 +190,9 @@ describe('SyncManager', () => {
     const p1 = syncManager.flush();
     const p2 = syncManager.flush();
     const p3 = syncManager.flush();
+
+    // Esperar a que doFlush procese y llame a apiClient.post
+    await new Promise<void>((r) => { setTimeout(r, 0); });
 
     // Solo debería haberse llamado una vez
     expect(apiClient.post).toHaveBeenCalledTimes(1);

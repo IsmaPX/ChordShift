@@ -22,13 +22,8 @@ import { tokenStore } from '../api/tokenStore';
 import { API_BASE_URL } from '../api/client';
 import type {
   ServerEventHandlers,
-  LiveSessionState,
   AckResponse,
   JoinResponse,
-  BeatPayload,
-  PausePayload,
-  ResumePayload,
-  EndPayload,
   LeaderboardCategory,
   LeaderboardPeriod,
 } from './socket.types';
@@ -60,6 +55,7 @@ export type SocketClient = {
   disconnect(): void;
   isConnected(): boolean;
   getStatus(): ConnectionStatus;
+  onStatusChange(handler: (status: ConnectionStatus) => void): () => void;
   on<K extends EventName>(event: K, handler: ServerEventHandlers[K]): () => void;
   off<K extends EventName>(event: K, handler: ServerEventHandlers[K]): void;
   joinSession(sessionId: string): Promise<JoinResponse>;
@@ -193,7 +189,7 @@ class SocketClientImpl implements SocketClient {
     this.handlers.get(event)!.add(handler as ServerEventHandlers[EventName]);
 
     // Asegurar que el socket tiene el listener montado
-    this.socket?.on(event, (...args: unknown[]) => {
+    this.socket?.on(event as string, (...args: unknown[]) => {
       // Resetear backoff en cualquier mensaje del servidor
       this.reconnectAttempts = 0;
       const set = this.handlers.get(event);

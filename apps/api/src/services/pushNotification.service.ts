@@ -17,8 +17,6 @@ import webpush from 'web-push';
 import { prisma } from '../config/database.js';
 import { env } from '../config/env.js';
 
-let vapidConfigured = false;
-
 /** Lee VAPID_PUBLIC_KEY priorizando process.env (test-friendly) y fallback a env validado. */
 function readVapidPublicKey(): string | undefined {
   return process.env.VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY;
@@ -41,7 +39,6 @@ function ensureVapidConfigured(): boolean {
     publicKey,
     privateKey,
   );
-  vapidConfigured = true;
   return true;
 }
 
@@ -162,5 +159,5 @@ export function getPublicVapidKey(): string | null {
 
 /** Sólo para tests. */
 export function __resetForTests(): void {
-  vapidConfigured = false;
+  // Re-configurar en el próximo sendToUser().
 }

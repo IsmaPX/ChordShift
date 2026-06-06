@@ -5,7 +5,7 @@
  * Implementa todas las operaciones de ISettingsRepository contra los endpoints reales.
  */
 
-import type { ISettingsRepository } from '../interfaces';
+import type { ISettingsRepository } from '@/lib/repositories/interfaces';
 import type { UserSettings } from '@/types/music';
 import type { LocalProfile } from '@/types/profile';
 import { apiClient } from '@/lib/api/client';

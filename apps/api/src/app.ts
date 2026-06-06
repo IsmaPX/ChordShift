@@ -23,7 +23,7 @@ import qrTokenRoutes from './routes/qrToken.routes.js';
 import pushNotificationRoutes from './routes/pushNotification.routes.js';
 import './types/express.d.js';
 
-const app = express();
+const app: express.Express = express();
 
 // Seguridad
 app.use(helmet({

@@ -3,11 +3,11 @@
  * Estos endpoints son de solo lectura para todos los usuarios.
  */
 
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { prisma } from '../config/database.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get('/styles', asyncHandler(async (_req, res) => {
   const styles = await prisma.style.findMany({

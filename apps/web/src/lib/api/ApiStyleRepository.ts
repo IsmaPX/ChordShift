@@ -2,7 +2,7 @@
  * ApiStyleRepository — catálogo público de estilos desde el backend.
  */
 
-import type { IStyleRepository } from '../interfaces';
+import type { IStyleRepository } from '@/lib/repositories/interfaces';
 import type { Style } from '@/types/music';
 import { apiClient } from '@/lib/api/client';
 import type { CatalogStylesResponse } from '@/lib/api/types';

@@ -3,10 +3,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { apiClient } from '../client';
-import { ApiEarTrainingRepository } from '../ApiEarTrainingRepository';
+import { apiClient } from './client';
+import { ApiEarTrainingRepository } from './ApiEarTrainingRepository';
 
-vi.mock('../client', () => ({
+vi.mock('./client', () => ({
   apiClient: {
     post: vi.fn(),
     get: vi.fn(),
@@ -25,6 +25,7 @@ describe('ApiEarTrainingRepository', () => {
     vi.mocked(apiClient.post).mockResolvedValue({ result: { id: 'r1' } } as never);
 
     await repo.create({
+      id: 'r-new',
       user_id: 'u1',
       exercise_type: 'interval',
       question: { notes: ['C', 'E'], root: 'C' },
@@ -32,6 +33,7 @@ describe('ApiEarTrainingRepository', () => {
       correct_answer: 'Tercera mayor',
       is_correct: true,
       response_ms: 1500,
+      created_at: new Date().toISOString(),
     });
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/ear-training', {

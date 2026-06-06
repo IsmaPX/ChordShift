@@ -45,6 +45,7 @@ import type {
   SocketUser,
   JoinResponse,
   AckResponse,
+  LiveSessionStatePayload,
 } from './socket.types.js';
 import type { LeaderboardCategory, LeaderboardPeriod } from '@chordshift/db';
 
@@ -179,9 +180,10 @@ export function createSocketServer(httpServer: HttpServer): AppIo {
     socket.on('session:join', async (sessionId, ack: (r: JoinResponse) => void) => {
       try {
         // Asegurar que la sesión existe (reconstruir desde DB si hace falta)
-        let state = liveSessionRegistry.get(sessionId);
+        let state: LiveSessionStatePayload | undefined = liveSessionRegistry.get(sessionId);
         if (!state) {
-          state = await getSession(sessionId);
+          const recovered = await getSession(sessionId);
+          state = recovered ?? undefined;
         }
         if (!state) {
           return ack({ ok: false, error: 'Sesión no encontrada' });
