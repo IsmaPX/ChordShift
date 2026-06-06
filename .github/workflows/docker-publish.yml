@@ -1,0 +1,76 @@
+name: Docker — Publish API image
+
+# Publica la imagen Docker de apps/api a GitHub Container Registry (ghcr.io).
+# Cualquier provider (Railway, Render, Fly.io, K8s, etc) puede hacer pull.
+#
+# Tags generados:
+#   - ghcr.io/<owner>/chordshift-api:main            (push a main)
+#   - ghcr.io/<owner>/chordshift-api:main-<sha>      (push a main, único)
+#   - ghcr.io/<owner>/chordshift-api:vX.Y.Z          (tag v*)
+#   - ghcr.io/<owner>/chordshift-api:vX.Y.Z-<sha>    (tag v*)
+#   - ghcr.io/<owner>/chordshift-api:pr-<num>        (PR, útil para preview)
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/chordshift-api
+
+jobs:
+  build:
+    name: Build & publish Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # La acción oficial `docker/build-push-action` detecta docker.config.json
+      # automáticamente cuando GITHUB_TOKEN tiene scopes de packages:write.
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=long
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Usa el cache del registry para builds más rápidos.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Importante: la imagen ya viene lista para producción
+          # (NODE_ENV=production, prisma client generado).
+          provenance: false

@@ -1,0 +1,35 @@
+# Reduce el contexto de build (lo que Docker envía al daemon).
+# Importante: NO ignorar .env.example (lo copiamos al repo).
+**/node_modules
+**/dist
+**/build
+**/.turbo
+**/.vite
+**/coverage
+**/release
+**/apk
+**/*.log
+**/.DS_Store
+**/.env
+**/.env.local
+**/storage
+**/uploads
+**/.git
+**/.github
+**/.vscode
+**/.idea
+**/.opencode
+**/node_modules/.cache
+
+# Documentación
+**/*.md
+**/LICENSE
+**/.gitignore
+**/.gitattributes
+
+# Tests
+**/tests
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts

@@ -118,6 +118,7 @@ pnpm db:seed          # Ejecutar seed
 
 ### Live Sessions (REST + WebSockets)
 - `POST /api/live-sessions` — Crea sesión en vivo (body: `{ songId, bpm? }`). Devuelve estado inicial.
+- `GET /api/live-sessions` — Lista las sesiones activas del host actual (multi-sesión).
 - `GET /api/live-sessions/:id` — Estado actual de la sesión (registry en memoria, fallback a DB).
 - `POST /api/live-sessions/:id/end` — Finaliza la sesión (sólo host).
 - **Recovery on boot**: `server.ts` llama a `recoverFromDatabase()` al iniciar, que rehidrata el registry con sesiones activas de Prisma (filtradas por `SESSION_TTL_MS`).
@@ -127,6 +128,16 @@ pnpm db:seed          # Ejecutar seed
   - Cliente → Server: `session:join`, `session:leave`, `session:pause`, `session:resume`, `session:end`, `session:beat-report`, `leaderboard:subscribe`, `leaderboard:unsubscribe`
   - Server → Cliente: `session:state`, `session:beat`, `session:paused`, `session:resumed`, `session:ended`, `session:error`, `session:participant-joined`, `session:participant-left`, `leaderboard:updated`
   - Sólo el host puede pausar / reanudar / reportar beats / finalizar
+
+### QR (invitar guest a sesión en vivo)
+- `POST /api/live-sessions/:id/qr` — Genera QR para unirse (sólo host, requiere token). Devuelve `{ token, qrUrl, expiresAt }`. El token vive 5 minutos, one-shot.
+- `POST /api/qr/redeem` — Canjea token (público). Body: `{ token }`. Devuelve `{ sessionId, hostId }` y (si la conexión entrante es un WebSocket) el socket queda auto-añadido a `session:<id>` con `socket.data.autoJoinSessionId`.
+
+### Push (Web Push / VAPID)
+- `GET /api/push/vapid-public-key` — Devuelve la clave pública VAPID (público). El cliente la usa para `subscribe()`.
+- `POST /api/push/subscribe` — Registra suscripción (requiere token). Body: `{ endpoint, keys: { p256dh, auth } }`.
+- `POST /api/push/unsubscribe` — Elimina suscripción (requiere token). Body: `{ endpoint }`.
+- `POST /api/push/test` — Envía push de prueba al usuario actual (requiere token). Útil para debugging.
 
 ### Catalog (público)
 - `GET /api/catalog/styles` — Estilos musicales
@@ -166,32 +177,128 @@ apps/api/
 
 ## Despliegue
 
-### Vercel (recomendado para prototipos)
+Hay tres rutas soportadas, de menor a mayor control:
+
+### 1. Docker + GitHub Container Registry (recomendado)
+
+El workflow `.github/workflows/docker-publish.yml` publica la imagen a `ghcr.io` automáticamente:
+
+- `push` a `main` → `ghcr.io/<owner>/chordshift-api:main`
+- `tag v*` → `ghcr.io/<owner>/chordshift-api:vX.Y.Z`
+- PR → `ghcr.io/<owner>/chordshift-api:pr-<num>`
+
+La imagen se construye multi-stage con `apps/api/Dockerfile` (Node 20-alpine, usuario no-root, healthcheck integrado).
+
+Luego cualquier provider puede hacer pull:
+
 ```bash
-# Crear vercel.json en la raíz del proyecto
-# El root directory es apps/api
+docker pull ghcr.io/ismapx/chordshift-api:main
+docker run --rm -p 3001:3001 --env-file .env ghcr.io/ismapx/chordshift-api:main
 ```
 
-### Railway / Render
-```bash
-# Build command: pnpm build
-# Start command: pnpm start
-# Variables de entorno: ver .env.example
+### 2. Railway / Render / Fly.io (más simple)
+
+Estos providers soportan Docker nativamente. Configuración típica:
+
+- **Build command**: (vacío — usan Dockerfile)
+- **Start command**: (vacío — usa CMD del Dockerfile)
+- **Dockerfile path**: `apps/api/Dockerfile`
+- **Image source**: `ghcr.io/ismapx/chordshift-api:main` (con auto-deploy)
+- **Variables de entorno**: ver `.env.example` (pegar todas en el dashboard)
+- **Postgres**: añadir add-on PostgreSQL del provider y pegar su `DATABASE_URL`
+- **Port**: `3001` (ya expuesto en el Dockerfile)
+- **Healthcheck path**: `/api/health` (en el manifest del Dockerfile)
+
+#### Fly.io (ejemplo con `fly.toml`)
+
+```toml
+app = "chordshift-api"
+primary_region = "iad"
+
+[build]
+  image = "ghcr.io/ismapx/chordshift-api:main"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3001"
+
+[[services]]
+  internal_port = 3001
+  protocol = "tcp"
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+[deploy]
+  release_command = "node node_modules/.prisma/client scripts/migrate-deploy.js"
 ```
 
-### Docker
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
-COPY . .
-RUN pnpm --filter api prisma:generate && pnpm --filter api build
-EXPOSE 3001
-CMD ["pnpm", "--filter", "api", "start"]
+> **Importante**: el `release_command` corre las migraciones Prisma antes de levantar la nueva versión. Alternativa: hacer `prisma migrate deploy` en un `CMD` externo y dejar que la app corra en un container separado.
+
+#### Railway
+
+Railway detecta el Dockerfile automáticamente. Sólo:
+
+1. Crear nuevo proyecto desde GitHub repo
+2. Apuntar root a la rama `main`
+3. Añadir plugin PostgreSQL (Railway crea `DATABASE_URL` automáticamente)
+4. Pegar las demás vars de `.env.example`
+5. Railway redeploya en cada push a `main`
+
+#### Render
+
+- New → Web Service → Image URL: `ghcr.io/ismapx/chordshift-api:main`
+- Port: `3001`
+- Health check: `/api/health`
+- Add Disk: 1 GB (sólo si `STORAGE_DRIVER=local`)
+
+### 3. Build local (sin Docker)
+
+```bash
+# Compilar
+pnpm build
+
+# Generar cliente Prisma
+pnpm prisma:generate
+
+# Aplicar migraciones (en prod, una sola vez)
+pnpm prisma:deploy
+
+# Arrancar
+pnpm start
+```
+
+Necesitas un PostgreSQL accesible y todas las vars de `.env.example` definidas.
+
+### Orden de operaciones recomendado
+
+1. **Subir imagen**: push a `main` o crear tag `v*` → la imagen queda en ghcr.io.
+2. **Configurar provider**: crear servicio en Railway/Render/Fly que apunte a la imagen.
+3. **Añadir PostgreSQL**: add-on del provider o externo (Supabase/Neon/Railway Postgres).
+4. **Configurar env vars**: copiar todas las vars de `.env.example` con valores reales.
+5. **Migrar DB**: en el primer deploy, `prisma migrate deploy` corre la migración. Si tu provider no lo hace automáticamente, conectarte por SSH y correrlo manualmente.
+6. **Seed (opcional)**: `pnpm db:seed` para crear estilos, tips, canciones preset y el admin (`admin@worshippiano.app / admin123456`).
+7. **Verificar**: `curl https://tu-api.com/api/health` debe responder 200.
+
+### CORS en producción
+
+No olvides actualizar `CORS_ORIGIN` con la URL de tu frontend (Vercel, dominio custom, etc). Si el frontend y la API están en subdominios distintos, separar por comas:
+
+```
+CORS_ORIGIN=https://web-1tmdqw12l-maikel-js-projects.vercel.app,https://chordshift.app
 ```
 
 ## Próximos pasos
-- [ ] Storage remoto para audios (S3/Supabase Storage) — actualmente filesystem local
-- [ ] Notificaciones push
+- [x] Storage remoto para audios (S3/Supabase Storage) — `STORAGE_DRIVER=s3|supabase`
+- [x] Notificaciones push (VAPID) — opcional, configurable via env
+- [x] QR para sesiones en vivo
 - [ ] Materialized views para leaderboard (cuando el volumen crezca)
