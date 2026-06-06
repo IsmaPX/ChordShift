@@ -7,7 +7,16 @@ import { LanguageProvider } from './lib/i18n/LanguageProvider'
 import { OnboardingProvider } from './contexts/OnboardingContext'
 import { AudioGateProvider } from './contexts/AudioGateContext'
 import { AudioGate } from './components/ui/AudioGate'
+import { syncManager } from './lib/sync/syncManager'
+import { getSocketClient } from './lib/socket/socketClient'
 import './index.css'
+
+// Inicializar sync manager: detecta online/offline y procesa el outbox.
+syncManager.init()
+
+// Inicializar cliente Socket.IO (singleton, con reconexión automática).
+// Sólo conecta si hay token en el store.
+getSocketClient()
 
 const queryClient = new QueryClient({
   defaultOptions: {
