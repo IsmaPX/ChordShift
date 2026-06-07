@@ -17,8 +17,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
@@ -27,9 +26,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        run: pnpm turbo build --filter=web
+        # `pnpm --filter=web build` ejecuta el script `build` de apps/web
+        # (`tsc -b && vite build`) sin construir las dependencias transitivas.
+        # Esto es más rápido y menos propenso a OOM que `turbo build --filter=web`.
+        run: pnpm --filter=web build
         env:
           VITE_APP_ENV: production
+          # Limita el heap de Node para evitar OOM en Vercel (8GB disponibles).
+          NODE_OPTIONS: --max-old-space-size=4096
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel
@@ -40,78 +44,3 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-  build-android:
-    name: Build Android APK
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '21'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Capacitor
-        run: pnpm add @capacitor/cli @capacitor/android
-        working-directory: ./apps/web
-
-      - name: Initialize Capacitor
-        run: npx cap init "ChordShift" com.chordshift.app --web-dir=dist
-        working-directory: ./apps/web
-
-      - name: Add Android platform
-        run: npx cap add android
-        working-directory: ./apps/web
-
-      - name: Build web app
-        run: pnpm run build
-        working-directory: ./apps/web
-        env:
-          VITE_APP_ENV: production
-
-      - name: Sync to Android
-        run: npx cap sync android
-        working-directory: ./apps/web
-
-      - name: Fix Kotlin stdlib conflict
-        run: |
-          echo "" >> android/app/build.gradle
-          echo "configurations.all {" >> android/app/build.gradle
-          echo "    resolutionStrategy {" >> android/app/build.gradle
-          echo "        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'" >> android/app/build.gradle
-          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'" >> android/app/build.gradle
-          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'" >> android/app/build.gradle
-          echo "    }" >> android/app/build.gradle
-          echo "}" >> android/app/build.gradle
-        working-directory: ./apps/web
-
-      - name: Build APK
-        run: |
-          cd android
-          ./gradlew assembleDebug
-        working-directory: ./apps/web
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk

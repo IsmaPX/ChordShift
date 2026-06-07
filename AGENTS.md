@@ -9,6 +9,7 @@
 | Paquete | Descripción | Tests |
 |---|---|---|
 | `apps/web` | Vite + React 19 + Electron 33 (cliente) | Vitest + jsdom |
+| `apps/web/android` | Capacitor 6 Android project (APK) | — |
 | `apps/api` | Express + Prisma + PostgreSQL (backend) | Vitest + supertest |
 | `packages/audio` | Tone.js lógica compartida | Vitest (Node) |
 | `packages/db` | Interfaces TypeScript | — |
@@ -32,6 +33,11 @@ pnpm dev:electron           # VITE_ELECTRON_BUILD=true vite
 pnpm build                  # tsc -b && vite build
 pnpm build:electron         # cross-env VITE_ELECTRON_BUILD=true vite build
 pnpm dist:win|mac|linux     # electron-builder packaging
+pnpm release                # electron-builder --x64 --publish always
+pnpm cap:sync               # cap sync android
+pnpm cap:open               # cap open android
+pnpm android:assemble       # cd android && ./gradlew assembleDebug
+pnpm android:bundle         # cd android && ./gradlew bundleRelease
 pnpm test                   # vitest
 pnpm lint                   # eslint .
 pnpm typecheck              # tsc --noEmit
@@ -39,7 +45,7 @@ pnpm typecheck              # tsc --noEmit
 # apps/api (cd apps/api) — Backend REST
 pnpm dev              # Servidor con hot-reload (tsx watch) en puerto 3001
 pnpm build            # Compilar TypeScript → dist/
-pnpm start            # Servidor producción
+pnpm start            # Servidor producción (node dist/apps/api/src/server.js)
 pnpm test             # vitest (watch)
 pnpm test:run         # vitest (CI)
 pnpm prisma:generate  # Generar Prisma Client
@@ -47,6 +53,12 @@ pnpm prisma:migrate   # Crear/aplicar migración (dev)
 pnpm prisma:deploy    # Aplicar migraciones (prod)
 pnpm prisma:studio    # GUI en http://localhost:5555
 pnpm db:seed          # Ejecutar seed inicial
+pnpm docker:up        # docker compose up -d
+pnpm docker:down      # docker compose down
+pnpm docker:logs      # docker compose logs -f api
+pnpm docker:migrate   # docker compose run --rm api pnpm prisma:deploy
+pnpm docker:seed      # docker compose run --rm api pnpm db:seed
+pnpm docker:build-local  # docker build -t chordshift-api:local
 
 # packages/audio (cd packages/audio)
 pnpm build                  # tsc
@@ -54,6 +66,35 @@ pnpm test                   # vitest
 ```
 
 **Orden CI**: `typecheck` → `lint` → `test` (en paralelo después de typecheck) → `build`.
+
+## Deploy
+
+### Frontend
+- **Vercel**: push a `main` dispara `.github/workflows/deploy.yml`. URL: https://web-1tmdqw12l-maikel-js-projects.vercel.app
+
+### Desktop (Electron)
+- Tags `v*` disparan `.github/workflows/release.yml`:
+  - Windows NSIS + portable
+  - macOS DMG (Intel + ARM)
+  - Linux AppImage + .deb
+- **Code signing opcional** (configurar GitHub Secrets):
+  - Windows: `CSC_LINK` (.pfx base64) + `CSC_KEY_PASSWORD`
+  - macOS: `CSC_LINK` + `CSC_KEY_PASSWORD` + `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID`
+- Si no están las secrets, binarios suben sin firmar (warning al instalar).
+
+### Android (APK)
+- `release.yml` incluye job `build-android-apk` con `continue-on-error: true`:
+  - Compila APK debug con `gradlew assembleDebug`
+  - Sube `ChordShift-<version>.apk` al release existente
+- Versión dinámica: `versionCode=$(date +%s)`, `versionName=<tag>`
+- Parche kotlin-stdlib en `apps/web/android/app/build.gradle` (fix conflicto Capacitor 6 + Java 21)
+
+### Backend (Cloud)
+- **Docker local**: `docker compose up -d` (stack postgres + api)
+- **Railway**: `railway.toml` detectado automáticamente. Crear servicio Postgres desde dashboard.
+- **Render**: `render.yaml` (blueprint). Configurar preDeployCommand: `cd apps/api && pnpm prisma:deploy`.
+- **Fly.io**: `fly launch --copy-config` + `fly postgres create` + `fly secrets set`.
+- **Setup automatizado**: `./scripts/setup-deploy.sh {railway|render|fly|compose}`
 
 ---
 
