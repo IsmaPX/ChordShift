@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "author": {
     "name": "IsmaPX",
@@ -23,7 +23,12 @@
     "dist:mac": "electron-builder --mac --x64",
     "dist:linux": "electron-builder --linux --x64",
     "dist:all": "electron-builder --win --mac --linux --x64",
-    "release": "electron-builder --x64 --publish always"
+    "release": "electron-builder --x64 --publish always",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android",
+    "android:build": "cd android && ./gradlew assembleDebug",
+    "android:assemble": "cd android && ./gradlew assembleDebug",
+    "android:bundle": "cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -46,6 +51,9 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
