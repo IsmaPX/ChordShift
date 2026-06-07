@@ -1,5 +1,18 @@
 name: Release Electron
 
+# =============================================================================
+# Release Electron desktop + Android APK
+#
+# Triggers:
+#   - tag v*            (e.g. v0.2.0)
+#   - workflow_dispatch (manual, con input version)
+#
+# Salidas:
+#   - Binarios Electron (Windows installer/portable, macOS Intel/ARM, Linux AppImage/deb)
+#   - APK Android (debug, uploaded a GitHub Release)
+#   - Subidos a GitHub Releases automáticamente
+# =============================================================================
+
 on:
   workflow_dispatch:
     inputs:
@@ -63,16 +76,36 @@ jobs:
           VITE_APP_ENV: production
           VITE_ELECTRON_BUILD: true
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # Twilio (runtime, no build-time — optional)
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_WHATSAPP_NUMBER: ${{ secrets.TWILIO_WHATSAPP_NUMBER }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+          # =========================================================================
+          # Code signing (OPCIONAL — sólo se usan si los secrets están configurados)
+          # =========================================================================
+          # Windows (.pfx) — exporta el certificado con su private key
+          # CSC_LINK: base64 del .pfx (cat cert.pfx | base64 -w 0)
+          # CSC_KEY_PASSWORD: contraseña del certificado
+          # CSC_IDENTITY_AUTO_DISCOVERY=true (default) — busca en keychain/cert store
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+          # macOS notarization
+          # APPLE_ID: tu Apple ID
+          # APPLE_APP_SPECIFIC_PASSWORD: app-specific password de appleid.apple.com
+          # APPLE_TEAM_ID: 10-char team ID de App Store Connect
+          # APPLE_IDENTITY: "Developer ID Application: Your Name (TEAMID)"
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
   build-android-apk:
     name: Build Android APK
     needs: [release]
     # continue-on-error: si falla, no rompe el release de Electron
-    # (el APK se genera por separado y se sube al release si está disponible)
+    # (los binarios desktop ya se subieron al release).
     continue-on-error: true
     runs-on: ubuntu-latest
     permissions:
@@ -110,44 +143,34 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Capacitor
-        run: pnpm add @capacitor/cli @capacitor/android
-        working-directory: ./apps/web
-
-      - name: Initialize Capacitor
-        run: npx cap init "ChordShift" com.chordshift.app --web-dir=dist
-        working-directory: ./apps/web
-
-      - name: Add Android platform
-        run: npx cap add android
-        working-directory: ./apps/web
-
       - name: Build web app
         run: pnpm run build
         working-directory: ./apps/web
         env:
           VITE_APP_ENV: production
 
-      - name: Sync to Android
-        run: npx cap sync android
+      - name: Sync web to Capacitor Android
+        # `cap sync` copia el contenido de `dist/` a `android/app/src/main/assets/public/`
+        # y actualiza plugins. Como `android/` ya está en el repo (generado
+        # por `cap add android`), no necesitamos re-crearlo.
+        run: pnpm exec cap sync android
         working-directory: ./apps/web
 
-      - name: Fix Kotlin stdlib conflict
+      - name: Compute versionCode
+        id: vcode
+        shell: bash
         run: |
-          echo "" >> android/app/build.gradle
-          echo "configurations.all {" >> android/app/build.gradle
-          echo "    resolutionStrategy {" >> android/app/build.gradle
-          echo "        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'" >> android/app/build.gradle
-          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'" >> android/app/build.gradle
-          echo "        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'" >> android/app/build.gradle
-          echo "    }" >> android/app/build.gradle
-          echo "}" >> android/app/build.gradle
-        working-directory: ./apps/web
+          # versionCode = epoch seconds (sirve como número de build incremental)
+          # versionName viene del tag v0.2.0 → "0.2.0"
+          echo "value=$(date +%s)" >> $GITHUB_OUTPUT
 
-      - name: Build APK
+      - name: Build debug APK
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug \
+            -PversionCode=${{ steps.vcode.outputs.value }} \
+            -PversionName=${{ steps.version.outputs.value }} \
+            --no-daemon
         working-directory: ./apps/web
 
       - name: Rename APK
@@ -160,6 +183,6 @@ jobs:
         run: |
           gh release upload v${{ steps.version.outputs.value }} \
             ./apps/web/ChordShift-${{ steps.version.outputs.value }}.apk \
-            --repo IsmaPX/ChordShift --clobber
+            --repo ${{ github.repository }} --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
