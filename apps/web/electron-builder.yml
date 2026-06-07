@@ -19,7 +19,11 @@ files:
   - resources/icon.png
 
 extraResources:
-  - from: ../../node_modules/twilio
+  # En monorepo, twilio se resuelve via symlink de pnpm desde apps/web/node_modules/twilio
+  # a ../../node_modules/.pnpm/twilio@.../node_modules/twilio.
+  # electron-builder lo copia como resource adicional para que el ejecutable
+  # empaquetado pueda usar el SDK de Twilio en runtime.
+  - from: node_modules/twilio
     to: node_modules/twilio
     filter:
       - "**/*"
@@ -35,7 +39,13 @@ win:
     - target: portable
       arch: [x64, arm64]
   icon: resources/icon.png
-  sign: false
+  # Code signing: si CSC_LINK + CSC_KEY_PASSWORD están en env, electron-builder
+  # firma automáticamente. Si no, los binarios quedan sin firmar y
+  # SmartScreen mostrará warning al usuario.
+  # Para firmar: subir el .pfx a GitHub Secrets como CSC_LINK (base64) y
+  # CSC_KEY_PASSWORD (contraseña del certificado).
+  signAndEditExecutable: true
+  publisherName: IsmaPX
   publish:
     - provider: github
       owner: IsmaPX
@@ -46,6 +56,11 @@ mac:
     - target: dmg
       arch: [x64, arm64]
   icon: resources/icon.png
+  # Notarization automática si APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD y
+  # APPLE_TEAM_ID están en env. Sin esto, GateKeeper bloquea la app.
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  category: public.app-category.music
   publish:
     - provider: github
       owner: IsmaPX
