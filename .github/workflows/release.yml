@@ -165,6 +165,7 @@ jobs:
         # En Linux runners, gradlew pierde el bit de ejecución al checkout.
         # chmod +x restaura el permiso.
         run: chmod +x android/gradlew
+        working-directory: ./apps/web
 
       - name: Build debug APK
         run: |
