@@ -83,23 +83,20 @@ jobs:
           TWILIO_WHATSAPP_NUMBER: ${{ secrets.TWILIO_WHATSAPP_NUMBER }}
 
           # =========================================================================
-          # Code signing (OPCIONAL — sólo se usan si los secrets están configurados)
+          # Code signing (OPCIONAL — activar manualmente removiendo la línea
+          # CSC_IDENTITY_AUTO_DISCOVERY=false si tienes los secrets configurados)
           # =========================================================================
-          # Windows (.pfx) — exporta el certificado con su private key
-          # CSC_LINK: base64 del .pfx (cat cert.pfx | base64 -w 0)
-          # CSC_KEY_PASSWORD: contraseña del certificado
-          # CSC_IDENTITY_AUTO_DISCOVERY=true (default) — busca en keychain/cert store
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-
-          # macOS notarization
-          # APPLE_ID: tu Apple ID
-          # APPLE_APP_SPECIFIC_PASSWORD: app-specific password de appleid.apple.com
-          # APPLE_TEAM_ID: 10-char team ID de App Store Connect
-          # APPLE_IDENTITY: "Developer ID Application: Your Name (TEAMID)"
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Cuando CSC_IDENTITY_AUTO_DISCOVERY=false:
+          #   - electron-builder NO busca certificados en keychain/cert store
+          #   - Binarios suben sin firmar (warning al instalar en Win/Mac)
+          #   - Workflow siempre funciona, sin importar si los secrets están o no
+          #
+          # Para ACTIVAR la firma automáticamente, remover la siguiente línea y
+          # configurar estos GitHub Secrets:
+          #   - CSC_LINK: base64 del .pfx (cat cert.pfx | base64 -w 0)
+          #   - CSC_KEY_PASSWORD: contraseña del certificado
+          #   - APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID (para macOS)
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
   build-android-apk:
     name: Build Android APK
