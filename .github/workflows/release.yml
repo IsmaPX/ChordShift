@@ -161,6 +161,11 @@ jobs:
           # versionName viene del tag v0.2.0 → "0.2.0"
           echo "value=$(date +%s)" >> $GITHUB_OUTPUT
 
+      - name: Make gradlew executable
+        # En Linux runners, gradlew pierde el bit de ejecución al checkout.
+        # chmod +x restaura el permiso.
+        run: chmod +x android/gradlew
+
       - name: Build debug APK
         run: |
           cd android
