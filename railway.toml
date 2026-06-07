@@ -1,0 +1,25 @@
+# =============================================================================
+# Railway.toml — ChordShift API
+# https://docs.railway.app/reference/config-as-code
+#
+# Para usar:
+#   1. Crea cuenta en https://railway.app
+#   2. New Project → Deploy from GitHub → selecciona este repo
+#   3. Railway detecta este archivo y configura el servicio
+#   4. Añade plugin PostgreSQL desde el dashboard
+#   5. Configura las variables de entorno (ver apps/api/.env.example)
+# =============================================================================
+
+[build]
+  builder = "DOCKERFILE"
+  dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+  # Railway inyecta PORT automáticamente. El servidor ya lee process.env.PORT.
+  startCommand = "node apps/api/dist/apps/api/src/server.js"
+  # Espera 30s para que el healthcheck responda antes de marcar como unhealthy.
+  healthcheckPath = "/api/health"
+  healthcheckTimeout = 30
+  # Política de restart: ON_FAILURE con máximo 3 reintentos.
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3

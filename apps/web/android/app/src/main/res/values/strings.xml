@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ChordShift</string>
+    <string name="title_activity_main">ChordShift</string>
+    <string name="package_name">com.chordshift.app</string>
+    <string name="custom_url_scheme">com.chordshift.app</string>
+</resources>

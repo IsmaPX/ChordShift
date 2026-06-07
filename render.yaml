@@ -1,0 +1,59 @@
+# =============================================================================
+# render.yaml — ChordShift API + PostgreSQL
+# https://render.com/docs/blueprint-spec
+#
+# Para usar:
+#   1. Crea cuenta en https://render.com
+#   2. New → Blueprint → conecta este repo
+#   3. Render detecta este archivo y crea los servicios
+#   4. Configura las variables secretas (JWT_SECRET, VAPID_*) en el dashboard
+# =============================================================================
+
+services:
+  - type: web
+    name: chordshift-api
+    runtime: docker
+    plan: starter
+    rootDir: .
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chordshift-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: BCRYPT_ROUNDS
+        value: 10
+      - key: CORS_ORIGIN
+        value: https://web-1tmdqw12l-maikel-js-projects.vercel.app
+      - key: SESSION_TTL_MS
+        value: 3600000
+      - key: STORAGE_DRIVER
+        value: local
+      - key: VAPID_SUBJECT
+        value: mailto:admin@worshippiano.app
+      - key: VAPID_PUBLIC_KEY
+        sync: false  # configúralo manualmente
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+    # En el primer deploy, el comando de release aplica migraciones Prisma.
+    # Render ejecuta este comando antes del startCommand.
+    # Para configurarlo: agregar en dashboard (preDeployCommand).
+    # preDeployCommand: "pnpm prisma:deploy"
+
+databases:
+  - name: chordshift-postgres
+    plan: starter
+    databaseName: worship_piano
+    user: postgres
+    ipAllowList: []  # sólo accesible desde el mismo render account
