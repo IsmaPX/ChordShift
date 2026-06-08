@@ -18,8 +18,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "baseUrl": ".",
     "paths": {
-      "@chordshift/db": ["../../packages/db/src/index.ts"]
+      "@chordshift/db": ["./../../packages/db/src/index.ts"]
     }
   },
   "include": ["src/**/*", "types/**/*"],

@@ -48,7 +48,6 @@ function createEntry(level: LogLevel, message: string, context?: Record<string, 
 function log(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error) {
   if (!shouldLog(level)) return
   const entry = createEntry(level, message, context, error)
-  // eslint-disable-next-line no-console
   const fn = level === 'error' ? console.error : level === 'warn' ? console.warn : level === 'debug' ? console.debug : console.info
   fn(formatEntry(entry))
 }

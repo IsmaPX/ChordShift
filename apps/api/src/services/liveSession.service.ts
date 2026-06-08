@@ -58,7 +58,6 @@ function installLifecycleHook(): void {
           data: { status: 'ended', endedAt: new Date() },
         })
         .catch(err => {
-          // eslint-disable-next-line no-console
           console.error(`[liveSession] failed to persist endedAt for ${event.sessionId}:`, err);
         });
     }

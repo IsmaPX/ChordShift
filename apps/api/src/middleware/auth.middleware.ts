@@ -8,7 +8,6 @@ import { verifyToken, type TokenPayload } from '../services/token.service.js';
 import { prisma } from '../config/database.js';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: {

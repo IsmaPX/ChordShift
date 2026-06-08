@@ -11,7 +11,6 @@ export async function listSongs(req: Request<{}, {}, {}, ListSongsQuery>, res: R
   const { search, styleId, tab = 'all', limit = 20, offset = 0 } = req.query;
   const userId = req.user?.id;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {};
 
   if (tab === 'preset') {

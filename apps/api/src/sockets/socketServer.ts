@@ -170,7 +170,6 @@ export function createSocketServer(httpServer: HttpServer): AppIo {
         }
       } catch (err) {
         // Si falla el auto-join, no bloqueamos la conexión
-        // eslint-disable-next-line no-console
         console.error('[socket] auto-join failed', err);
       }
     }

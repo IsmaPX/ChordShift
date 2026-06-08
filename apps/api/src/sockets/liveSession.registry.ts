@@ -55,7 +55,6 @@ class LiveSessionRegistry {
       } catch (err) {
         // No propagamos el error — el listener no debe romper el ciclo
         // de vida de una sesión. El error se loguea en consola.
-        // eslint-disable-next-line no-console
         console.error('[liveSessionRegistry] listener error', err);
       }
     }

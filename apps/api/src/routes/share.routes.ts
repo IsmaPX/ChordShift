@@ -35,10 +35,10 @@ router.get(
   }),
 );
 
-router.get('/sent', requireAuth, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+router.get('/sent', requireAuth,
 asyncHandler(listMyShares as any));
 
-router.delete('/:shareId', requireAuth, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+router.delete('/:shareId', requireAuth,
 asyncHandler(revokeShare as any));
 
 export default router;

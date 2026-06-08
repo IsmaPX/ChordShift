@@ -6,8 +6,6 @@
  * (click en la notificación → abrir URL).
  */
 
-/* eslint-disable */
-
 self.addEventListener('push', event => {
   if (!event.data) return
 

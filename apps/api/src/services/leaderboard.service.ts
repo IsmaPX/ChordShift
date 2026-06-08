@@ -254,12 +254,10 @@ export function startLeaderboardCacheJob(): void {
         try {
           await refreshLeaderboardCache(category, period);
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.error(`[leaderboard] failed to refresh ${category}/${period}:`, err);
         }
       }
     }
-    // eslint-disable-next-line no-console
     console.log(`[leaderboard] cache refreshed (${CATEGORIES.length * PERIODS.length} snapshots)`);
   };
 

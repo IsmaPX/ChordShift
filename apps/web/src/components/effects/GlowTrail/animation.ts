@@ -8,7 +8,6 @@ export const trailColors = [
 
 export const trailVariants = {
   initial: { opacity: 0, scale: 0.5 },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   animate: (_i: number) => ({
     opacity: [0, 0.8, 0.4],
     scale: [0.5, 1, 0.5],

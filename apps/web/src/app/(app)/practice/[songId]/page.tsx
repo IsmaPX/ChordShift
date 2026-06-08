@@ -271,7 +271,10 @@ export function PracticePlayerPage() {
               )}
             </div>
 
-            {/* ===== PENTAGRAMA: línea amarilla marca el tiempo ===== */}
+            {/* ===== PENTAGRAMA: línea amarilla marca el tiempo =====
+                Se adapta al instrumento activo:
+                  - piano/guitar: símbolos de acorde (C, G, Am…)
+                  - trumpet:      notas reales por pitch (C4, G4…) con válvulas */}
             {sections.length > 0 && (
               <MusicStaff
                 sections={sections}
@@ -279,6 +282,7 @@ export function PracticePlayerPage() {
                 currentChordIndex={currentChordIndex}
                 isPlaying={isPlaying}
                 bpm={song?.bpm || 120}
+                instrument={instrument}
                 resetKey={staffResetKey}
               />
             )}

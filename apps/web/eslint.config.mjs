@@ -45,6 +45,7 @@ export default [
       'coverage/**',
       'release/**',
       '*.config.{js,ts,mjs,cjs}',
+      'android/**',
     ],
   },
 ];

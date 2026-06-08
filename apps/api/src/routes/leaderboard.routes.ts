@@ -16,7 +16,6 @@ router.get(
   asyncHandler(async (req, res) => {
     const { query } = leaderboardQuerySchema.parse(req);
     Object.assign(req.query, query);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await getLeaderboard(req as any, res);
   }),
 );

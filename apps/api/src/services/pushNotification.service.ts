@@ -100,7 +100,6 @@ export async function sendToUser(
   payload: PushPayload,
 ): Promise<{ sent: number; failed: number; skipped: boolean }> {
   if (!ensureVapidConfigured()) {
-    // eslint-disable-next-line no-console
     console.log('[push] VAPID not configured, dry-run:', { userId, payload });
     return { sent: 0, failed: 0, skipped: true };
   }

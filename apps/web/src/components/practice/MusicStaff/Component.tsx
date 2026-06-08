@@ -6,16 +6,28 @@
  * y muestra una línea amarilla vertical que se desplaza de izquierda
  * a derecha al ritmo de la canción.
  *
+ * Adaptación por instrumento:
+ *  - `piano` | `guitar` (default): muestra el símbolo del acorde (e.g. "C")
+ *    posicionado con un hash determinístico sobre 5 líneas verdes.
+ *  - `trumpet`: muestra la fundamental del acorde posicionada por su
+ *    pitch real en el pentagrama (Do4, Re4, ...), con líneas adicionales
+ *    (ledger lines) automáticas para notas fuera del rango, e indicador
+ *    de válvulas (1/2/3) en la nota activa.
+ *
  * La sincronización se hace con CSS `animation` (no rAF en JS) para
  * mantener 60fps sin recálculos por frame. El padre controla play/pause
  * vía `isPlaying` y resetea la posición incrementando `resetKey`.
  */
 import { useMemo, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { chordPlayer } from '@/audio/ChordPlayer'
+import { getTrumpetFingering } from '@/data/trumpetFingerings'
+import { noteToStaffPosition, transposeOctaveUp } from './pitch'
 import { ensureStaffKeyframes, cursorStyle } from './animation'
 import type { MusicStaffProps, ChordNote, StaffTimeline, BeatMark } from './types'
+import type { InstrumentName } from '@/types/music'
 
-/** Hash determinístico simple: convierte un string en 0–4. */
+/** Hash determinístico simple: convierte un string en 0–4 (modo piano/guitarra). */
 function chordLineIndex(chordName: string): number {
   let hash = 0
   for (let i = 0; i < chordName.length; i++) {
@@ -32,12 +44,26 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+/** Extrae la fundamental del acorde (root) según el instrumento. */
+function getRootNoteForInstrument(chordSymbol: string, instrument: InstrumentName): string | null {
+  if (instrument === 'trumpet') {
+    // ChordPlayer.getChordNotes devuelve [root] para trompeta.
+    const notes = chordPlayer.getChordNotes(chordSymbol, 'trumpet')
+    return notes?.[0] ?? null
+  }
+  // Para piano y guitarra seguimos mostrando el símbolo del acorde; no
+  // hay una "raíz única" en el pentagrama, así que devolvemos null y se
+  // usa el modo legacy (hash determinístico sobre el símbolo).
+  return null
+}
+
 export function MusicStaff({
   sections,
   currentSectionIndex,
   currentChordIndex,
   isPlaying,
   bpm,
+  instrument = 'piano',
   resetKey = 0,
   className,
 }: MusicStaffProps) {
@@ -46,9 +72,18 @@ export function MusicStaff({
     ensureStaffKeyframes()
   }, [])
 
+  const isTrumpet = instrument === 'trumpet'
+
   const { timeline, notes, beatMarks } = useMemo(() => {
     const beatDuration = 60 / Math.max(1, bpm)
-    interface NoteRaw { chord: ChordNote['chord']; endTime: number; line: number; isCurrent: boolean }
+    interface NoteRaw {
+      chord: ChordNote['chord']
+      endTime: number
+      line: number
+      isCurrent: boolean
+      noteName?: string
+      valves?: string
+    }
     interface MarkRaw { time: number; label?: string }
     const noteRaws: NoteRaw[] = []
     const markRaws: MarkRaw[] = []
@@ -61,11 +96,36 @@ export function MusicStaff({
         const chordSeconds = beatDuration * Math.max(0.1, chord.duration)
         const endTime = elapsed + chordSeconds
 
+        // Posición vertical y datos extra según instrumento.
+        let line: number
+        let noteName: string | undefined
+        let valves: string | undefined
+        if (isTrumpet) {
+          const root = getRootNoteForInstrument(chord.chord, 'trumpet')
+          if (root) {
+            // Transponer una octava arriba SOLO para display: el audio y el
+            // NoteDisplay siguen usando la 3ª octava (que es lo que devuelve
+            // CHORD_ROOTS). C3 → C4, que cae dentro del pentagrama legible.
+            const displayRoot = transposeOctaveUp(root) ?? root
+            const pos = noteToStaffPosition(displayRoot)
+            line = pos ?? chordLineIndex(chord.chord)
+            noteName = displayRoot
+            const fingering = getTrumpetFingering(root)
+            valves = fingering?.valves
+          } else {
+            line = chordLineIndex(chord.chord)
+          }
+        } else {
+          line = chordLineIndex(chord.chord)
+        }
+
         noteRaws.push({
           chord,
           endTime,
-          line: chordLineIndex(chord.chord),
+          line,
           isCurrent: sIdx === currentSectionIndex && cIdx === currentChordIndex,
+          noteName,
+          valves,
         })
 
         if (
@@ -102,6 +162,8 @@ export function MusicStaff({
       position: (n.endTime / safeTotal) * 100,
       line: n.line,
       isCurrent: n.isCurrent,
+      noteName: n.noteName,
+      valves: n.valves,
     }))
 
     const markAcc: BeatMark[] = markRaws
@@ -116,7 +178,7 @@ export function MusicStaff({
     }
 
     return { timeline: timelineAcc, notes: noteAcc, beatMarks: markAcc }
-  }, [sections, currentSectionIndex, currentChordIndex, bpm])
+  }, [sections, currentSectionIndex, currentChordIndex, bpm, isTrumpet])
 
   const remainingSeconds = Math.max(0.1, timeline.totalSeconds - timeline.currentSeconds)
   const cursorAnim = cursorStyle(remainingSeconds, isPlaying)
@@ -125,10 +187,20 @@ export function MusicStaff({
     return null
   }
 
+  // En modo trompeta el track es más alto para dar espacio a las ledger
+  // lines y a notas agudas/graves fuera del pentagrama.
+  const trackClass = isTrumpet
+    ? 'h-40'  // 160px
+    : 'h-28'  // 112px
+  const staffContainerClass = isTrumpet
+    ? 'inset-y-5'  // 20px padding
+    : 'inset-y-3'  // 12px padding
+
   return (
     <div
       data-testid="music-staff"
-      data-version="music-staff-v1.0"
+      data-version="music-staff-v1.1"
+      data-instrument={instrument}
       data-current-section={currentSectionIndex}
       data-current-chord={currentChordIndex}
       data-is-playing={isPlaying ? 'true' : 'false'}
@@ -139,7 +211,9 @@ export function MusicStaff({
       <div className="flex items-center justify-between mb-2 px-1">
         <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
           <span className="text-anime-glow">♪</span>
-          <span className="uppercase tracking-widest">Pentagrama</span>
+          <span className="uppercase tracking-widest">
+            {isTrumpet ? 'Pentagrama · Trompeta' : 'Pentagrama'}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
           <span className={cn(isPlaying ? 'text-warning' : 'text-text-secondary')}>
@@ -150,12 +224,17 @@ export function MusicStaff({
         </div>
       </div>
 
-      <div className="music-staff-track relative h-28 rounded-lg overflow-hidden border border-accent/15 bg-bg-primary/40">
-        {/* Símbolo de clave al inicio */}
+      <div
+        className={cn(
+          'music-staff-track relative rounded-lg overflow-hidden border border-accent/15 bg-bg-primary/40',
+          trackClass
+        )}
+      >
+        {/* Símbolo de clave al inicio (clave de sol, apropiada para trompeta) */}
         <svg
           className="music-staff-clef absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
           width="32"
-          height="80"
+          height={isTrumpet ? '120' : '80'}
           viewBox="0 0 32 80"
           fill="none"
           aria-hidden="true"
@@ -170,7 +249,7 @@ export function MusicStaff({
         </svg>
 
         {/* 5 líneas del pentagrama */}
-        <div className="music-staff-lines absolute inset-y-3 left-12 right-2 pointer-events-none">
+        <div className={cn('music-staff-lines absolute left-12 right-2 pointer-events-none', staffContainerClass)}>
           {[0, 1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -199,31 +278,92 @@ export function MusicStaff({
           </div>
         ))}
 
-        {/* Acordes como cabezas de nota */}
+        {/* Notas (acordes o notas de trompeta con pitch real) */}
         {notes.map((n, idx) => {
-          // Posición vertical: 0 = línea superior, 4 = línea inferior
+          // Posición vertical según el sistema de coordenadas del pentagrama.
+          // En modo piano/guitar: n.line está en 0-4.
+          // En modo trompeta: n.line puede estar fuera de 0-4 (e.g. -1 para C4).
           const topPercent = (n.line / 4) * 100
+
+          // En modo trompeta dibujamos ledger lines si la nota está fuera
+          // del pentagrama (posición < 0 o > 4).
+          const ledgersAbove = isTrumpet ? Math.max(0, Math.floor(n.line - 4)) : 0
+          const ledgersBelow = isTrumpet ? Math.max(0, Math.floor(-n.line)) : 0
+
+          // Etiqueta: nombre de nota (C4) en trompeta, símbolo de acorde en el resto.
+          const label = isTrumpet && n.noteName ? n.noteName : n.chord.chord
+
           return (
             <div
-              key={`${idx}-${n.chord.chord}`}
-              className="music-staff-note-group absolute"
+              key={`${idx}-${n.chord.chord}-${n.noteName ?? ''}`}
+              className={cn(
+                'music-staff-note-group absolute',
+                isTrumpet && 'music-staff-note-group--trumpet'
+              )}
               style={{
                 left: `calc(48px + (100% - 56px) * ${n.position / 100})`,
                 top: `${topPercent}%`,
                 transform: 'translate(-50%, -50%)',
               }}
+              data-testid="music-staff-note"
+              data-chord={n.chord.chord}
+              data-note={n.noteName ?? ''}
             >
+              {/* Ledger lines (solo trompeta, fuera del pentagrama) */}
+              {ledgersBelow > 0 && (
+                <div className="music-staff-ledgers absolute left-1/2 -translate-x-1/2 pointer-events-none">
+                  {Array.from({ length: ledgersBelow }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="music-staff-ledger"
+                      style={{
+                        // Cada ledger line adicional está 1 unidad (25% del staff)
+                        // por debajo de la anterior.
+                        top: `${(i + 1) * 25}%`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {ledgersAbove > 0 && (
+                <div className="music-staff-ledgers absolute left-1/2 -translate-x-1/2 pointer-events-none">
+                  {Array.from({ length: ledgersAbove }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="music-staff-ledger"
+                      style={{
+                        // Negativo: por encima del contenedor de la nota.
+                        top: `${-(i + 1) * 25}%`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
               <div
                 className={cn(
                   'music-staff-note',
+                  isTrumpet && 'music-staff-note--trumpet',
                   n.isCurrent && 'music-staff-note--current'
                 )}
-                data-testid="music-staff-note"
+                data-testid="music-staff-note-head"
                 data-chord={n.chord.chord}
+                data-note={n.noteName ?? ''}
               />
               <span className="music-staff-note-label absolute left-1/2 -translate-x-1/2 top-4 text-[10px] font-mono font-bold whitespace-nowrap pointer-events-none">
-                {n.chord.chord}
+                {label}
               </span>
+
+              {/* Indicador de válvulas (solo trompeta, nota activa) */}
+              {isTrumpet && n.isCurrent && n.valves && (
+                <span
+                  className="music-staff-valves absolute left-1/2 -translate-x-1/2 -bottom-5 text-[10px] font-mono font-bold whitespace-nowrap pointer-events-none"
+                  data-testid="music-staff-valves"
+                  aria-label={`Válvulas: ${n.valves}`}
+                >
+                  {n.valves}
+                </span>
+              )}
             </div>
           )
         })}

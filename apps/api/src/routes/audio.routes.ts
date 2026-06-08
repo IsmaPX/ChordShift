@@ -32,21 +32,18 @@ router.post(
   '/songs/:songId/audio',
   requireAuth,
   upload.single('audio'),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   asyncHandler(uploadAudio as any),
 );
 
 router.get(
   '/songs/:songId/audio',
   requireAuth,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   asyncHandler(getAudio as any),
 );
 
 router.delete(
   '/songs/:songId/audio',
   requireAuth,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   asyncHandler(deleteAudio as any),
 );
 

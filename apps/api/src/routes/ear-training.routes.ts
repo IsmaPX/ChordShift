@@ -29,12 +29,11 @@ router.get(
   asyncHandler(async (req, res) => {
     const { query } = listEarTrainingResultsSchema.parse(req);
     Object.assign(req.query, query);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await listMyResults(req as any, res);
   }),
 );
 
-router.get('/stats/me', requireAuth, // eslint-disable-next-line @typescript-eslint/no-explicit-any
+router.get('/stats/me', requireAuth,
 asyncHandler(getMyStats as any));
 
 export default router;
