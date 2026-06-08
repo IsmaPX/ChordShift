@@ -1,222 +1,178 @@
 # Worship Piano App / ChordShift
 
-**Idioma Principal**: Todo el desarrollo, documentación y comunicación de este repositorio debe ser en **Español**.
+> **Idioma Principal**: Todo el desarrollo, documentación y comunicación de este repositorio debe ser en **Español**. Código en inglés, comentarios y docs en español.
+
+Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 
 ---
 
-## Monorepo (Turborepo)
+## Estructura
 
-| Paquete | Descripción | Tests |
+| Paquete | Qué es | Tests |
 |---|---|---|
-| `apps/web` | Vite + React 19 + Electron 33 (cliente) | Vitest + jsdom |
-| `apps/web/android` | Capacitor 6 Android project (APK) | — |
-| `apps/api` | Express + Prisma + PostgreSQL (backend) | Vitest + supertest |
-| `packages/audio` | Tone.js lógica compartida | Vitest (Node) |
-| `packages/db` | Interfaces TypeScript | — |
-| `packages/ui` | Utility `cn` | — |
+| `apps/web` | Vite + React 19 + Electron 33 (cliente) + Capacitor Android | Vitest + jsdom |
+| `apps/api` | Express 4 + Prisma 5 + PostgreSQL 16 (backend REST + Socket.IO) | Vitest + supertest |
+| `packages/audio` | Lógica Tone.js compartida, tests en Node | Vitest |
+| `packages/db` | Solo interfaces TypeScript compartidas | — |
+| `packages/ui` | Solo exporta `cn` (helper clsx) | — |
 
-**Package Manager**: `pnpm@9.0.0`, Node `>=20`.
-
-## Comandos
-
-```bash
-# Root (usa turbo)
-pnpm dev          # Inicia todos los dev servers
-pnpm build        # Build de todos los paquetes
-pnpm lint         # Lint de todos los paquetes (depende de build)
-pnpm typecheck    # Typecheck de todos los paquetes (depende de build)
-pnpm test         # Tests de todos los paquetes (depende de build)
-
-# apps/web (cd apps/web)
-pnpm dev                    # Vite dev server (localhost:5173)
-pnpm dev:electron           # VITE_ELECTRON_BUILD=true vite
-pnpm build                  # tsc -b && vite build
-pnpm build:electron         # cross-env VITE_ELECTRON_BUILD=true vite build
-pnpm dist:win|mac|linux     # electron-builder packaging
-pnpm release                # electron-builder --x64 --publish always
-pnpm cap:sync               # cap sync android
-pnpm cap:open               # cap open android
-pnpm android:assemble       # cd android && ./gradlew assembleDebug
-pnpm android:bundle         # cd android && ./gradlew bundleRelease
-pnpm test                   # vitest
-pnpm lint                   # eslint .
-pnpm typecheck              # tsc --noEmit
-
-# apps/api (cd apps/api) — Backend REST
-pnpm dev              # Servidor con hot-reload (tsx watch) en puerto 3001
-pnpm build            # Compilar TypeScript → dist/
-pnpm start            # Servidor producción (node dist/apps/api/src/server.js)
-pnpm test             # vitest (watch)
-pnpm test:run         # vitest (CI)
-pnpm prisma:generate  # Generar Prisma Client
-pnpm prisma:migrate   # Crear/aplicar migración (dev)
-pnpm prisma:deploy    # Aplicar migraciones (prod)
-pnpm prisma:studio    # GUI en http://localhost:5555
-pnpm db:seed          # Ejecutar seed inicial
-pnpm docker:up        # docker compose up -d
-pnpm docker:down      # docker compose down
-pnpm docker:logs      # docker compose logs -f api
-pnpm docker:migrate   # docker compose run --rm api pnpm prisma:deploy
-pnpm docker:seed      # docker compose run --rm api pnpm db:seed
-pnpm docker:build-local  # docker build -t chordshift-api:local
-
-# packages/audio (cd packages/audio)
-pnpm build                  # tsc
-pnpm test                   # vitest
-```
-
-**Orden CI**: `typecheck` → `lint` → `test` (en paralelo después de typecheck) → `build`.
-
-## Deploy
-
-### Frontend
-- **Vercel**: push a `main` dispara `.github/workflows/deploy.yml`. URL: https://web-1tmdqw12l-maikel-js-projects.vercel.app
-
-### Desktop (Electron)
-- Tags `v*` disparan `.github/workflows/release.yml`:
-  - Windows NSIS + portable
-  - macOS DMG (Intel + ARM)
-  - Linux AppImage + .deb
-- **Code signing opcional** (configurar GitHub Secrets):
-  - Windows: `CSC_LINK` (.pfx base64) + `CSC_KEY_PASSWORD`
-  - macOS: `CSC_LINK` + `CSC_KEY_PASSWORD` + `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID`
-- Si no están las secrets, binarios suben sin firmar (warning al instalar).
-
-### Android (APK)
-- `release.yml` incluye job `build-android-apk` con `continue-on-error: true`:
-  - Compila APK debug con `gradlew assembleDebug`
-  - Sube `ChordShift-<version>.apk` al release existente
-- Versión dinámica: `versionCode=$(date +%s)`, `versionName=<tag>`
-- Parche kotlin-stdlib en `apps/web/android/app/build.gradle` (fix conflicto Capacitor 6 + Java 21)
-
-### Backend (Cloud)
-- **Docker local**: `docker compose up -d` (stack postgres + api)
-- **Railway**: `railway.toml` detectado automáticamente. Crear servicio Postgres desde dashboard.
-- **Render**: `render.yaml` (blueprint). Configurar preDeployCommand: `cd apps/api && pnpm prisma:deploy`.
-- **Fly.io**: `fly launch --copy-config` + `fly postgres create` + `fly secrets set`.
-- **Setup automatizado**: `./scripts/setup-deploy.sh {railway|render|fly|compose}`
+> README raíz tiene la referencia completa (variables de entorno, troubleshooting, deploy paso a paso). Esta guía es solo el concentrado de lo que un agente **no vería a primera vista**.
 
 ---
 
-## Arquitectura y Quirks
+## Trampas y reglas no obvias
 
-### Sin App.tsx
-`main.tsx` renderiza `RouterProvider` directamente. No existe `App.tsx`.
+### Frontend (apps/web)
 
-### Router
-React Router v7. Pages en `src/app/` con route groups:
-- `(auth)/` → login, register
-- `(app)/` → practice, ear-training, encyclopedia, settings
-- `(demo)/` → effects demo
-
-Usa `createHashRouter` si `VITE_ELECTRON_BUILD=true`, sino `createBrowserRouter`.
-
-### AudioGate Global (CRÍTICO)
-`AudioGateContext` vive en `src/contexts/AudioGateContext.tsx`. `<AudioGateProvider>` y `<AudioGate>` se colocan en `main.tsx` a nivel root.
-**No colocar `<AudioGate>` dentro de layouts** — causa remounts y reaparece "toca para empezar".
-
-### Dual Audio Engine (CRÍTICO)
-1. `packages/audio/` — Lógica compartida, tests en Node.
-2. `apps/web/src/audio/` — Wrapper web (singleton Tone.js), tests mockean `@/audio/AudioEngine`.
-
-**Regla**: No importar clases de `packages/audio` dentro de `apps/web/src/`.
-
-### Paquetes
-- `packages/db` solo contiene interfaces TypeScript.
-- `packages/ui` solo exporta `cn` (clsx helper).
-
-### Tailwind 4
-Usa `@import "tailwindcss"` en `index.css` y variables en `@theme`. Colores anime disponibles:
-`anime-pink`, `anime-blue`, `anime-purple`, `anime-glow`, `neon-cyan`, `neon-pink`.
-Utilities: `glow-pink`, `glow-blue`, `text-gradient-anime`, `glow-green`, `text-gradient-green`.
-
-### PWA
-SW en `main.tsx` solo si `!('isElectron' in window)`.
-
-### VITE_APP_VERSION
-Definida en `vite.config.ts` via `define`, no en `.env`.
+- **No existe `App.tsx`.** `main.tsx` monta `RouterProvider` directo, envuelto en `QueryClientProvider` → `LanguageProvider` → `OnboardingProvider` → `AudioGateProvider` → `AudioGate`. `syncManager.init()` y `getSocketClient()` se llaman a nivel de módulo (top-level) — no dentro de un componente.
+- **`<AudioGate>` y `<AudioGateProvider>` deben quedarse en `main.tsx` (root).** Moverlos a un layout causa remounts y vuelve a aparecer "toca para empezar" cada navegación. El `AudioGateContext` vive en `src/contexts/AudioGateContext.tsx`.
+- **Dual Audio Engine — regla dura:**
+  - `packages/audio/` → lógica Tone.js testeable en Node.
+  - `apps/web/src/audio/` → wrapper singleton de Tone.js para el navegador, mockeado en tests.
+  - **No importar clases de `packages/audio` dentro de `apps/web/src/`** — los tests web mockean `@/audio/AudioEngine`, no `packages/audio`.
+- **Router dual**: `createHashRouter` cuando `VITE_ELECTRON_BUILD=true`, sino `createBrowserRouter`. La elección vive en `src/lib/router.tsx` según `import.meta.env`.
+- **Route groups** en `src/app/`: `(auth)/` (login, register), `(app)/` (todo lo autenticado), `(demo)/` (effects). Rutas importantes: `/practice`, `/practice/:songId`, `/ear-training`, `/encyclopedia`, `/settings`, `/leaderboard`, `/shared`, `/sync`, `/join`, `/live/:songId`, `/demo/effects`.
+- **Tailwind 4**: `@import "tailwindcss"` en `index.css` + variables en `@theme`. Claves anime: `anime-pink/blue/purple/glow`, `neon-cyan/pink`. Utilities custom: `glow-green/pink/blue`, `text-gradient-anime/green`.
+- **PWA**: el service worker se registra solo si `!('isElectron' in window)`.
+- **`VITE_APP_VERSION`** viene de `vite.config.ts` (`define`), NO de `.env`.
+- **Capa API opcional** (`src/lib/api`): `repositoryProvider` elige Dexie o API según `VITE_API_URL` o `localStorage['worship_piano_backend_mode']`. Default: Dexie (offline-first). Páginas `/leaderboard` y `/shared` solo se muestran si `isApi === true`. Toggle en runtime: `localStorage.setItem('worship_piano_backend_mode', 'api')`.
+- **Sync offline-first** (`src/lib/sync`): `outbox.ts` (IndexedDB persistente, max 5 intentos por op) + `syncManager.ts` (auto-flush en eventos `online`/`offline`) + `snapshotClient.ts` (hidratar Dexie desde `/api/sync/snapshot`). Hook UI: `useSyncStatus()` + `<SyncStatusBadge />`.
+- **Socket.IO cliente** (`src/lib/socket`): singleton con backoff 1s→5min. `useSocket`, `useSocketStatus`, `useLiveSession`, `useLeaderboardRealtime`. `beatSync.ts` interpola beats con `requestAnimationFrame` y `classifyDrift()` colorea la latencia.
+- **E2E con Playwright**: hay spec en `apps/web/e2e/` y `@playwright/test` instalado, pero **no hay script `test:e2e` en `package.json`** y Turborepo no los corre. Si los vas a tocar, ejecuta `npx playwright test` manualmente.
+- **Eslint** (`apps/web/eslint.config.mjs`): plan `@typescript-eslint` recommended + `no-unused-vars: warn`, `no-explicit-any: off`, `no-empty-object-type: off`, `no-console: warn` (solo permite `console.warn`/`console.error`), `no-redeclare: off`.
+- **Path alias**: `@/` → `apps/web/src/`. El alias `@api/` está documentado pero solo aplica a tests.
 
 ### Backend (apps/api)
-- **Patrón en capas**: routes → controllers → services → Prisma
-- **Validación con Zod** en todos los inputs (ver `validators/`)
-- **Auth JWT**: token expira en 7 días, header `Authorization: Bearer <token>`
-- **Hasheo**: bcrypt para password y PIN, rounds configurables via `BCRYPT_ROUNDS`
-- **Errores centralizados** en `middleware/error.middleware.ts` (ZodError → 400, Prisma P2002 → 409, P2025 → 404)
-- **Prisma Singleton**: `config/database.ts` evita múltiples instancias en HMR
-- **Variables de entorno validadas con Zod** en `config/env.ts` (falla rápido al arranque)
-- **Migraciones**: usar `prisma:migrate` (dev) o `prisma:deploy` (prod). Nunca modificar `schema.prisma` sin generar migración
-- **Seed**: estilos, tips, canciones preset y usuario admin (`admin@worshippiano.app / admin123456`)
 
-### Capa API en Frontend (apps/web/src/lib/api)
-- **Cliente HTTP** `client.ts` — wrapper sobre `fetch` con auth automática y error tipado (`ApiError`)
-- **Token Store** `tokenStore.ts` — JWT persistido en localStorage con caché en memoria
-- **Repositories API** — `ApiAuthService`, `ApiSongRepository`, `ApiPracticeSessionRepository`, `ApiSettingsRepository`, `ApiStyleRepository`, `ApiTipRepository`, `ApiEarTrainingRepository`. Todos implementan las interfaces existentes (drop-in replacements de las versiones Dexie).
-- **Provider selector** `repositories/provider.ts` — `repositoryProvider.getXRepository()` devuelve Dexie o API según `repositoryProvider.getMode()`. Default: `dexie` (preserva offline-first). Override via `VITE_API_URL` o `localStorage.setItem('worship_piano_backend_mode', 'api')`.
-- **Hook** `useBackendMode` — suscribe a cambios del provider con `useSyncExternalStore` para re-renderizar al alternar.
-- **Hooks de TanStack Query** `useApiFeatures.ts` — `useUserStats`, `useEarTrainingStats`, `useLeaderboard`, `useSharedWithMe`, `useMyShares`, `useCreateShare`, `useRevokeShare`, `useUploadAudio`, `useSongAudio`.
-- **Páginas de ejemplo** — `/leaderboard` (ranking global) y `/shared` (canciones compartidas conmigo). Solo visibles con `isApi === true`.
-- **Activación cloud**: definir `VITE_API_URL` en `.env` y arrancar `apps/api` en paralelo (`pnpm dev` desde raíz).
+- **Patrón en capas**: `routes/` → `controllers/` → `services/` → `Prisma`. Validación con Zod en `validators/` para TODA entrada.
+- **Prisma singleton** en `config/database.ts` para evitar instancias duplicadas en HMR. Si Prisma Client no se encuentra: `cd apps/api && pnpm prisma:generate`.
+- **Variables de entorno validadas con Zod** en `config/env.ts` (fail-fast al arrancar). Ver `apps/api/.env.example` para la lista completa. Críticas: `DATABASE_URL`, `JWT_SECRET` (>=32 chars), `CORS_ORIGIN`, `STORAGE_DRIVER`, `VAPID_*`.
+- **Storage factory** con drivers `local` | `s3` (R2/MinIO/DO Spaces compatible) | `supabase`. Selección por `STORAGE_DRIVER`.
+- **Errores centralizados** en `middleware/error.middleware.ts`: `ZodError` → 400, `Prisma P2002` (unique) → 409, `Prisma P2025` (not found) → 404.
+- **Auth JWT**: header `Authorization: Bearer <token>`, expira 7 días. Bcrypt para password y PIN (rounds via `BCRYPT_ROUNDS`).
+- **Migraciones**: `pnpm prisma:migrate` (dev) o `pnpm prisma:deploy` (prod). **Nunca** edites `schema.prisma` sin generar migración. Seed: `pnpm db:seed` crea admin (`admin@worshippiano.app / admin123456`), estilos, tips y canciones preset.
+- **WebSockets / live sessions** (`src/sockets`): rooms `session:<id>` y `leaderboard:<category>:<period>`. El handshake envía `auth.token` (JWT) y el server adjunta `socket.data.userId`. Guest QR pasa por `socket.data.autoJoinSessionId` (NO es JWT); el `userId` del guest es `guest:<hostId>`.
+- **Live Session Registry**: estado en memoria (`liveSession.registry.ts`) con TTL (`SESSION_TTL_MS`, default 1h). **No persiste cada beat** — solo metadata en `LiveSession` (Prisma). `liveSession.service.ts` rehidrata el registry desde DB en `recoverFromDatabase()` al boot. `notifyLeaderboardChanged()` debe llamarse desde controllers de session/ear-training cuando hay cambios significativos.
+- **Endpoints REST auxiliares** para live: `POST /api/live-sessions`, `GET /api/live-sessions/:id`, `POST /api/live-sessions/:id/end`. Pause/resume/beat **solo** por socket.
+- **DB de test**: `worship_piano_test` (separada de dev). Tests integración con supertest + app Express real.
+- **Path alias** en `tsconfig.json`: `@chordshift/db` → `../../packages/db/src/index.ts`. No hay `@api/` real (eso es solo convención en el front).
 
-### Sync Offline-First (apps/web/src/lib/sync)
-- **Outbox** `outbox.ts` — IndexedDB persistente (`WorshipPianoOutbox`) para operaciones pendientes. Estados: `pending → syncing → applied | rejected`. Max 5 intentos por op.
-- **SyncManager** `syncManager.ts` — orquesta el flush. Detecta `online`/`offline` events del browser, deduplica flushes concurrentes, backoff implícito entre intentos, y emite eventos para la UI.
-- **Offline Queue** `offlineQueue.ts` — helpers para enqueuear operaciones (`createSong`, `createSession`, `addXp`, `updateSettings`, etc.) con un solo call.
-- **Snapshot Client** `snapshotClient.ts` — descarga el estado completo del usuario desde `/api/sync/snapshot` y lo aplica a Dexie (hidratación inicial o recuperación).
-- **Hook UI** `useSyncStatus.ts` — `useSyncStatus()` + `<SyncStatusBadge />` reusables. Inicializar `syncManager.init()` una sola vez (ya está en `main.tsx`).
-- **Inicialización**: `syncManager.init()` se llama automáticamente en `main.tsx`. Detecta conexión, suscribe a eventos del browser, y dispara flush inicial si hay sesión.
+### Electron / Desktop
 
-### WebSockets / Sesiones en vivo (apps/web/src/lib/socket + apps/api/src/sockets)
-- **Cliente** `socketClient.ts` — singleton Socket.IO con reconexión (backoff 1s→5min), queue de comandos offline, y API tipada. Se inicializa en `main.tsx` con `getSocketClient()`.
-- **Hooks** `useSocket.ts` — `useSocket()`, `useSocketStatus()`, `useLiveSession()`, `useLeaderboardRealtime()`. Integración con TanStack Query via `invalidateQueryKey`.
-- **Beat Sync** `beatSync.ts` — interpolación lineal del beat entre frames usando `requestAnimationFrame` y `bpm/60_000` beats/ms. `classifyDrift()` para colorear la latencia.
-- **Página demo** `/live/:songId` — crea sesión, host reporta beats a 10fps (cliente UI a 60fps via rAF), participantes ven drift en ms.
-- **Auth**: handshake con `auth.token` (JWT). Server valida y adjunta `socket.data.userId`.
-- **Rooms**: `session:<id>` y `leaderboard:<category>:<period>`. Subscripción a leaderboard emite `leaderboard:updated` cuando hay cambios.
-- **Registry** `liveSession.registry.ts` — estado en memoria de sesiones activas (TTL configurable, sin DB por beat). Emite eventos `created`/`ended` (host/ttl) via `onLifecycle()`. Sólo metadata en Prisma (`LiveSession`).
-- **Recovery on restart** `liveSession.service.ts` — `recoverFromDatabase()` rehidrata el registry con sesiones activas (filtradas por `SESSION_TTL_MS`). Se llama en `server.ts` al boot.
-- **Persistencia de endedAt** via lifecycle hook — la registry emite `ended` y el service actualiza `endedAt` en Prisma (host o TTL).
-- **Emisor de leaderboard** `leaderboardEmitter.service.ts` — `notifyLeaderboardChanged()` se llama desde controllers de session/ear-training tras cambios significativos.
-- **Endpoints REST auxiliares**: `POST /api/live-sessions` (crear), `GET /api/live-sessions/:id` (estado), `POST /api/live-sessions/:id/end` (finalizar). Pause/resume/beat sólo por socket.
+- `app.requestSingleInstanceLock()` es obligatorio en `electron/main.ts`.
+- `loadFile()` siempre con `.catch()` para evitar crashes silenciosos.
+- `extraResources`: Twilio usa `process.resourcesPath` en producción.
+- Atajos globales: `Ctrl+Shift+P/E/S` → practice / ear-training / settings.
+- CSP nonce implementado para scripts inyectados.
+
+### Android (Capacitor)
+
+- Requiere **Java 21** en el entorno de build.
+- Parche `kotlin-stdlib` en `apps/web/android/app/build.gradle` (fuerza `1.9.22`, excluye `kotlin-stdlib-jdk7/8`) para resolver conflicto Capacitor 6 + Java 21.
+- `pnpm cap:sync` copia `dist/` a `android/app/src/main/assets/public/`. Requiere haber corrido `pnpm build` antes.
+- `versionCode` se calcula como `$(date +%s)` en CI; `versionName` viene del tag.
+- Comandos rápidos: `cd apps/web && pnpm cap:sync && pnpm cap:open`.
 
 ---
 
-## TypeScript & Lint
-- `strict: true`. Variables/parámetros sin uso rompen el build.
-- `@/` → `apps/web/src/`.
-- `@api/` → `apps/api/src/` (alias solo disponible en tests, ver `tsconfig`)
+## Comandos clave (resumen)
 
-## Testing
+```bash
+# Root
+pnpm dev          # turbo dev — todos los servers
+pnpm build        # turbo build
+pnpm typecheck    # turbo typecheck (corre primero en CI)
+pnpm lint         # turbo lint
+pnpm test         # turbo test (vitest en watch)
+pnpm test:run     # vitest run-once (CI)
 
-### Web (apps/web)
-**Setup**: `src/test/setup.tsx`
-- Mocks: `framer-motion`, `@/audio/AudioEngine`
-- Dexie: `fake-indexeddb/auto`
-- Polyfills: `structuredClone`, `crypto.randomUUID`, `crypto.subtle.digest`
+# apps/web (cd apps/web)
+pnpm dev                   # vite en :5173
+pnpm dev:electron          # VITE_ELECTRON_BUILD=true vite
+pnpm build:electron        # build con main/preload de Electron
+pnpm dist:win|mac|linux    # electron-builder
+pnpm release               # electron-builder --x64 --publish always
+pnpm android:assemble      # gradlew assembleDebug
+pnpm android:bundle        # gradlew bundleRelease
 
-**Seed obligatorio** en `beforeEach` (db seeds evitan que `useAuth.seedIfEmpty` falle):
-```ts
-await db.styles.add({ id: 'test-style', ... })
-await db.tips.add({ id: 'test-tip', ... })
-await db.songs.add({ id: 'test-song', ... })
+# apps/api (cd apps/api)
+pnpm dev                   # tsx watch en :3001
+pnpm prisma:migrate        # dev
+pnpm prisma:deploy         # prod
+pnpm db:seed               # datos iniciales
+pnpm docker:up             # stack local (postgres + api)
+
+# packages/audio (cd packages/audio)
+pnpm test                  # vitest node
 ```
 
-**Utility**: `renderWithProviders(<Component />, { initialEntries: ['/path'] })` en `src/test/utils.tsx`.
+Lista exhaustiva con todas las variantes en `README.md` raíz.
 
-### API (apps/api)
-**Setup**: `tests/setup.ts` — variables de entorno de test cargadas.
-**Tests integración** con `supertest` + app Express real.
-**DB de test**: `worship_piano_test` (separada de dev).
+---
 
-## Electron
-- `loadFile()` requiere `.catch()` para evitar crashes silenciosos.
-- `app.requestSingleInstanceLock()` es obligatorio.
-- `extraResources`: Twilio usa `process.resourcesPath` en producción.
-- Atajos globales: `Ctrl+Shift+P/E/S` → practice/ear-training/settings.
-- CSP nonce implementado para scripts inyectados.
+## Testing — lo que rompe
 
-## CI/CD & Deploy
-- **Vercel** (rama `main`): `https://web-1tmdqw12l-maikel-js-projects.vercel.app`
-- **GitHub Releases**: Tags `v*` para releases de escritorio.
-- **Android**: Capacitor + Java 21. Requiere parche `kotlin-stdlib` en `build.gradle`.
-- **API Twilio**: Duplicada en `apps/web/api/` (serverless) y `electron/ipc-handlers.ts` (IPC).
-- **Backend (apps/api)**: desplegar en Railway/Render/Fly.io. Variables de entorno en dashboard del provider.
+- **Web setup** (`apps/web/src/test/setup.tsx`): mocks `framer-motion` y `@/audio/AudioEngine`, carga `fake-indexeddb/auto`, polyfillea `structuredClone` / `crypto.randomUUID` / `crypto.subtle.digest`.
+- **Seed automático en `setup.tsx`**: el `beforeEach` del setup ya hace seed mínimo de `styles`, `tips` y `songs` en IndexedDB. No hace falta repetirlo en cada test salvo que necesites datos adicionales.
+- **Utilidad**: `renderWithProviders(<Component />, { initialEntries: ['/path'] })` en `src/test/utils.tsx`.
+- Si un test se queja de `navigator.onLine is undefined`, revisa que importe el setup correctamente.
+
+---
+
+## CI / Deploy
+
+**Orden de validación** (`ci.yml`): `typecheck` → `lint`/`test` (paralelo) → `build`. Si `typecheck` falla, nada más corre. El job `lint-and-typecheck` solo corre sobre `apps/web`; `test` corre `apps/web` y `packages/audio` (NO la API en CI, aunque `apps/api` tenga tests). La API se testea en `docker-publish.yml` y localmente.
+
+| Workflow | Trigger | Salida |
+|---|---|---|
+| `ci.yml` | push/PR a `main`/`develop` | lint + typecheck + tests web/audio + build web |
+| `deploy.yml` | push a `main` | Vercel: `https://web-1tmdqw12l-maikel-js-projects.vercel.app` |
+| `docker-publish.yml` | push/main, PR, tag `v*` | `ghcr.io/<owner>/chordshift-api` con tags multi-source |
+| `release.yml` | tag `v*` o manual | Electron (Win/Mac/Linux) + APK Android (`continue-on-error: true`) |
+| `deploy-api.yml` | manual | SSH deploy a servidor propio |
+
+- **Backend en cloud**: `railway.toml`, `render.yaml` o `fly.toml` (todos config-as-code). Setup guiado: `./scripts/setup-deploy.sh {railway|render|fly|compose}`.
+- **Code signing** (Electron) es opcional. Sin secrets, los binarios suben sin firmar (warning al instalar). Con `CSC_IDENTITY_AUTO_DISCOVERY=false` se desactiva la búsqueda automática de certs.
+- **APK**: `gradlew assembleDebug` (no release), renombrado a `ChordShift-<version>.apk` y subido al release existente.
+
+---
+
+## TypeScript
+
+- `strict: true`, `noUnusedLocals`, `noUnusedParameters` — variables o parámetros sin uso rompen el build.
+- Root `tsconfig.json` solo declara references; no compila nada directo.
+- `@/` → `apps/web/src/`. `@api/` no existe como alias real (convención interna para clases de servicios API).
+
+---
+
+## MCPs (OpenCode)
+
+El repo tiene **7 servidores MCP** configurados en `opencode.json` (solo
+`filesystem` y `github` habilitados por defecto para minimizar context window).
+
+| MCP | Estado | Notas |
+|---|---|---|
+| `filesystem` | ON | Path hardcodeado a la raíz del repo, sin acceso fuera |
+| `github` | ON | Token desde `{env:GITHUB_TOKEN}` (rotar — está expuesto en logs) |
+| `obsidian` | off | Requiere `OBSIDIAN_VAULT_PATH`; ver `docs/credentials.md` §2 |
+| `vercel` | off | OAuth: `opencode mcp auth vercel` |
+| `figma` | off | OAuth: `opencode mcp auth figma` |
+| `semgrep` | off | Requiere `docker pull returntocorp/semgrep:latest` |
+| `test-ai` | off | Demo oficial de Anthropic (`@modelcontextprotocol/server-everything`) |
+
+**Habilitar/bajo demanda**: `.\scripts\setup-mcp.ps1 -Enable <name>` /
+`-Disable <name>`. Validar entorno: `.\scripts\setup-mcp.ps1 -Check`.
+
+**Documentación completa**: `docs/setup-report.md` (ejecutivo),
+`docs/mcp-integrations.md` (arquitectura), `docs/credentials.md` (credenciales).
+**Rollback**: `.backups/mcp-setup-<timestamp>/` contiene el `opencode.json` previo.
+
+**Secretos**: `.mcp.env` (no commitear) tiene la plantilla en `.env.mcp.example`.
+**Riesgo activo**: `GITHUB_TOKEN` actual en env del shell — rotar antes de
+compartir logs.
+
+---
+
+## Design tokens
+
+Ver `docs/design/Tokens.md` (cargado vía `opencode.json` `instructions`). Paleta verde/negro/gris con acentos anime. Componentes custom en `apps/web/src/components/animations/`, `effects/`, `transitions/`, `illustrations/musicians/`.
