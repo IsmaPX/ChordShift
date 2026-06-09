@@ -195,7 +195,7 @@ function createWindow(): void {
     `default-src 'self'`,
     `script-src 'nonce-${CSP_NONCE}' 'strict-dynamic' 'unsafe-eval'`,
     `style-src 'self' 'unsafe-inline'`,
-    `connect-src 'self' https://*.supabase.co https://api.twilio.com wss://*.supabase.co`,
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co`,
     `media-src 'self' blob:`,
     `img-src 'self' data:`,
     `font-src 'self' data:`,

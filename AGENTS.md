@@ -121,7 +121,7 @@ Lista exhaustiva con todas las variantes en `README.md` raíz.
 
 ## CI / Deploy
 
-**Orden de validación** (`ci.yml`): `typecheck` → `lint`/`test` (paralelo) → `build`. Si `typecheck` falla, nada más corre. El job `lint-and-typecheck` solo corre sobre `apps/web`; `test` corre `apps/web` y `packages/audio` (NO la API en CI, aunque `apps/api` tenga tests). La API se testea en `docker-publish.yml` y localmente.
+**Orden de validación CI** (`ci.yml`): `lint-and-typecheck` y `test` corren en paralelo tras `install`; `build` depende de ambos. El job `lint-and-typecheck` corre `typecheck` y luego `lint` secuencialmente (fallas en typecheck no bloquean test, pero sí bloquean build).
 
 | Workflow | Trigger | Salida |
 |---|---|---|

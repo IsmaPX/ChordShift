@@ -9,8 +9,6 @@ interface UpdateInfo {
 }
 
 interface ElectronAPI {
-  sendOTP(phone: string, code: string): Promise<{ success: boolean; simulated?: boolean }>
-  sendWhatsApp(phone: string, message: string): Promise<{ success: boolean; simulated?: boolean }>
   onUpdateAvailable(callback: (info: UpdateInfo) => void): () => void
   onUpdateProgress(callback: (percent: number) => void): () => void
   onUpdateDownloaded(callback: () => void): () => void

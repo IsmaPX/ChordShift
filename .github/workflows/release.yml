@@ -77,12 +77,7 @@ jobs:
           VITE_ELECTRON_BUILD: true
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Twilio (runtime, no build-time — optional)
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_WHATSAPP_NUMBER: ${{ secrets.TWILIO_WHATSAPP_NUMBER }}
-
-          # =========================================================================
+          
           # Code signing (OPCIONAL — activar manualmente removiendo la línea
           # CSC_IDENTITY_AUTO_DISCOVERY=false si tienes los secrets configurados)
           # =========================================================================

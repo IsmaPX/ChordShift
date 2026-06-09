@@ -3,11 +3,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('isElectron', true)
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  sendOTP: (phone: string, code: string) =>
-    ipcRenderer.invoke('send-otp', phone, code),
-
-  sendWhatsApp: (phone: string, message: string) =>
-    ipcRenderer.invoke('send-whatsapp', phone, message),
+  
 
   onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, info: { version: string; releaseNotes?: string }) => callback(info)

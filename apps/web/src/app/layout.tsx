@@ -1,5 +1,4 @@
 import { Outlet, Link, useLocation } from 'react-router'
-import { useWhatsAppReminder } from '@/hooks/useWhatsAppReminder'
 import { 
   Music2, 
   Brain, 
@@ -16,8 +15,6 @@ import { OnboardingWelcome } from '@/components/ui/OnboardingWelcome'
 export function AppLayout() {
   const { t } = useTranslation()
   const location = useLocation()
-
-  useWhatsAppReminder()
 
   const navItems = [
     { path: '/practice', icon: Music2, label: t('nav.practice'), id: 'nav-practice' },

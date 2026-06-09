@@ -36,7 +36,7 @@ export default defineConfig(async () => {
                 formats: ['cjs'],
               },
               rollupOptions: {
-                external: ['electron', 'twilio'],
+                external: ['electron'],
               },
             },
           },

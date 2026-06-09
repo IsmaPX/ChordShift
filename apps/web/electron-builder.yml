@@ -18,16 +18,6 @@ files:
   - package.json
   - resources/icon.png
 
-extraResources:
-  # En monorepo, twilio se resuelve via symlink de pnpm desde apps/web/node_modules/twilio
-  # a ../../node_modules/.pnpm/twilio@.../node_modules/twilio.
-  # electron-builder lo copia como resource adicional para que el ejecutable
-  # empaquetado pueda usar el SDK de Twilio en runtime.
-  - from: node_modules/twilio
-    to: node_modules/twilio
-    filter:
-      - "**/*"
-
 protocols:
   - name: Worship Piano
     schemes: [worship-piano]

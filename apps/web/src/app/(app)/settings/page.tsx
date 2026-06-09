@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2, Smartphone, Download, RefreshCw, ChevronDown, Monitor } from 'lucide-react'
+import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2, Download, RefreshCw, ChevronDown, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useAutoUpdate } from '@/hooks/useAutoUpdate'
@@ -13,7 +13,6 @@ import {
   useClearPracticeHistory,
   useClearEarTrainingResults,
   useSetPin,
-  useSendOTP,
 } from '@/hooks/useUserSettings'
 import { useNavigate } from 'react-router'
 import { APP_VERSION } from '@/lib/version'
@@ -70,19 +69,6 @@ export function SettingsPage() {
   const [pinValue, setPinValue] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
   const [showAllPlatforms, setShowAllPlatforms] = useState(false)
-
-  const [phoneInput, setPhoneInput] = useState('')
-  const [otpCode, setOtpCode] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpGenerated, setOtpGenerated] = useState('')
-  const [phoneVerified, setPhoneVerified] = useState(false)
-  const [reminderHour, setReminderHour] = useState('18')
-  const [reminderMinute, setReminderMinute] = useState('00')
-  const [selectedDays, setSelectedDays] = useState<number[]>([1, 3, 5])
-  const [sendingOtp, setSendingOtp] = useState(false)
-  const [verifyingOtp, setVerifyingOtp] = useState(false)
-
-  const sendOTP = useSendOTP()
 
   const {
     updateState,
@@ -201,74 +187,6 @@ export function SettingsPage() {
     } catch {
       showToast(t('settings.pinRemoveError'), 'error')
     }
-  }
-
-  useEffect(() => {
-    if (settings) {
-      setPhoneInput(settings.phone_number || '')
-      setPhoneVerified(settings.phone_verified || false)
-      if (settings.reminder_time) {
-        const [h, m] = settings.reminder_time.split(':')
-        setReminderHour(h || '18')
-        setReminderMinute(m || '00')
-      }
-      setSelectedDays(settings.reminder_days || [])
-    }
-  }, [settings])
-
-  const handleSendOTP = async () => {
-    if (phoneInput.length < 10) {
-      showToast(t('settings.whatsappInvalidPhone'), 'error')
-      return
-    }
-    setSendingOtp(true)
-    try {
-      const code = Math.floor(100000 + Math.random() * 900000).toString()
-      setOtpGenerated(code)
-      await sendOTP.mutateAsync({ phone: phoneInput, code })
-      setOtpSent(true)
-      showToast(t('settings.whatsappCodeSent'))
-    } catch {
-      showToast(t('settings.whatsappCodeError'), 'error')
-    } finally {
-      setSendingOtp(false)
-    }
-  }
-
-  const handleVerifyOTP = () => {
-    setVerifyingOtp(true)
-    try {
-      if (otpCode === otpGenerated) {
-        setPhoneVerified(true)
-        setOtpSent(false)
-        setOtpCode('')
-        showToast(t('settings.whatsappVerifiedSuccess'))
-        updateSettings.mutate({ phone_number: phoneInput, phone_verified: true })
-      } else {
-        showToast(t('settings.whatsappWrongCode'), 'error')
-      }
-    } finally {
-      setVerifyingOtp(false)
-    }
-  }
-
-  const handleRemovePhone = () => {
-    setPhoneInput('')
-    setPhoneVerified(false)
-    setOtpSent(false)
-    setOtpCode('')
-    updateSettings.mutate({ phone_number: '', phone_verified: false })
-    showToast(t('settings.whatsappNumberRemoved'))
-  }
-
-  const handleSaveReminderSettings = () => {
-    const time = `${reminderHour.padStart(2, '0')}:${reminderMinute.padStart(2, '0')}`
-    updateSettings.mutate({
-      reminder_time: time,
-      reminder_days: selectedDays,
-      notifications_enabled: true,
-    })
-    showToast(t('settings.whatsappReminderSaved'))
   }
 
   if (authLoading || settingsLoading) {
@@ -505,158 +423,6 @@ export function SettingsPage() {
                 }}
               />
             </label>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="settings-panel space-y-4"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <span className="settings-section-num">04</span>
-              <Smartphone className="text-accent" size={18} />
-              <h2 className="text-lg font-medium text-text-primary">{t('settings.whatsapp')}</h2>
-            </div>
-
-            {!phoneVerified ? (
-              <div className="space-y-3">
-                <p className="text-text-secondary text-sm">
-                  {t('settings.whatsappDesc')}
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    placeholder={t('settings.whatsappPhonePlaceholder')}
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value.replace(/[^0-9+]/g, ''))}
-                    className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendOTP}
-                    disabled={sendingOtp || phoneInput.length < 10}
-                    className="px-4 py-3 bg-accent text-white font-medium rounded-sm hover:bg-accent-hover glow-green transition-colors disabled:opacity-50 whitespace-nowrap"
-                  >
-                    {sendingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappSendCode')}
-                  </button>
-                </div>
-
-                {otpSent && (
-                  <div className="space-y-2">
-                    <p className="text-text-secondary text-sm">
-                      {t('settings.whatsappEnterCode')}
-                    </p>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        placeholder={t('settings.whatsappOtpPlaceholder')}
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                        className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent text-center text-lg tracking-widest font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyOTP}
-                        disabled={verifyingOtp || otpCode.length < 6}
-                        className="px-4 py-3 bg-accent text-white font-medium rounded-sm hover:bg-accent-hover glow-green transition-colors disabled:opacity-50"
-                      >
-                        {verifyingOtp ? <Loader2 className="animate-spin" size={18} /> : t('settings.whatsappVerify')}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-sm bg-success/10 border border-success/30">
-                  <div>
-                    <p className="text-text-primary text-sm font-medium">{t('settings.whatsappVerified')}</p>
-                    <p className="text-success text-sm font-mono">{phoneInput}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleRemovePhone}
-                    className="p-2 text-danger hover:bg-danger/10 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
-                    {t('settings.whatsappHour')}
-                  </label>
-                  <div className="flex gap-2">
-                    <select
-                      value={reminderHour}
-                      onChange={(e) => setReminderHour(e.target.value)}
-                      className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent font-mono"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={String(i).padStart(2, '0')}>
-                          {String(i).padStart(2, '0')}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="flex items-center text-text-secondary font-mono">:</span>
-                    <select
-                      value={reminderMinute}
-                      onChange={(e) => setReminderMinute(e.target.value)}
-                      className="flex-1 px-4 py-3 bg-bg-primary/60 border border-accent/20 rounded-sm text-text-primary focus:outline-none focus:border-accent font-mono"
-                    >
-                      {['00', '15', '30', '45'].map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-text-primary text-sm mb-2 font-mono uppercase tracking-wider text-xs">
-                    {t('settings.whatsappDays')}
-                  </label>
-                  <div className="flex gap-1.5">
-                    {[
-                      { n: 0, key: 'sun' },
-                      { n: 1, key: 'mon' },
-                      { n: 2, key: 'tue' },
-                      { n: 3, key: 'wed' },
-                      { n: 4, key: 'thu' },
-                      { n: 5, key: 'fri' },
-                      { n: 6, key: 'sat' },
-                    ].map(({ n, key }) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDays((prev) =>
-                            prev.includes(n) ? prev.filter((d) => d !== n) : [...prev, n]
-                          )
-                        }}
-                        className={cn(
-                          'flex-1 px-2 py-2 rounded-sm border text-xs font-mono font-bold transition-colors',
-                          selectedDays.includes(n)
-                            ? 'border-accent bg-accent/15 text-accent'
-                            : 'border-accent/20 text-text-secondary hover:border-accent/50'
-                        )}
-                      >
-                        {t('days.' + key).slice(0, 3).toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSaveReminderSettings}
-                  className="w-full py-2.5 bg-accent text-white font-medium rounded-sm hover:bg-accent-hover glow-green transition-colors text-sm"
-                >
-                  {t('settings.whatsappSaveSchedule')}
-                </button>
-              </div>
-            )}
           </motion.div>
 
           <motion.div
