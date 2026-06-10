@@ -1,8 +1,8 @@
 {
   "framework": "vite",
-  "buildCommand": "echo 'build done locally'",
+  "buildCommand": "pnpm --filter=web build",
   "devCommand": "pnpm --filter=web dev",
-  "installCommand": "echo 'deps installed locally'",
+  "installCommand": "pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
