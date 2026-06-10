@@ -11,7 +11,7 @@ Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 | Paquete | Qué es | Tests |
 |---|---|---|
 | `apps/web` | Vite + React 19 + Electron 33 (cliente) + Capacitor Android | Vitest + jsdom |
-| `apps/api` | Express 4 + Prisma 5 + PostgreSQL 16 (backend REST + Socket.IO) | Vitest + supertest |
+| `apps/api` | Express 4.21 + Prisma 5.22 + PostgreSQL 16 (backend REST + Socket.IO) | Vitest + supertest |
 | `packages/audio` | Lógica Tone.js compartida, tests en Node | Vitest |
 | `packages/db` | Solo interfaces TypeScript compartidas | — |
 | `packages/ui` | Solo exporta `cn` (helper clsx) | — |
@@ -39,7 +39,7 @@ Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 - **Sync offline-first** (`src/lib/sync`): `outbox.ts` (IndexedDB persistente, max 5 intentos por op) + `syncManager.ts` (auto-flush en eventos `online`/`offline`) + `snapshotClient.ts` (hidratar Dexie desde `/api/sync/snapshot`). Hook UI: `useSyncStatus()` + `<SyncStatusBadge />`.
 - **Socket.IO cliente** (`src/lib/socket`): singleton con backoff 1s→5min. `useSocket`, `useSocketStatus`, `useLiveSession`, `useLeaderboardRealtime`. `beatSync.ts` interpola beats con `requestAnimationFrame` y `classifyDrift()` colorea la latencia.
 - **E2E con Playwright**: hay spec en `apps/web/e2e/` y `@playwright/test` instalado, pero **no hay script `test:e2e` en `package.json`** y Turborepo no los corre. Si los vas a tocar, ejecuta `npx playwright test` manualmente.
-- **Eslint** (`apps/web/eslint.config.mjs`): plan `@typescript-eslint` recommended + `no-unused-vars: warn`, `no-explicit-any: off`, `no-empty-object-type: off`, `no-console: warn` (solo permite `console.warn`/`console.error`), `no-redeclare: off`.
+- **Eslint** (`apps/web/eslint.config.mjs`): `@typescript-eslint` con `no-unused-vars: warn` (permite prefijo `_`), `no-explicit-any: off`, `no-empty-object-type: off`.
 - **Path alias**: `@/` → `apps/web/src/`. El alias `@api/` está documentado pero solo aplica a tests.
 
 ### Backend (apps/api)
@@ -61,9 +61,8 @@ Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 
 - `app.requestSingleInstanceLock()` es obligatorio en `electron/main.ts`.
 - `loadFile()` siempre con `.catch()` para evitar crashes silenciosos.
-- `extraResources`: Twilio usa `process.resourcesPath` en producción.
-- Atajos globales: `Ctrl+Shift+P/E/S` → practice / ear-training / settings.
 - CSP nonce implementado para scripts inyectados.
+- Atajos globales: `CommandOrControl+Shift+P/E/S` → practice / ear-training / settings.
 
 ### Android (Capacitor)
 
@@ -84,7 +83,7 @@ pnpm build        # turbo build
 pnpm typecheck    # turbo typecheck (corre primero en CI)
 pnpm lint         # turbo lint
 pnpm test         # turbo test (vitest en watch)
-pnpm test:run     # vitest run-once (CI)
+pnpm test:run     # solo en apps/api: vitest run
 
 # apps/web (cd apps/web)
 pnpm dev                   # vite en :5173
@@ -121,7 +120,7 @@ Lista exhaustiva con todas las variantes en `README.md` raíz.
 
 ## CI / Deploy
 
-**Orden de validación CI** (`ci.yml`): `lint-and-typecheck` y `test` corren en paralelo tras `install`; `build` depende de ambos. El job `lint-and-typecheck` corre `typecheck` y luego `lint` secuencialmente (fallas en typecheck no bloquean test, pero sí bloquean build).
+**Orden de validación CI** (`ci.yml`): `lint-and-typecheck` (web only) y `test` (web + audio only) corren en paralelo tras `install`; `build` depende de ambos. `lint-and-typecheck` corre `typecheck` y luego `lint` secuencialmente en `apps/web`. El job `test` **no corre tests de API** en CI.
 
 | Workflow | Trigger | Salida |
 |---|---|---|
