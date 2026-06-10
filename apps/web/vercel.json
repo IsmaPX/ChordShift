@@ -1,8 +1,7 @@
 {
-  "framework": "vite",
+  "framework": null,
   "buildCommand": "pnpm --filter=web build",
-  "devCommand": "pnpm --filter=web dev",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "cp ../pnpm-lock.yaml . && pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
