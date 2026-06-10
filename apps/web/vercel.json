@@ -1,7 +1,5 @@
 {
   "framework": null,
-  "buildCommand": "pnpm --filter=web build",
-  "installCommand": "cp ../pnpm-lock.yaml . && pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }

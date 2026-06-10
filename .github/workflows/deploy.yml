@@ -26,20 +26,22 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        # `pnpm --filter=web build` ejecuta el script `build` de apps/web
-        # (`tsc -b && vite build`) sin construir las dependencias transitivas.
-        # Esto es más rápido y menos propenso a OOM que `turbo build --filter=web`.
         run: pnpm --filter=web build
         env:
           VITE_APP_ENV: production
-          # Limita el heap de Node para evitar OOM en Vercel (8GB disponibles).
           NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Prepare Vercel prebuilt output
+        run: |
+          mkdir -p apps/web/.vercel/output
+          cp -r apps/web/dist/* apps/web/.vercel/output/
+        working-directory: ./apps/web
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel
 
       - name: Deploy to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
         working-directory: ./apps/web
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

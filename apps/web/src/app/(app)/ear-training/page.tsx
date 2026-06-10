@@ -80,9 +80,11 @@ export function EarTrainingPage() {
     if (!exercise || isPlaying) return
 
     setIsPlaying(true)
-    setActiveNoteIndex(0) // arranca con la primera nota resaltada
+    setActiveNoteIndex(0)
 
     try {
+      await AudioEngine.setInstrument(instrument)
+
       if (instrument === 'trumpet') {
         await playArpeggiated(exercise.notes, 1.5)
       } else if (instrument === 'guitar' && exercise.notes.length >= 3) {
@@ -95,8 +97,6 @@ export function EarTrainingPage() {
           await new Promise((r) => setTimeout(r, 1500))
         }
       } else {
-        // Modo chord (todas a la vez): resalta la primera nota como
-        // indicación de "estás escuchando este ejercicio".
         AudioEngine.playChord(exercise.notes, 1.2)
         await new Promise((r) => setTimeout(r, 1500))
       }

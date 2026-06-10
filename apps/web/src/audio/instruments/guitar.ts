@@ -9,17 +9,29 @@ export const guitarConfig: InstrumentFactory = {
   isPolyphonic: true,
 
   createSynth(destination: Tone.ToneAudioNode) {
-    const reverb = new Tone.Reverb({ wet: 0.15, decay: 0.8 })
-    const distortion = new Tone.Distortion({ distortion: 0.2 })
+    const reverb = new Tone.Reverb({ wet: 0.3, decay: 1.2 })
+    const chorus = new Tone.Chorus({
+      frequency: 2.0,
+      delayTime: 3,
+      depth: 0.4,
+      wet: 0.2,
+    }).start()
+    const filter = new Tone.Filter({ type: 'lowpass', frequency: 4000, Q: 0.5 })
 
+    chorus.connect(filter)
+    filter.connect(reverb)
     reverb.connect(destination)
-    distortion.connect(reverb)
 
     const synth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'square' },
-      envelope: { attack: 0.005, decay: 0.05, sustain: 0.1, release: 0.3 },
-    }).connect(distortion)
+      oscillator: { type: 'triangle8' },
+      envelope: {
+        attack: 0.003,
+        decay: 0.2,
+        sustain: 0.5,
+        release: 0.8,
+      },
+    }).connect(chorus)
 
-    return { synth, effects: [distortion, reverb], mainOutput: reverb }
+    return { synth, effects: [chorus, filter, reverb], mainOutput: reverb }
   },
 }
