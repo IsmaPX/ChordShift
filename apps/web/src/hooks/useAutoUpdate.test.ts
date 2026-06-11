@@ -15,15 +15,25 @@ function getCallArg<T>(mock: ReturnType<typeof vi.fn>, callIndex = 0, argIndex =
 }
 
 beforeEach(() => {
-  vi.stubGlobal('window', {
-    ...window,
-    isElectron: true,
-    electronAPI: mockElectronAPI,
+  Object.defineProperty(window, 'isElectron', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(window, 'electronAPI', {
+    value: mockElectronAPI,
+    writable: true,
+    configurable: true,
   })
 })
 
 afterEach(() => {
-  vi.unstubAllGlobals()
+  Object.defineProperty(window, 'isElectron', {
+    value: false,
+    writable: true,
+    configurable: true,
+  })
+  delete (window as Window & typeof globalThis & { electronAPI?: typeof mockElectronAPI }).electronAPI
   vi.clearAllMocks()
 })
 
@@ -85,7 +95,11 @@ describe('useAutoUpdate', () => {
   })
 
   it('does nothing if not in Electron', () => {
-    vi.stubGlobal('window', { ...window, isElectron: false })
+    Object.defineProperty(window, 'isElectron', {
+      value: false,
+      writable: true,
+      configurable: true,
+    })
     const { result } = renderHook(() => useAutoUpdate())
     act(() => { result.current.handleCheckForUpdates() })
     expect(mockElectronAPI.checkForUpdates).not.toHaveBeenCalled()
