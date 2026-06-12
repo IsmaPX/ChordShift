@@ -13,6 +13,9 @@
  *    pitch real en el pentagrama (Do4, Re4, ...), con líneas adicionales
  *    (ledger lines) automáticas para notas fuera del rango, e indicador
  *    de válvulas (1/2/3) en la nota activa.
+ *  - `violin` | `flute`: muestra las notas del acorde por pitch real
+ *    en el pentagrama. `flute` incluye diagrama de agujeros debajo.
+ *  - `harmonica`: muestra tablatura visual de agujeros (no pentagrama).
  *
  * La sincronización se hace con CSS `animation` (no rAF en JS) para
  * mantener 60fps sin recálculos por frame. El padre controla play/pause
@@ -26,6 +29,8 @@ import { noteToStaffPosition, transposeOctaveUp } from './pitch'
 import { ensureStaffKeyframes, cursorStyle } from './animation'
 import type { MusicStaffProps, ChordNote, StaffTimeline, BeatMark } from './types'
 import type { InstrumentName } from '@/types/music'
+import { FluteFingeringChart } from '@/components/practice/FluteFingeringChart'
+import { HarmonicaTab } from '@/components/practice/HarmonicaTab'
 
 /** Hash determinístico simple: convierte un string en 0–4 (modo piano/guitarra). */
 function chordLineIndex(chordName: string): number {
@@ -96,6 +101,9 @@ export function MusicStaff({
   }, [])
 
   const isTrumpet = instrument === 'trumpet'
+  const isHarmonica = instrument === 'harmonica'
+  const isFlute = instrument === 'flute'
+  const isViolin = instrument === 'violin'
 
   const { timeline, notes, beatMarks } = useMemo(() => {
     const beatDuration = 60 / Math.max(1, bpm)
@@ -224,13 +232,61 @@ export function MusicStaff({
     }
 
     return { timeline: timelineAcc, notes: noteAcc, beatMarks: markAcc }
-  }, [sections, currentSectionIndex, currentChordIndex, bpm, isTrumpet])
+  }, [sections, currentSectionIndex, currentChordIndex, bpm, instrument])
 
   const remainingSeconds = Math.max(0.1, timeline.totalSeconds - timeline.currentSeconds)
   const cursorAnim = cursorStyle(remainingSeconds, isPlaying)
 
   if (timeline.totalSeconds <= 0) {
     return null
+  }
+
+  if (isHarmonica) {
+    const currentNote = notes.find(n => n.isCurrent)
+    return (
+      <div
+        data-testid="music-staff"
+        data-version="music-staff-v1.1"
+        data-instrument={instrument}
+        className={cn('music-staff', className)}
+        role="region"
+        aria-label="Tablatura de armónica"
+      >
+        <div className="flex items-center justify-between mb-2 px-1">
+          <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
+            <span className="text-anime-glow">♪</span>
+            <span className="uppercase tracking-widest">Armónica · Diatónica C</span>
+          </div>
+          <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
+            <span className={cn(isPlaying ? 'text-warning' : 'text-text-secondary')}>
+              {timeline.currentLabel}
+            </span>
+            <span>/</span>
+            <span>{timeline.totalLabel}</span>
+          </div>
+        </div>
+        <div className="music-staff-track relative rounded-lg overflow-hidden border border-accent/15 bg-bg-primary/40 h-20">
+          <div
+            key={resetKey}
+            className="music-staff-cursor absolute top-0 bottom-0 pointer-events-none"
+            style={{
+              left: '20px',
+              width: '3px',
+              ...cursorAnim,
+            }}
+            aria-hidden="true"
+          >
+            <div className="music-staff-cursor-head" />
+          </div>
+          <div className="flex items-center justify-center h-full">
+            <HarmonicaTab
+              note={currentNote?.noteName ?? 'C5'}
+              isCurrent={currentNote?.isCurrent ?? false}
+            />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // En modo trompeta el track es más alto para dar espacio a las ledger
@@ -258,7 +314,7 @@ export function MusicStaff({
         <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
           <span className="text-anime-glow">♪</span>
           <span className="uppercase tracking-widest">
-            {isTrumpet ? 'Pentagrama · Trompeta' : 'Pentagrama'}
+            {isTrumpet ? 'Pentagrama · Trompeta' : isViolin ? 'Pentagrama · Violín' : isFlute ? 'Pentagrama · Flauta' : 'Pentagrama'}
           </span>
         </div>
         <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
@@ -326,10 +382,9 @@ export function MusicStaff({
 
         {/* Notas (acordes o notas de trompeta con pitch real) */}
         {notes.map((n, idx) => {
-          // Posición vertical: mapeamos el rango [-2, 6] a [0%, 100%].
-          // E4=0 (línea inf.) está en 33%, F5=4 (línea sup.) en 100%.
-          // Notas fuera de 0-4 muestran ledger lines.
-          const topPercent = ((n.line + 2) / 8) * 100
+          // Posición vertical: mapeamos el rango [0, 4] a [0%, 100%].
+          // E4=0 (línea inf.) está en top:0%, F5=4 (línea sup.) en top:100%.
+          const topPercent = (n.line / 4) * 100
 
           // Ledger lines si la nota está fuera del pentagrama (0 a 4).
           const ledgersAbove = Math.max(0, Math.floor(n.line - 4))
@@ -429,6 +484,18 @@ export function MusicStaff({
           <div className="music-staff-cursor-head" />
         </div>
       </div>
+
+      {isFlute && (() => {
+        const currentNote = notes.find(n => n.isCurrent)
+        return (
+          <div className="mt-2 flex items-center justify-center">
+            <FluteFingeringChart
+              note={currentNote?.noteName ?? 'C5'}
+              isCurrent={currentNote?.isCurrent ?? false}
+            />
+          </div>
+        )
+      })()}
     </div>
   )
 }

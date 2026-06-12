@@ -21,6 +21,9 @@ export const INSTRUMENT_FACTORIES: Record<InstrumentName, InstrumentFactory> = {
   piano: pianoConfig,
   guitar: guitarConfig,
   trumpet: trumpetConfig,
+  violin: pianoConfig,
+  flute: pianoConfig,
+  harmonica: pianoConfig,
 }
 
 export function getInstrumentFactory(name: InstrumentName): InstrumentFactory {

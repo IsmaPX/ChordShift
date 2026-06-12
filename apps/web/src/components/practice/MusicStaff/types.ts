@@ -11,6 +11,10 @@
  *    pitch real en el pentagrama (Do4, Re4, ...), con líneas adicionales
  *    (ledger lines) automáticas para notas fuera del rango, e indicador
  *    de válvulas (1/2/3) en la nota activa.
+ *  - `violin` | `flute`: muestra las notas del acorde por pitch real
+ *    en el pentagrama, con ledger lines automáticas. Para `flute` se
+ *    añade un diagrama de agujeros debajo del pentagrama.
+ *  - `harmonica`: muestra la tablatura visual de agujeros (no pentagrama).
  */
 import type { Section, Chord, InstrumentName } from '@/types/music'
 

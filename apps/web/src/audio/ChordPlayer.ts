@@ -89,6 +89,104 @@ const GUITAR_CHORD_VOICINGS: Record<string, string[]> = {
   'Gm': ['G3', 'Bb3', 'D4', 'G4'],
 }
 
+const VIOLIN_CHORD_MAPPINGS: Record<string, string[]> = {
+  'A': ['A4', 'C#5', 'E5'],
+  'A7': ['A4', 'C#5', 'E5', 'G5'],
+  'Ab': ['Ab4', 'C5', 'Eb5'],
+  'Am': ['A4', 'C5', 'E5'],
+  'Amaj7': ['A4', 'C#5', 'E5', 'G#5'],
+  'Am7': ['A4', 'C5', 'E5', 'G5'],
+  'B': ['B3', 'D#4', 'F#4'],
+  'B7': ['B3', 'D#4', 'F#4', 'A4'],
+  'Bb': ['Bb3', 'D4', 'F4'],
+  'Bm': ['B3', 'D4', 'F#4'],
+  'Bmaj7': ['B3', 'D#4', 'F#4', 'A#4'],
+  'Bm7': ['B3', 'D4', 'F#4', 'A4'],
+  'C': ['C4', 'E4', 'G4'],
+  'C#dim': ['C#4', 'E4', 'G4'],
+  'Cm': ['C4', 'Eb4', 'G4'],
+  'Cmaj7': ['C4', 'E4', 'G4', 'B4'],
+  'Cm7': ['C4', 'Eb4', 'G4', 'Bb4'],
+  'C7': ['C4', 'E4', 'G4', 'Bb4'],
+  'Cdim': ['C4', 'Eb4', 'Gb4'],
+  'Caug': ['C4', 'E4', 'G#4'],
+  'Csus2': ['C4', 'D4', 'G4'],
+  'Csus4': ['C4', 'F4', 'G4'],
+  'D': ['D4', 'F#4', 'A4'],
+  'D#dim': ['D#4', 'F#4', 'A4'],
+  'Dm': ['D4', 'F4', 'A4'],
+  'Dmaj7': ['D4', 'F#4', 'A4', 'C#5'],
+  'Dm7': ['D4', 'F4', 'A4', 'C5'],
+  'D7': ['D4', 'F#4', 'A4', 'C5'],
+  'Ddim': ['D4', 'F4', 'Ab4'],
+  'E': ['E4', 'G#4', 'B4'],
+  'E7': ['E4', 'G#4', 'B4', 'D5'],
+  'Eb': ['Eb4', 'G4', 'Bb4'],
+  'Em': ['E4', 'G4', 'B4'],
+  'Emaj7': ['E4', 'G#4', 'B4', 'D#5'],
+  'Em7': ['E4', 'G4', 'B4', 'D5'],
+  'F': ['F4', 'A4', 'C5'],
+  'F#m': ['F#4', 'A4', 'C#5'],
+  'Fm': ['F4', 'Ab4', 'C5'],
+  'Fmaj7': ['F4', 'A4', 'C5', 'E5'],
+  'Fm7': ['F4', 'Ab4', 'C5', 'Eb5'],
+  'F7': ['F4', 'A4', 'C5', 'Eb5'],
+  'G': ['G4', 'B4', 'D5'],
+  'G7': ['G4', 'B4', 'D5', 'F5'],
+  'Gm': ['G4', 'Bb4', 'D5'],
+  'Gmaj7': ['G4', 'B4', 'D5', 'F#5'],
+  'Gm7': ['G4', 'Bb4', 'D5', 'F5'],
+}
+
+const FLUTE_CHORD_MAPPINGS: Record<string, string[]> = {
+  'A': ['A4', 'C#5', 'E5'],
+  'A7': ['A4', 'C#5', 'E5', 'G5'],
+  'Ab': ['Ab4', 'C5', 'Eb5'],
+  'Am': ['A4', 'C5', 'E5'],
+  'Amaj7': ['A4', 'C#5', 'E5', 'G#5'],
+  'Am7': ['A4', 'C5', 'E5', 'G5'],
+  'B': ['B4', 'D#5', 'F#5'],
+  'B7': ['B4', 'D#5', 'F#5', 'A5'],
+  'Bb': ['Bb4', 'D5', 'F5'],
+  'Bm': ['B4', 'D5', 'F#5'],
+  'Bmaj7': ['B4', 'D#5', 'F#5', 'A#5'],
+  'Bm7': ['B4', 'D5', 'F#5', 'A5'],
+  'C': ['C5', 'E5', 'G5'],
+  'C#dim': ['C#5', 'E5', 'G5'],
+  'Cm': ['C5', 'Eb5', 'G5'],
+  'Cmaj7': ['C5', 'E5', 'G5', 'B5'],
+  'Cm7': ['C5', 'Eb5', 'G5', 'Bb5'],
+  'C7': ['C5', 'E5', 'G5', 'Bb5'],
+  'Cdim': ['C5', 'Eb5', 'Gb5'],
+  'Caug': ['C5', 'E5', 'G#5'],
+  'Csus2': ['C5', 'D5', 'G5'],
+  'Csus4': ['C5', 'F5', 'G5'],
+  'D': ['D5', 'F#5', 'A5'],
+  'D#dim': ['D#5', 'F#5', 'A5'],
+  'Dm': ['D5', 'F5', 'A5'],
+  'Dmaj7': ['D5', 'F#5', 'A5', 'C#6'],
+  'Dm7': ['D5', 'F5', 'A5', 'C6'],
+  'D7': ['D5', 'F#5', 'A5', 'C6'],
+  'Ddim': ['D5', 'F5', 'Ab5'],
+  'E': ['E5', 'G#5', 'B5'],
+  'E7': ['E5', 'G#5', 'B5', 'D6'],
+  'Eb': ['Eb5', 'G5', 'Bb5'],
+  'Em': ['E5', 'G5', 'B5'],
+  'Emaj7': ['E5', 'G#5', 'B5', 'D#6'],
+  'Em7': ['E5', 'G5', 'B5', 'D6'],
+  'F': ['F5', 'A5', 'C6'],
+  'F#m': ['F#5', 'A5', 'C#6'],
+  'Fm': ['F5', 'Ab5', 'C6'],
+  'Fmaj7': ['F5', 'A5', 'C6', 'E6'],
+  'Fm7': ['F5', 'Ab5', 'C6', 'Eb6'],
+  'F7': ['F5', 'A5', 'C6', 'Eb6'],
+  'G': ['G5', 'B5', 'D6'],
+  'G7': ['G5', 'B5', 'D6', 'F6'],
+  'Gm': ['G5', 'Bb5', 'D6'],
+  'Gmaj7': ['G5', 'B5', 'D6', 'F#6'],
+  'Gm7': ['G5', 'Bb5', 'D6', 'F6'],
+}
+
 const NOTE_TO_SEMITONE: Record<string, number> = {
   'C': 0, 'C#': 1, 'Db': 1,
   'D': 2, 'D#': 3, 'Eb': 3,
@@ -180,6 +278,14 @@ export class ChordPlayer {
     if (inst === 'trumpet') {
       const root = CHORD_ROOTS[normalized]
       return root ? [root] : null
+    }
+
+    if (inst === 'violin') {
+      return VIOLIN_CHORD_MAPPINGS[normalized] || CHORD_MAPPINGS[normalized] || null
+    }
+
+    if (inst === 'flute') {
+      return FLUTE_CHORD_MAPPINGS[normalized] || CHORD_MAPPINGS[normalized] || null
     }
 
     if (inst === 'guitar') {

@@ -37,3 +37,9 @@ apps/web/android/app/*.iml
 apps/web/android/app/src/main/assets/public/   # generado por `cap sync`
 apps/web/android/app/src/main/assets/capacitor.config.json
 apps/web/android/app/src/main/assets/capacitor.plugins.json
+
+# Playwright test results
+apps/web/test-results/
+
+# Obsidian vault directory (MCP)
+Obsidian-vault/

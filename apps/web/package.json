@@ -13,6 +13,7 @@
     "dev": "vite",
     "dev:electron": "cross-env VITE_ELECTRON_BUILD=true vite",
     "build": "tsc -b && vite build",
+    "build:analyze": "cross-env ANALYZE=true tsc -b && vite build && echo \"Reporte visual: dist/stats.html\"",
     "build:electron": "tsc -b && cross-env VITE_ELECTRON_BUILD=true vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

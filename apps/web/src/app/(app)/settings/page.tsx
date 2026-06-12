@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Settings, Bell, Eye, LogOut, User, Loader2, Trash2, Shield, Database, Music2, Download, RefreshCw, ChevronDown, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
@@ -20,19 +19,7 @@ import { INSTRUMENTS, type InstrumentName } from '@/types/music'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useTranslation } from 'react-i18next'
-
-const settingsSchema = z.object({
-  tempo_bpm: z.number().min(60).max(200),
-  language: z.string(),
-  notifications_enabled: z.boolean(),
-  feedback_concept: z.enum(['pulse', 'bar', 'rings']),
-  preferred_instrument: z.enum(['piano', 'guitar', 'trumpet']),
-  metronome_enabled: z.boolean(),
-  metronome_volume: z.number().min(0).max(1),
-  difficulty: z.number().min(1).max(5),
-})
-
-type SettingsForm = z.infer<typeof settingsSchema>
+import { settingsSchema, type SettingsForm } from '@/lib/settings-schema'
 
 const languages = [
   { value: 'es', label: 'Español' },

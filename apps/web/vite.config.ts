@@ -10,6 +10,19 @@ const APP_VERSION = pkg.version
 export default defineConfig(async () => {
   const plugins: PluginOption[] = [react()]
 
+  // Plugin visualizer solo en modo análisis (opcional, se activa con --mode analyze)
+  if (process.env.ANALYZE === 'true') {
+    const { visualizer } = await import('rollup-plugin-visualizer')
+    plugins.push(
+      visualizer({
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+        filename: 'dist/stats.html',
+      }) as PluginOption
+    )
+  }
+
   if (process.env.VITE_ELECTRON_BUILD === 'true') {
     plugins.push({
       name: 'strip-crossorigin',
@@ -78,6 +91,31 @@ export default defineConfig(async () => {
     build: {
       target: 'chrome120',
       sourcemap: true,
+      /**
+       * Manual chunks para optimizar el tamaño del bundle principal.
+       * Separa las librerías más pesadas de forma que el bundle inicial
+       * cargue lo estrictamente necesario y las librerías pesadas se
+       * descarguen en paralelo.
+       */
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            // Separar librerías grandes en chunks independientes
+            if (id.includes('node_modules')) {
+              if (id.includes('tone')) return 'tone'
+              if (id.includes('framer-motion')) return 'framer-motion'
+              if (id.includes('react-router')) return 'react-router'
+              if (id.includes('@tanstack/react-query')) return 'react-query'
+              if (id.includes('dexie')) return 'dexie'
+              if (id.includes('lucide-react')) return 'lucide'
+              if (id.includes('socket.io-client')) return 'socket'
+              if (id.includes('react-dom')) return 'react-dom'
+              // Todo lo demás de node_modules va a un chunk común
+              return 'vendor'
+            }
+          },
+        },
+      },
     },
   }
 })

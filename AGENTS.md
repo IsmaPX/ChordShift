@@ -22,7 +22,7 @@ Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 
 ## Trampas y reglas no obvias
 
-### Frontend (apps/web)
+### Frontend (`apps/web`)
 
 - **No existe `App.tsx`.** `main.tsx` monta `RouterProvider` directo, envuelto en `QueryClientProvider` → `LanguageProvider` → `OnboardingProvider` → `AudioGateProvider` → `AudioGate`. `syncManager.init()` y `getSocketClient()` se llaman a nivel de módulo (top-level) — no dentro de un componente.
 - **`<AudioGate>` y `<AudioGateProvider>` deben quedarse en `main.tsx` (root).** Moverlos a un layout causa remounts y vuelve a aparecer "toca para empezar" cada navegación. El `AudioGateContext` vive en `src/contexts/AudioGateContext.tsx`.
@@ -42,7 +42,7 @@ Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 - **Eslint** (`apps/web/eslint.config.mjs`): `@typescript-eslint` con `no-unused-vars: warn` (permite prefijo `_`), `no-explicit-any: off`, `no-empty-object-type: off`.
 - **Path alias**: `@/` → `apps/web/src/`. El alias `@api/` está documentado pero solo aplica a tests.
 
-### Backend (apps/api)
+### Backend (`apps/api`)
 
 - **Patrón en capas**: `routes/` → `controllers/` → `services/` → `Prisma`. Validación con Zod en `validators/` para TODA entrada.
 - **Prisma singleton** en `config/database.ts` para evitar instancias duplicadas en HMR. Si Prisma Client no se encuentra: `cd apps/api && pnpm prisma:generate`.
@@ -92,7 +92,7 @@ pnpm build:electron        # build con main/preload de Electron
 pnpm dist:win|mac|linux    # electron-builder
 pnpm release               # electron-builder --x64 --publish always
 pnpm android:assemble      # gradlew assembleDebug
-pnpm android:bundle        # gradlew bundleRelease
+pnpm android:bundle          # gradlew bundleRelease
 
 # apps/api (cd apps/api)
 pnpm dev                   # tsx watch en :3001

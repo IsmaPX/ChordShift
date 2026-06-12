@@ -1,9 +1,12 @@
-export type InstrumentName = 'piano' | 'guitar' | 'trumpet'
+export type InstrumentName = 'piano' | 'guitar' | 'trumpet' | 'violin' | 'flute' | 'harmonica'
 
 export const INSTRUMENTS: { value: InstrumentName; label: string; icon: string }[] = [
   { value: 'piano', label: 'Piano', icon: '🎹' },
   { value: 'guitar', label: 'Guitarra', icon: '🎸' },
   { value: 'trumpet', label: 'Trompeta', icon: '🎺' },
+  { value: 'violin', label: 'Violín', icon: '🎻' },
+  { value: 'flute', label: 'Flauta', icon: '🪈' },
+  { value: 'harmonica', label: 'Armónica', icon: '🎵' },
 ]
 
 export interface Chord {

@@ -1,23 +1,38 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter, createHashRouter } from 'react-router'
 import { AppLayout } from '../app/layout'
-import { LoginPage } from '../app/(auth)/login/page'
-import { RegisterPage } from '../app/(auth)/register/page'
-import { PracticePage } from '../app/(app)/practice/page'
-import { PracticePlayerPage } from '../app/(app)/practice/[songId]/page'
-import { EarTrainingPage } from '../app/(app)/ear-training/page'
-import { EncyclopediaPage } from '../app/(app)/encyclopedia/page'
-import { SettingsPage } from '../app/(app)/settings/page'
-import { LandingPage } from '../app/page'
 import { RootLayout } from '../layouts/RootLayout'
-import { EffectsDemoPage } from '../app/(demo)/effects/page'
-import { LeaderboardPage } from '../app/(app)/leaderboard/page'
-import { SharedPage } from '../app/(app)/shared/page'
-import { SyncPage } from '../app/(app)/sync/page'
-import { LiveSessionPage } from '../app/(app)/live/[songId]/page'
-import { JoinPage } from '../app/join/page'
+import { LandingPage } from '../app/page'
+
+// Lazy-load para páginas no críticas (reduces bundle inicial ~30-40%)
+const LoginPage = lazy(() => import('../app/(auth)/login/page').then(m => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('../app/(auth)/register/page').then(m => ({ default: m.RegisterPage })))
+const PracticePage = lazy(() => import('../app/(app)/practice/page').then(m => ({ default: m.PracticePage })))
+const PracticePlayerPage = lazy(() => import('../app/(app)/practice/[songId]/page').then(m => ({ default: m.PracticePlayerPage })))
+const EarTrainingPage = lazy(() => import('../app/(app)/ear-training/page').then(m => ({ default: m.EarTrainingPage })))
+const EncyclopediaPage = lazy(() => import('../app/(app)/encyclopedia/page').then(m => ({ default: m.EncyclopediaPage })))
+const SettingsPage = lazy(() => import('../app/(app)/settings/page').then(m => ({ default: m.SettingsPage })))
+const LeaderboardPage = lazy(() => import('../app/(app)/leaderboard/page').then(m => ({ default: m.LeaderboardPage })))
+const SharedPage = lazy(() => import('../app/(app)/shared/page').then(m => ({ default: m.SharedPage })))
+const SyncPage = lazy(() => import('../app/(app)/sync/page').then(m => ({ default: m.SyncPage })))
+const LiveSessionPage = lazy(() => import('../app/(app)/live/[songId]/page').then(m => ({ default: m.LiveSessionPage })))
+const JoinPage = lazy(() => import('../app/join/page').then(m => ({ default: m.JoinPage })))
+const EffectsDemoPage = lazy(() => import('../app/(demo)/effects/page').then(m => ({ default: m.EffectsDemoPage })))
 
 const isElectron = import.meta.env.VITE_ELECTRON_BUILD === 'true'
 const createRouter = isElectron ? createHashRouter : createBrowserRouter
+
+/** Fallback de carga para Suspense. */
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-bg-primary">
+      <div className="relative h-10 w-10">
+        <div className="absolute inset-0 rounded-full border-2 border-accent/20" />
+        <div className="absolute inset-0 animate-spin rounded-full border-2 border-t-accent border-transparent" />
+      </div>
+    </div>
+  )
+}
 
 export const router = createRouter([
   {
@@ -29,58 +44,110 @@ export const router = createRouter([
       },
       {
         path: '/login',
-        element: <LoginPage />,
+        element: (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <LoginPage />
+          </Suspense>
+        ),
       },
       {
         path: '/register',
-        element: <RegisterPage />,
+        element: (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <RegisterPage />
+          </Suspense>
+        ),
       },
       {
         path: '/join',
-        element: <JoinPage />,
+        element: (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <JoinPage />
+          </Suspense>
+        ),
       },
       {
         element: <AppLayout />,
         children: [
           {
             path: '/practice',
-            element: <PracticePage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <PracticePage />
+              </Suspense>
+            ),
           },
           {
             path: '/practice/:songId',
-            element: <PracticePlayerPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <PracticePlayerPage />
+              </Suspense>
+            ),
           },
           {
             path: '/ear-training',
-            element: <EarTrainingPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <EarTrainingPage />
+              </Suspense>
+            ),
           },
           {
             path: '/encyclopedia',
-            element: <EncyclopediaPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <EncyclopediaPage />
+              </Suspense>
+            ),
           },
           {
             path: '/settings',
-            element: <SettingsPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <SettingsPage />
+              </Suspense>
+            ),
           },
           {
             path: '/leaderboard',
-            element: <LeaderboardPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <LeaderboardPage />
+              </Suspense>
+            ),
           },
           {
             path: '/shared',
-            element: <SharedPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <SharedPage />
+              </Suspense>
+            ),
           },
           {
             path: '/sync',
-            element: <SyncPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <SyncPage />
+              </Suspense>
+            ),
           },
           {
             path: '/live/:songId',
-            element: <LiveSessionPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <LiveSessionPage />
+              </Suspense>
+            ),
           },
           {
             path: '/demo/effects',
-            element: <EffectsDemoPage />,
+            element: (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <EffectsDemoPage />
+              </Suspense>
+            ),
           },
         ],
       },
