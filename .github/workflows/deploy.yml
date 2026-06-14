@@ -24,6 +24,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        env:
+          PNPM_CONFIG_AUTO_INSTALL_PEERS: "true"
 
       - name: Build web app
         run: pnpm --filter=web build
