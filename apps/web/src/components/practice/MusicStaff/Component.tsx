@@ -361,29 +361,12 @@ export function MusicStaff({
           ))}
         </div>
 
-        {/* Marcas de beats/compases */}
-        {beatMarks.map((m, idx) => (
-          <div
-            key={idx}
-            className={cn(
-              'music-staff-bar absolute top-3 bottom-3 pointer-events-none',
-              m.label && 'music-staff-bar--labeled'
-            )}
-            style={{ left: `calc(48px + (100% - 56px) * ${m.position / 100})` }}
-            aria-hidden="true"
-          >
-            {m.label && (
-              <span className="music-staff-section-label absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-mono uppercase tracking-wider whitespace-nowrap">
-                {m.label}
-              </span>
-            )}
-          </div>
-        ))}
-
-        {/* Notas (acordes o notas de trompeta con pitch real) */}
+        {/* Contenedor de notas: mismo inset que las líneas para alinear coordenadas.
+            Ancla en top:0 para que top:0% de la nota = top:0% de la primera línea. */}
+        <div className={cn('music-staff-notes-container absolute left-12 right-2 pointer-events-none', staffContainerClass)}>
         {notes.map((n, idx) => {
           // Posición vertical: mapeamos el rango [0, 4] a [0%, 100%].
-          // E4=0 (línea inf.) está en top:0%, F5=4 (línea sup.) en top:100%.
+          // Sin translateY(-50%), top:0% = borde superior del pentagrama.
           const topPercent = (n.line / 4) * 100
 
           // Ledger lines si la nota está fuera del pentagrama (0 a 4).
@@ -404,7 +387,7 @@ export function MusicStaff({
               style={{
                 left: `calc(48px + (100% - 56px) * ${n.position / 100})`,
                 top: `${topPercent}%`,
-                transform: 'translate(-50%, -50%)',
+                transform: 'translateX(-50%)',
               }}
               data-testid="music-staff-note"
               data-chord={n.chord.chord}
@@ -468,6 +451,26 @@ export function MusicStaff({
             </div>
           )
         })}
+        </div>
+
+        {/* Marcas de beats/compases */}
+        {beatMarks.map((m, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              'music-staff-bar absolute top-3 bottom-3 pointer-events-none',
+              m.label && 'music-staff-bar--labeled'
+            )}
+            style={{ left: `calc(48px + (100% - 56px) * ${m.position / 100})` }}
+            aria-hidden="true"
+          >
+            {m.label && (
+              <span className="music-staff-section-label absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-mono uppercase tracking-wider whitespace-nowrap">
+                {m.label}
+              </span>
+            )}
+          </div>
+        ))}
 
         {/* Línea amarilla de progreso (cursor temporal) */}
         <div

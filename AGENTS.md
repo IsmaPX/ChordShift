@@ -35,6 +35,7 @@ Monorepo Turborepo · pnpm 9 · Node >=20 · TypeScript strict
 - **Tailwind 4**: `@import "tailwindcss"` en `index.css` + variables en `@theme`. Claves anime: `anime-pink/blue/purple/glow`, `neon-cyan/pink`. Utilities custom: `glow-green/pink/blue`, `text-gradient-anime/green`.
 - **PWA**: el service worker se registra solo si `!('isElectron' in window)`.
 - **`VITE_APP_VERSION`** viene de `vite.config.ts` (`define`), NO de `.env`.
+- **Electron**: `base: './'` en `vite.config.ts` cuando `VITE_ELECTRON_BUILD=true`; las rutas deben ser relativas para funcionar en el build desktop.
 - **Capa API opcional** (`src/lib/api`): `repositoryProvider` elige Dexie o API según `VITE_API_URL` o `localStorage['worship_piano_backend_mode']`. Default: Dexie (offline-first). Páginas `/leaderboard` y `/shared` solo se muestran si `isApi === true`. Toggle en runtime: `localStorage.setItem('worship_piano_backend_mode', 'api')`.
 - **Sync offline-first** (`src/lib/sync`): `outbox.ts` (IndexedDB persistente, max 5 intentos por op) + `syncManager.ts` (auto-flush en eventos `online`/`offline`) + `snapshotClient.ts` (hidratar Dexie desde `/api/sync/snapshot`). Hook UI: `useSyncStatus()` + `<SyncStatusBadge />`.
 - **Socket.IO cliente** (`src/lib/socket`): singleton con backoff 1s→5min. `useSocket`, `useSocketStatus`, `useLiveSession`, `useLeaderboardRealtime`. `beatSync.ts` interpola beats con `requestAnimationFrame` y `classifyDrift()` colorea la latencia.
@@ -175,3 +176,45 @@ compartir logs.
 ## Design tokens
 
 Ver `docs/design/Tokens.md` (cargado vía `opencode.json` `instructions`). Paleta verde/negro/gris con acentos anime. Componentes custom en `apps/web/src/components/animations/`, `effects/`, `transitions/`, `illustrations/musicians/`.
+
+---
+
+## Alineación de Notas en el Pentagrama (`MusicStaff`)
+
+### Problema de Alineación Visual (ARREGLADO)
+
+El pentagrama (`MusicStaff`) se renderiza con 5 líneas verdes (`music-staff-line`) dentro de un contenedor posicionado con `inset-y-3` (12px de padding vertical). Las **notas** se dibujan a mano con `top: ${topPercent}%` y un `transform: translate(-50%, -50%)` anclado al centro de su contenedor. Este sistema de coordenadas creaba una desincronización entre las notas y las líneas del pentagrama:
+
+1. **Diferencia de margen**: Las 5 líneas del pentagrama vivían dentro de un contenedor `.music-staff-lines` con `inset-y-3` (padding de 12px). Las notas se posicionaban con un `<div>` hermano del contenedor, sin el mismo offset por defecto.
+2. **`transform: translate(-50%, -50%)`**: Este estilo mueve el centro de la nota al punto del `top`, lo cual descoloca visualmente la cabeza de la nota respecto a la línea que debería tocar. Si la posición apunta al `top` de una línea del pentagrama, la nota queda centrada por encima.
+3. **Fórmula `topPercent`**: Se calcula como `(n.line / 4) * 100`. En el límite inferior (`line = 0`), la nota cae en el `top: 0%` de su contenedor, pero la primera línea del pentagrama está desplazada por el `inset-y-3` del padre.
+
+### Solución Implementada
+
+1. **Contenedor de notas con el mismo margen**: Se añadió `.music-staff-notes-container` con el mismo `inset-y-*` que `.music-staff-lines` (`inset-y-3` para piano/guitarra, `inset-y-5` para trompeta). Esto garantiza que el sistema de coordenadas top/left de las notas empiece en el mismo punto que el sistema de coordenadas de las líneas del pentagrama.
+2. **Eliminar `transform: translate(-50%, -50%)` en notas**: Se cambió a `transform: translateX(-50%)` (solo centrado horizontal). Ahora la parte superior del elemento nota (`top: 0%`) coincide exactamente con la primera línea del pentagrama.
+3. **CSS añadido**: `@utility music-staff-notes-container` en `index.css` con `z-index: 1` para apilamiento correcto sobre las líneas.
+
+### Referencia de Archivos
+
+- **Componente principal**: `src/components/practice/MusicStaff/Component.tsx` (renderiza las líneas del pentagrama y las notas).
+- **Lógica de posición**: `src/components/practice/MusicStaff/pitch.ts` (funciones `noteToStaffPosition` y `noteToPosition`).
+- **Utilities CSS**: `src/index.css` (clases `music-staff-lines`, `music-staff-notes-container`, `music-staff-note`, `music-staff-note-group`).
+
+### Convención de Coordenadas del Pentagrama
+
+```
+E4 (Línea inferior)  ->  position 0
+F4 (Espacio)         ->  position 0.5
+G4 (Línea)           ->  position 1
+A4 (Espacio)         ->  position 1.5
+B4 (Línea media)     ->  position 2
+C5 (Espacio)         ->  position 2.5
+D5 (Línea)           ->  position 3
+E5 (Espacio)         ->  position 3.5
+F5 (Línea superior)  ->  position 4
+```
+
+- Cada línea representa un step diatónico (0.5 unidades).
+- Las 5 líneas principales ocupan el rango `[0, 4]`.
+- Posiciones negativas (`< 0`) o superiores a 4 generan `ledger lines` (líneas adicionales) automáticamente para representar notas graves o agudas.

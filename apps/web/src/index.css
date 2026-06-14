@@ -591,6 +591,17 @@ body {
   will-change: transform, box-shadow;
 }
 
+@utility music-staff-note-group {
+  position: absolute;
+}
+
+/* Contenedor de notas alineado con el de líneas (mismo inset-y-*) para
+ * compartir el sistema de coordenadas. top:0% de una nota = top:0% de la
+ * primera línea del pentagrama (sin translateY(-50%) que desfasaba). */
+@utility music-staff-notes-container {
+  z-index: 1;
+}
+
 /* ===== TRUMPET MODE: ledger lines + válvula + nota ===== */
 /* Cuando el pentagrama está en modo trompeta (data-instrument="trumpet"),
  * las notas se posicionan por pitch real. Esto requiere:
