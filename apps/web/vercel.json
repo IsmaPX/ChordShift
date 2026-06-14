@@ -1,7 +1,7 @@
 {
-  "framework": "vite",
-  "buildCommand": "pnpm --filter=web build",
-  "installCommand": "pnpm install",
+  "framework": null,
+  "installCommand": "echo skip",
+  "buildCommand": "echo using-prebuilt",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
