@@ -23,7 +23,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
         env:
           PNPM_CONFIG_AUTO_INSTALL_PEERS: "true"
 
