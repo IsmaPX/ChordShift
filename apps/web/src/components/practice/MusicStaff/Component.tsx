@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { chordPlayer } from '@/audio/ChordPlayer'
 import { getTrumpetFingering } from '@/data/trumpetFingerings'
 import { noteToStaffPosition, transposeOctaveUp } from './pitch'
+
 import { ensureStaffKeyframes, cursorStyle } from './animation'
 import type { MusicStaffProps, ChordNote, StaffTimeline, BeatMark } from './types'
 import type { InstrumentName } from '@/types/music'
@@ -39,29 +40,6 @@ function chordLineIndex(chordName: string): number {
     hash = (hash * 31 + chordName.charCodeAt(i)) | 0
   }
   return Math.abs(hash) % 5
-}
-
-/** Convierte nota musical (e.g. "C4") a posición en el pentagrama.
- *  E4=0, F4=0.5, G4=1, B4=2, D5=3, F5=4.
- *  Valores fuera de 0-4 necesitan ledger lines. */
-function noteToPosition(note: string): number | null {
-  const match = /^([A-G][#b]?)(-?\d+)$/.exec(note.trim())
-  if (!match) return null
-  const [, name, octaveStr] = match
-  const stepMap: Record<string, number> = {
-    C: 0, 'C#': 0, Db: 0,
-    D: 1, 'D#': 1, Eb: 1,
-    E: 2, Fb: 2,
-    F: 3, 'F#': 3, Gb: 3,
-    G: 4, 'G#': 4, Ab: 4,
-    A: 5, 'A#': 5, Bb: 5,
-    B: 6, Cb: 6,
-  }
-  const step = stepMap[name]
-  if (step === undefined) return null
-  const octave = parseInt(octaveStr, 10)
-  const totalStepsFromE4 = (octave - 4) * 7 + (step - 2)
-  return totalStepsFromE4 * 0.5
 }
 
 /** Formatea segundos a mm:ss. */
@@ -158,7 +136,7 @@ export function MusicStaff({
           const chordNotes = chordPlayer.getChordNotes(chord.chord, instrument)
           if (chordNotes && chordNotes.length > 0) {
             for (const note of chordNotes) {
-              const notePos = noteToPosition(note)
+              const notePos = noteToStaffPosition(note)
               const line = notePos ?? chordLineIndex(chord.chord)
               noteRaws.push({
                 chord,
@@ -387,7 +365,7 @@ export function MusicStaff({
               style={{
                 left: `calc(48px + (100% - 56px) * ${n.position / 100})`,
                 top: `${topPercent}%`,
-                transform: 'translateX(-50%)',
+                transform: 'translate(-50%, -50%)',
               }}
               data-testid="music-staff-note"
               data-chord={n.chord.chord}

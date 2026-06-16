@@ -43,3 +43,4 @@ apps/web/test-results/
 
 # Obsidian vault directory (MCP)
 Obsidian-vault/
+.vercel

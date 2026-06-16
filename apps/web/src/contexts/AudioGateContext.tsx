@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback } from 'react'
-import { AudioEngine } from '@/audio/AudioEngine'
 
 interface AudioGateContextType {
   isAudioReady: boolean
@@ -18,6 +17,7 @@ export function AudioGateProvider({ children }: { children: React.ReactNode }) {
   const handleStartAudio = useCallback(async () => {
     try {
       setError(null)
+      const { AudioEngine } = await import('@/audio/AudioEngine')
       await AudioEngine.initialize()
       setIsAudioReady(true)
       setShowGate(false)
