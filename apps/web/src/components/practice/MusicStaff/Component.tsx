@@ -365,7 +365,7 @@ export function MusicStaff({
               style={{
                 left: `calc(48px + (100% - 56px) * ${n.position / 100})`,
                 top: `${topPercent}%`,
-                transform: 'translate(-50%, -50%)',
+                transform: 'translateX(-50%)',
               }}
               data-testid="music-staff-note"
               data-chord={n.chord.chord}
@@ -404,7 +404,7 @@ export function MusicStaff({
 
               <div
                 className={cn(
-                  'music-staff-note',
+                  'music-staff-note -mt-1.5',
                   isTrumpet && 'music-staff-note--trumpet',
                   n.isCurrent && 'music-staff-note--current'
                 )}

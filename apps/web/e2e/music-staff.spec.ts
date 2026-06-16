@@ -36,9 +36,9 @@ test.describe('🎵 MusicStaff - Pentagrama', () => {
     await expect(musicStaff).toBeVisible({ timeout: 10000 })
   })
 
-  test('las notas tienen el centrado vertical correcto (translate -50%, -50%)', async ({ page }) => {
+  test('las notas tienen el centrado horizontal correcto (translateX -50%)', async ({ page }) => {
     await page.goto('/practice/song-amazing-grace')
-    await page.waitForLoadState('domcontentloaded')
+    await page.waitForLoadState('networkidle')
     await dismissOverlays(page)
 
     // Esperar a que el pentagrama esté visible
@@ -64,7 +64,7 @@ test.describe('🎵 MusicStaff - Pentagrama', () => {
     expect(noteData.length).toBeGreaterThan(0)
 
     for (const note of noteData) {
-      expect(note.transform).toContain('translate(-50%, -50%)')
+      expect(note.transform).toContain('translateX(-50%)')
       expect(note.chord).not.toBe('')
     }
   })
