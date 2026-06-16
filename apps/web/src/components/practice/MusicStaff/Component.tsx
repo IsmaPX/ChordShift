@@ -270,11 +270,11 @@ export function MusicStaff({
   // En modo trompeta el track es más alto para dar espacio a las ledger
   // lines y a notas agudas/graves fuera del pentagrama.
   const trackClass = isTrumpet
-    ? 'h-40'  // 160px - espacio para ledger lines
-    : 'h-40'  // 160px - mismo tamaño para piano/guitarra
+    ? 'h-36'  // 144px - espacio para ledger lines
+    : 'h-24'  // 96px - más compacto para piano/guitarra
   const staffContainerClass = isTrumpet
-    ? 'inset-y-5'  // 20px padding
-    : 'inset-y-3'  // 12px padding
+    ? 'inset-y-4'  // 16px padding
+    : 'inset-y-2'  // 8px padding
 
   return (
     <div
@@ -313,8 +313,8 @@ export function MusicStaff({
         {/* Símbolo de clave al inicio (clave de sol, apropiada para trompeta) */}
         <svg
           className="music-staff-clef absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
-          width="32"
-          height={isTrumpet ? '120' : '80'}
+          width="24"
+          height={isTrumpet ? '100' : '60'}
           viewBox="0 0 32 80"
           fill="none"
           aria-hidden="true"
@@ -412,14 +412,14 @@ export function MusicStaff({
                 data-chord={n.chord.chord}
                 data-note={n.noteName ?? ''}
               />
-              <span className="music-staff-note-label absolute left-1/2 -translate-x-1/2 top-4 text-[10px] font-mono font-bold whitespace-nowrap pointer-events-none">
+              <span className="music-staff-note-label absolute left-1/2 -translate-x-1/2 top-3 text-[9px] font-mono font-bold whitespace-nowrap pointer-events-none">
                 {label}
               </span>
 
               {/* Indicador de válvulas (solo trompeta, nota activa) */}
               {isTrumpet && n.isCurrent && n.valves && (
                 <span
-                  className="music-staff-valves absolute left-1/2 -translate-x-1/2 -bottom-5 text-[10px] font-mono font-bold whitespace-nowrap pointer-events-none"
+                  className="music-staff-valves absolute left-1/2 -translate-x-1/2 -bottom-4 text-[9px] font-mono font-bold whitespace-nowrap pointer-events-none"
                   data-testid="music-staff-valves"
                   aria-label={`Válvulas: ${n.valves}`}
                 >
@@ -436,7 +436,7 @@ export function MusicStaff({
           <div
             key={idx}
             className={cn(
-              'music-staff-bar absolute top-3 bottom-3 pointer-events-none',
+              'music-staff-bar absolute top-2 bottom-2 pointer-events-none',
               m.label && 'music-staff-bar--labeled'
             )}
             style={{ left: `calc(48px + (100% - 56px) * ${m.position / 100})` }}
