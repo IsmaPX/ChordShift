@@ -22,6 +22,7 @@ interface StaffPianoProps {
   isPlaying: boolean
   cursorStyle: React.CSSProperties
   resetKey: number
+  illuminatedNoteIndex?: number
   className?: string
 }
 
@@ -60,11 +61,16 @@ export function StaffPiano({
   timeline,
   cursorStyle,
   resetKey,
+  illuminatedNoteIndex,
   className,
 }: StaffPianoProps) {
-  // Separar notas en dos pentagramas
-  const trebleNotes = notes.filter(n => !isBassNote(n.noteName))
-  const bassNotes = notes.filter(n => isBassNote(n.noteName))
+  // Separar notas en dos pentagramas, manteniendo el índice original
+  const trebleNotes = notes
+    .map((n, i) => ({ ...n, originalIndex: i }))
+    .filter(n => !isBassNote(n.noteName))
+  const bassNotes = notes
+    .map((n, i) => ({ ...n, originalIndex: i }))
+    .filter(n => isBassNote(n.noteName))
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
@@ -80,6 +86,7 @@ export function StaffPiano({
           label="Pentagrama Agudo"
           height="h-28"
           inset="inset-y-2"
+          illuminatedNoteIndex={illuminatedNoteIndex}
         />
       </div>
 
@@ -92,7 +99,7 @@ export function StaffPiano({
       {/* ── Pentagrama inferior (Clave de Fa) ── */}
       <div className="piano-staff-system">
         <SingleStaff
-          notes={bassNotes.map(n => ({ ...n, line: toBassStaffPosition(n.line) }))}
+          notes={bassNotes.map(n => ({ ...n, line: toBassStaffPosition(n.line), originalIndex: n.originalIndex }))}
           beatMarks={beatMarks}
           timeline={timeline}
           cursorStyle={cursorStyle}
@@ -102,6 +109,7 @@ export function StaffPiano({
           height="h-28"
           inset="inset-y-2"
           hideCursor // El cursor solo aparece en el pentagrama superior
+          illuminatedNoteIndex={illuminatedNoteIndex}
         />
       </div>
     </div>
@@ -119,6 +127,7 @@ function SingleStaff({
   height,
   inset,
   hideCursor = false,
+  illuminatedNoteIndex,
 }: {
   notes: ChordNote[]
   beatMarks: BeatMark[]
@@ -130,6 +139,7 @@ function SingleStaff({
   height: string
   inset: string
   hideCursor?: boolean
+  illuminatedNoteIndex?: number
 }) {
   return (
     <div
@@ -162,7 +172,8 @@ function SingleStaff({
 
       {/* Notas */}
       <div className={cn('music-staff-notes-container absolute left-12 right-2 pointer-events-none', inset)}>
-        {notes.map((n, idx) => {
+        {notes.map((n, _idx) => {
+          const idx = (n as any).originalIndex ?? _idx
           const topPercent = ((4 - n.line) / 4) * 100
           const ledgersAbove = Math.max(0, Math.floor(n.line - 4))
           const ledgersBelow = Math.max(0, Math.floor(-n.line))
@@ -199,7 +210,8 @@ function SingleStaff({
               <div
                 className={cn(
                   'music-staff-note -mt-1.5',
-                  n.isCurrent && 'music-staff-note--current'
+                  n.isCurrent && 'music-staff-note--current',
+                  illuminatedNoteIndex === idx && 'music-staff-note--illuminated'
                 )}
                 data-testid="music-staff-note-head"
                 data-chord={n.chord.chord}

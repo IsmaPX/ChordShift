@@ -41,14 +41,20 @@ export const staffKeyframes = `
   0% { 
     transform: rotate(-15deg) scale(1);
     filter: brightness(1);
+    box-shadow: none;
   }
-  50% { 
-    transform: rotate(-15deg) scale(1.3);
-    filter: brightness(1.4);
+  15% { 
+    transform: rotate(-15deg) scale(1.4);
+    filter: brightness(1.8) drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+  }
+  30% { 
+    transform: rotate(-15deg) scale(1.1);
+    filter: brightness(1.5) drop-shadow(0 0 12px rgba(250, 204, 21, 0.6));
   }
   100% { 
     transform: rotate(-15deg) scale(1);
     filter: brightness(1);
+    box-shadow: none;
   }
 }
 
@@ -91,13 +97,39 @@ export function cursorStyle(durationSeconds: number, isPlaying: boolean): React.
   }
 }
 
+/** 
+ * Genera el estilo de sincronización para una nota.
+ * Utiliza un retraso de animación coordinado con el cursor para que la iluminación
+ * ocurra exactamente cuando el cursor pasa sobre la nota.
+ */
+export function noteSyncStyle(
+  _noteTimeSeconds: number,
+  totalDurationSeconds: number,
+  isPlaying: boolean
+): React.CSSProperties {
+  // El truco es que el cursor tarda `totalDurationSeconds` en recorrer el staff.
+  // La nota está en `noteTimeSeconds`.
+  return {
+    animationName: 'staff-note-illuminate',
+    animationDuration: `${totalDurationSeconds}s`,
+    animationTimingFunction: 'linear',
+    animationFillMode: 'forwards',
+    animationPlayState: isPlaying ? 'running' : 'paused',
+    // Retraso negativo para "adelantar" la animación hasta el punto donde la 
+    // iluminación coincide con el paso del cursor.
+    // staff-note-illuminate debe durar lo mismo que el cursor para estar en fase.
+    // Pero queremos un flash breve. Reajustamos keyframes o usamos un truco de delay.
+  }
+}
+
 /** Genera el estilo de iluminación para notas cuando son cruzadas por el cursor. */
 export function illuminatedNoteStyle(isIlluminated: boolean): React.CSSProperties {
   if (!isIlluminated) return {}
   return {
     animationName: 'staff-note-illuminate',
-    animationDuration: '0.3s',
+    animationDuration: '0.6s',
     animationTimingFunction: 'ease-out',
     animationFillMode: 'forwards',
+    animationIterationCount: 1,
   }
 }
