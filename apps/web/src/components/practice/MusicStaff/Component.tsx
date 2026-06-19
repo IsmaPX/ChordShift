@@ -36,6 +36,12 @@ import {
 } from './animation'
 import type { MusicStaffProps, ChordNote, StaffTimeline, BeatMark } from './types'
 import type { InstrumentName } from '@/types/music'
+import { StaffPiano } from './StaffPiano'
+import { StaffGuitar } from './StaffGuitar'
+import { StaffTrumpet } from './StaffTrumpet'
+import { StaffViolin } from './StaffViolin'
+import { StaffFlute } from './StaffFlute'
+import { TrebleClef } from './StaffClef'
 import { FluteFingeringChart } from '@/components/practice/FluteFingeringChart'
 import { HarmonicaTab } from '@/components/practice/HarmonicaTab'
 
@@ -288,14 +294,83 @@ export function MusicStaff({
     )
   }
 
-  // En modo trompeta el track es más alto para dar espacio a las ledger
-  // lines y a notas agudas/graves fuera del pentagrama.
-  const trackClass = isTrumpet
-    ? 'h-36'  // 144px - espacio para ledger lines
-    : 'h-32'  // 128px - espacio para notas del pentagrama
-  const staffContainerClass = isTrumpet
-    ? 'inset-y-4'  // 16px padding
-    : 'inset-y-3'  // 12px padding
+  if (instrument === 'piano') {
+    return (
+      <StaffPiano
+        notes={notes}
+        beatMarks={beatMarks}
+        timeline={timeline}
+        isPlaying={isPlaying}
+        cursorStyle={cursorAnim}
+        resetKey={resetKey}
+        illuminatedNoteIndex={illuminatedNoteIndex}
+        className={className}
+      />
+    )
+  }
+
+  if (instrument === 'guitar') {
+    return (
+      <StaffGuitar
+        notes={notes}
+        beatMarks={beatMarks}
+        timeline={timeline}
+        cursorStyle={cursorAnim}
+        resetKey={resetKey}
+        illuminatedNoteIndex={illuminatedNoteIndex}
+        className={className}
+      />
+    )
+  }
+
+  if (instrument === 'trumpet') {
+    return (
+      <StaffTrumpet
+        notes={notes}
+        beatMarks={beatMarks}
+        timeline={timeline}
+        isPlaying={isPlaying}
+        cursorStyle={cursorAnim}
+        resetKey={resetKey}
+        illuminatedNoteIndex={illuminatedNoteIndex}
+        className={className}
+      />
+    )
+  }
+
+  if (instrument === 'violin') {
+    return (
+      <StaffViolin
+        notes={notes}
+        beatMarks={beatMarks}
+        timeline={timeline}
+        isPlaying={isPlaying}
+        cursorStyle={cursorAnim}
+        resetKey={resetKey}
+        illuminatedNoteIndex={illuminatedNoteIndex}
+        className={className}
+      />
+    )
+  }
+
+  if (instrument === 'flute') {
+    return (
+      <StaffFlute
+        notes={notes}
+        beatMarks={beatMarks}
+        timeline={timeline}
+        isPlaying={isPlaying}
+        cursorStyle={cursorAnim}
+        resetKey={resetKey}
+        illuminatedNoteIndex={illuminatedNoteIndex}
+        className={className}
+      />
+    )
+  }
+
+  // Default: renderizar con el componente genérico (fallback para futuros instrumentos)
+  const trackClass = 'h-32'
+  const staffContainerClass = 'inset-y-3'
 
   return (
     <div
@@ -331,23 +406,10 @@ export function MusicStaff({
           trackClass
         )}
       >
-        {/* Símbolo de clave al inicio (clave de sol, apropiada para trompeta) */}
-        <svg
-          className="music-staff-clef absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
-          width="24"
-          height={isTrumpet ? '100' : '60'}
-          viewBox="0 0 32 80"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M16 8 C 12 12, 10 18, 12 24 C 14 30, 18 32, 20 28 C 22 24, 18 18, 14 22 C 10 26, 8 32, 12 40 C 16 48, 22 52, 22 60 C 22 68, 16 72, 12 68 M 14 22 L 14 72 M 20 28 L 20 8"
-            stroke="#22c55e"
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity="0.55"
-          />
-        </svg>
+        {/* Símbolo de clave al inicio (clave de sol, apropiada para la mayoría de vientos y cuerdas) */}
+        <div className="music-staff-clef absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+          <TrebleClef height={isTrumpet ? 80 : 60} color="#22c55e" opacity={0.65} />
+        </div>
 
         {/* 5 líneas del pentagrama */}
         <div className={cn('music-staff-lines absolute left-12 right-2 pointer-events-none', staffContainerClass)}>
