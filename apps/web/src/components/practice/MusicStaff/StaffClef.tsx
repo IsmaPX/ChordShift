@@ -29,12 +29,14 @@ export function TrebleClef({ height = 60, color = '#22c55e', opacity = 0.55, cla
       aria-hidden="true"
     >
       <path
-        d="M16 8 C 12 12, 10 18, 12 24 C 14 30, 18 32, 20 28 C 22 24, 18 18, 14 22 C 10 26, 8 32, 12 40 C 16 48, 22 52, 22 60 C 22 68, 16 72, 12 68 M 14 22 L 14 72 M 20 28 L 20 8"
+        d="M14.5 68.5 C 10 68 8 62 11 58 C 14 54 18 56 16 62 C 14 68 8 65 8 52 C 8 35 22 30 22 18 C 22 5 15 2 13 8 C 11 14 13 28 13 40 C 13 55 8 62 13 75 M 13 8 L 13 75 C 13 78 11 80 8 78"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
+        strokeLinejoin="round"
         opacity={opacity}
       />
+      <circle cx="20" cy="45" r="5" stroke={color} strokeWidth="1.5" opacity={opacity * 0.5} />
     </svg>
   )
 }
@@ -50,23 +52,18 @@ export function GuitarClef({ height = 70, color = '#22c55e', opacity = 0.55, cla
       fill="none"
       aria-hidden="true"
     >
-      <path
-        d="M16 8 C 12 12, 10 18, 12 24 C 14 30, 18 32, 20 28 C 22 24, 18 18, 14 22 C 10 26, 8 32, 12 40 C 16 48, 22 52, 22 60 C 22 68, 16 72, 12 68 M 14 22 L 14 72 M 20 28 L 20 8"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity={opacity}
-      />
-      {/* "8" debajo de la clave de Sol */}
+      <TrebleClef height={height - 20} color={color} opacity={opacity} />
       <text
-        x="14"
-        y="82"
+        x="13"
+        y="85"
         textAnchor="middle"
-        fontSize="11"
+        fontSize="12"
         fontFamily="serif"
         fontWeight="bold"
         fill={color}
         opacity={opacity}
+        className="animate-pulse"
+        style={{ filter: `drop-shadow(0 0 4px ${color})` }}
       >
         8
       </text>
@@ -85,28 +82,20 @@ export function BassClef({ height = 60, color = '#22c55e', opacity = 0.55, class
       fill="none"
       aria-hidden="true"
     >
-      {/* Cuerpo de la clave de Fa */}
       <path
-        d="M8 20 C 8 20, 10 24, 14 24 C 18 24, 22 20, 22 14 C 22 8, 18 4, 14 6 C 10 8, 8 14, 8 20 Z"
+        d="M10 20 C 10 10, 25 10, 25 25 C 25 40, 15 55, 8 65"
         stroke={color}
-        strokeWidth="2"
-        fill="none"
-        opacity={opacity}
-      />
-      {/* Cola de la clave */}
-      <path
-        d="M8 20 L 8 60"
-        stroke={color}
-        strokeWidth="2.5"
+        strokeWidth="3"
         strokeLinecap="round"
         opacity={opacity}
       />
-      {/* Dos puntos de la clave de Fa */}
-      <circle cx="24" cy="12" r="2.5" fill={color} opacity={opacity} />
-      <circle cx="24" cy="22" r="2.5" fill={color} opacity={opacity} />
+      <circle cx="10" cy="20" r="3.5" fill={color} opacity={opacity} />
+      <circle cx="28" cy="18" r="2.5" fill={color} opacity={opacity} />
+      <circle cx="28" cy="32" r="2.5" fill={color} opacity={opacity} />
     </svg>
   )
 }
+
 
 /** Clave de Do (C-clef / Viola clef) — referencia visual, no usada actualmente. */
 export function AltoClef({ height = 60, color = '#22c55e', opacity = 0.55, className }: ClefProps) {

@@ -1,0 +1,1 @@
+{"buildCommand":"cd apps/web && pnpm build","outputDirectory":"apps/web/dist","installCommand":"cd apps/web && pnpm install --no-frozen-lockfile"} 

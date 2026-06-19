@@ -58,6 +58,7 @@ interface StaffGuitarProps {
   timeline: StaffTimeline
   cursorStyle: React.CSSProperties
   resetKey: number
+  illuminatedNoteIndex?: number
   className?: string
 }
 
@@ -66,6 +67,7 @@ export function StaffGuitar({
   beatMarks,
   cursorStyle,
   resetKey,
+  illuminatedNoteIndex,
   className,
 }: StaffGuitarProps) {
   // La guitarra escribe una 8ª más alta de lo que suena.
@@ -135,7 +137,8 @@ export function StaffGuitar({
                 <div
                   className={cn(
                     'music-staff-note -mt-1.5',
-                    n.isCurrent && 'music-staff-note--current'
+                    n.isCurrent && 'music-staff-note--current',
+                    illuminatedNoteIndex === idx && 'music-staff-note--illuminated'
                   )}
                   data-testid="music-staff-note-head"
                   data-chord={n.chord.chord}

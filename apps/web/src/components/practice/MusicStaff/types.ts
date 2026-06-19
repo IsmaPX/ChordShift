@@ -63,7 +63,9 @@ export interface ChordNote {
   line: number
   /** Si es el acorde actualmente sonando. */
   isCurrent: boolean
-  /** Nombre de la nota (e.g. "C4"), solo en modo trompeta. */
+  /** Si la nota está siendo iluminada por el cursor de tiempo. */
+  isIlluminated?: boolean
+  /** Nombre de la nota (e.g. "C4"), solo en ciertos instrumentos. */
   noteName?: string
   /** Indicación de válvulas (e.g. "○ ● ●"), solo en modo trompeta. */
   valves?: string

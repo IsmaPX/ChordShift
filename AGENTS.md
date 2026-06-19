@@ -127,7 +127,7 @@ Lista exhaustiva con todas las variantes en `README.md` raíz.
 |---|---|---|
 | `ci.yml` | push/PR a `main`/`develop` | lint + typecheck + tests web/audio + build web |
 | `deploy.yml` | push a `main` | Vercel |
-| `docker-publish.yml` | push/main, PR, tag `v*` | `ghcr.io/<owner>/chordshift-api` |
+| `docker-publish.yml` | push/main, PR, tag `v4*` | `ghcr.io/<owner>/chordshift-api` |
 | `release.yml` | tag `v*` o manual | Electron (Win/Mac/Linux) + APK Android |
 | `deploy-api.yml` | manual | SSH deploy a servidor propio |
 
@@ -150,3 +150,44 @@ El contenedor de notas (`.music-staff-notes-container`) usa el mismo `inset-y-*`
 Convención de coordenadas: `E4 = position 0`, `F4 = 0.5`, `G4 = 1`, `A4 = 1.5`, `B4 = 2` (línea media), `C5 = 2.5`, `D5 = 3`, `E5 = 3.5`, `F5 = 4` (línea superior). Posiciones <0 o >4 generan `ledger lines` automáticamente.
 
 Archivos clave: `src/components/practice/MusicStaff/Component.tsx`, `src/components/practice/MusicStaff/pitch.ts`, `src/index.css` (clases `music-staff-*`).
+
+---
+
+## Agentes especializados de OpenCode
+
+El proyecto incluye **8 agentes especializados** en `.opencode/agents/` que puedes invocar con `@nombre` en cualquier conversación.
+
+### Agentes de análisis (solo lectura, sin cambios)
+
+| Agente | Qué hace | Cuándo invocarlo |
+|--------|----------|-------------------|
+| `@music-staff-revisionist` | Verifica alineación de notas en pentagrama | Cuando toques archivos de `MusicStaff/` |
+| `@security-auditor` | Escanea credenciales expuestas y config insegura | Antes de commit, especialmente con secrets |
+| `@sync-architect` | Valida consistencia offline/online y repository layer | Cuando toques `src/lib/api/`, `src/lib/sync/`, o `packages/db` |
+| `@ts-dead-code-hunter` | Detecta código muerto, imports no usados | Antes de cada PR, cuando `typecheck` falla |
+
+### Agentes de validación (ejecutan comandos)
+
+| Agente | Qué hace | Cuándo invocarlo |
+|--------|----------|-------------------|
+| `@deploy-smoke-tester` | Valida config de deploy/CI, ejecuta builds de prueba | Cuando toques `.github/workflows/`, `vercel.json`, `Dockerfile` |
+| `@bundle-watcher` | Monitorea tamaño del bundle, detecta crecimiento | Después de agregar dependencies o refactors |
+| `@e2e-guardian` | Verifica que cambios UI no rompen tests E2E | Cuando toques componentes de `src/app/(app)/*` |
+| `@monorepo-sync` | Mantiene consistencia de estructura | Cuando crees packages nuevos o modifiques tsconfig |
+
+### Ejemplo de uso
+
+```
+@music-staff-revisionist Revisa los cambios en pitch.ts de este commit
+@security-auditor Hay algún secret expuesto en este PR?
+@ts-dead-code-hunter Qué imports muertos hay en packages/audio?
+@deploy-smoke-tester Valida el workflow de release.yml
+@monorepo-sync Se rompío algo en la estructura del monorepo?
+```
+
+### Notas
+
+- Los agentes están en `.opencode/agents/*.md` y se descubren automáticamente
+- Tienen permisos restrictivos: `edit: deny` para la mayoría (solo leen)
+- `monorepo-sync` tiene `edit: ask` (pide permiso antes de cambiar)
+- Pueden cargar skills del proyecto con `skill({ name: "..." })` cuando lo necesiten
