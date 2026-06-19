@@ -1,21 +1,24 @@
 /**
- * MusicStaff — Pentagrama con línea amarilla de progreso temporal.
+ * MusicStaff — Pentagrama rediseñado con líneas doradas y notas verde oscuro.
  *
  * Visualiza los acordes de la canción en un pentagrama musical con
- * 5 líneas verdes tenues, marca los beats/compases con líneas verticales
- * y muestra una línea amarilla vertical que se desplaza de izquierda
+ * 5 líneas doradas, marcas los beats/compases con líneas verticales
+ * y muestra una línea dorada vertical que se desplaza de izquierda
  * a derecha al ritmo de la canción.
  *
+ * Las notas verde oscuro se iluminan en dorado cuando son cruzadas
+ * por el cursor de tiempo.
+ *
  * Adaptación por instrumento:
- *  - `piano` | `guitar` (default): muestra el símbolo del acorde (e.g. "C")
- *    posicionado con un hash determinístico sobre 5 líneas verdes.
+ *  - `piano` | `guitar` (default): muestra las notas del acorde
+ *    posicionadas por pitch real sobre 5 líneas doradas.
  *  - `trumpet`: muestra la fundamental del acorde posicionada por su
  *    pitch real en el pentagrama (Do4, Re4, ...), con líneas adicionales
- *    (ledger lines) automáticas para notas fuera del rango, e indicador
- *    de válvulas (1/2/3) en la nota activa.
+ *    (ledger lines) doradas automáticas para notas fuera del rango, e
+ *    indicador de válvulas (1/2/3) en la nota activa.
  *  - `violin` | `flute`: muestra las notas del acorde por pitch real
- *    en el pentagrama. `flute` incluye diagrama de agujeros debajo.
- *  - `harmonica`: muestra tablatura visual de agujeros (no pentagrama).
+ *    en el pentagrama dorado. `flute` incluye diagrama de agujeros.
+ *  - `harmonica`: muestra tablatura visual de agujeros con diseño dorado.
  *
  * La sincronización se hace con CSS `animation` (no rAF en JS) para
  * mantener 60fps sin recálculos por frame. El padre controla play/pause
@@ -27,7 +30,10 @@ import { chordPlayer } from '@/audio/ChordPlayer'
 import { getTrumpetFingering } from '@/data/trumpetFingerings'
 import { noteToStaffPosition, transposeOctaveUp } from './pitch'
 
-import { ensureStaffKeyframes, cursorStyle } from './animation'
+import {
+  cursorStyle,
+  ensureStaffKeyframes,
+} from './animation'
 import type { MusicStaffProps, ChordNote, StaffTimeline, BeatMark } from './types'
 import type { InstrumentName } from '@/types/music'
 import { FluteFingeringChart } from '@/components/practice/FluteFingeringChart'
@@ -212,6 +218,21 @@ export function MusicStaff({
     return { timeline: timelineAcc, notes: noteAcc, beatMarks: markAcc }
   }, [sections, currentSectionIndex, currentChordIndex, bpm, instrument])
 
+  // Calcular qué nota está siendo iluminada por el cursor dorado
+  const illuminatedNoteIndex = useMemo(() => {
+    if (!isPlaying) return -1
+
+    // Posición actual del cursor (0-100%)
+    const elapsed = timeline.currentSeconds
+    const cursorPosition = (elapsed / Math.max(0.001, timeline.totalSeconds)) * 100
+
+    // Encontrar la nota más cercana al cursor dentro de la tolerancia
+    const tolerance = 3 // % de tolerancia para considerar la nota "iluminada"
+    return notes.findIndex(n =>
+      Math.abs(n.position - cursorPosition) < tolerance
+    )
+  }, [isPlaying, timeline.currentSeconds, timeline.totalSeconds, notes])
+
   const remainingSeconds = Math.max(0.1, timeline.totalSeconds - timeline.currentSeconds)
   const cursorAnim = cursorStyle(remainingSeconds, isPlaying)
 
@@ -224,26 +245,26 @@ export function MusicStaff({
     return (
       <div
         data-testid="music-staff"
-        data-version="music-staff-v1.1"
+        data-version="music-staff-v2-gold"
         data-instrument={instrument}
         className={cn('music-staff', className)}
         role="region"
-        aria-label="Tablatura de armónica"
+        aria-label="Tablatura de armónica dorada"
       >
         <div className="flex items-center justify-between mb-2 px-1">
-          <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
+          <div className="flex items-center gap-2 text-xs font-mono">
             <span className="text-anime-glow">♪</span>
-            <span className="uppercase tracking-widest">Armónica · Diatónica C</span>
+            <span className="uppercase tracking-widest text-[#fde047]">Armónica · Diatónica C</span>
           </div>
-          <div className="flex items-center gap-2 text-text-secondary text-xs font-mono">
-            <span className={cn(isPlaying ? 'text-warning' : 'text-text-secondary')}>
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <span className={cn(isPlaying ? 'text-[#fde047]' : 'text-text-secondary')}>
               {timeline.currentLabel}
             </span>
             <span>/</span>
             <span>{timeline.totalLabel}</span>
           </div>
         </div>
-        <div className="music-staff-track relative rounded-lg overflow-hidden border border-accent/15 bg-bg-primary/40 h-20">
+        <div className="music-staff-track relative rounded-lg overflow-hidden border border-[rgba(212,175,55,0.2)] h-20">
           <div
             key={resetKey}
             className="music-staff-cursor absolute top-0 bottom-0 pointer-events-none"
@@ -271,10 +292,10 @@ export function MusicStaff({
   // lines y a notas agudas/graves fuera del pentagrama.
   const trackClass = isTrumpet
     ? 'h-36'  // 144px - espacio para ledger lines
-    : 'h-24'  // 96px - más compacto para piano/guitarra
+    : 'h-32'  // 128px - espacio para notas del pentagrama
   const staffContainerClass = isTrumpet
     ? 'inset-y-4'  // 16px padding
-    : 'inset-y-2'  // 8px padding
+    : 'inset-y-3'  // 12px padding
 
   return (
     <div
@@ -334,18 +355,18 @@ export function MusicStaff({
             <div
               key={i}
               className="music-staff-line absolute left-0 right-0 h-px"
-              style={{ top: `${(i / 4) * 100}%` }}
+              style={{ top: `${((4 - i) / 4) * 100}%` }}
             />
           ))}
         </div>
 
         {/* Contenedor de notas: mismo inset que las líneas para alinear coordenadas.
-            Ancla en top:0 para que top:0% de la nota = top:0% de la primera línea. */}
+            Convención: top:0% = línea superior (F5), top:100% = línea inferior (E4). */}
         <div className={cn('music-staff-notes-container absolute left-12 right-2 pointer-events-none', staffContainerClass)}>
         {notes.map((n, idx) => {
           // Posición vertical: mapeamos el rango [0, 4] a [0%, 100%].
-          // Sin translateY(-50%), top:0% = borde superior del pentagrama.
-          const topPercent = (n.line / 4) * 100
+          // top:0% = F5 (línea superior), top:100% = E4 (línea inferior).
+          const topPercent = ((4 - n.line) / 4) * 100
 
           // Ledger lines si la nota está fuera del pentagrama (0 a 4).
           const ledgersAbove = Math.max(0, Math.floor(n.line - 4))
@@ -370,6 +391,7 @@ export function MusicStaff({
               data-testid="music-staff-note"
               data-chord={n.chord.chord}
               data-note={n.noteName ?? ''}
+              data-stem={n.line >= 2 ? 'up' : 'down'}
             >
               {/* Ledger lines (fuera del pentagrama, cualquier instrumento) */}
               {ledgersBelow > 0 && (
@@ -406,7 +428,8 @@ export function MusicStaff({
                 className={cn(
                   'music-staff-note -mt-1.5',
                   isTrumpet && 'music-staff-note--trumpet',
-                  n.isCurrent && 'music-staff-note--current'
+                  n.isCurrent && 'music-staff-note--current',
+                  illuminatedNoteIndex === idx && 'music-staff-note--illuminated'
                 )}
                 data-testid="music-staff-note-head"
                 data-chord={n.chord.chord}

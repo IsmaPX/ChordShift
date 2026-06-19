@@ -260,15 +260,23 @@ export function PracticePlayerPage() {
             </div>
 
             <div className="flex flex-col items-center gap-6 py-16 relative">
+              {isPlaying && (
+                <>
+                  <div className="player-spotlight top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  <div className="player-ripple-ring top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] -ml-[150px] -mt-[150px]" />
+                </>
+              )}
+              <div className="relative z-10 w-full flex flex-col items-center">
               {isTrumpet && currentNote ? (
                 <NoteDisplay note={currentNote} isActive={isPlaying} />
               ) : (
                 <ChordDisplay chord={currentChord?.chord || '—'} isActive={true} />
               )}
 
-              {instrument === 'guitar' && currentChord && (
-                <ChordDiagram chord={currentChord.chord} />
-              )}
+                {instrument === 'guitar' && currentChord && (
+                  <ChordDiagram chord={currentChord.chord} />
+                )}
+              </div>
             </div>
 
             {/* ===== PENTAGRAMA: línea amarilla marca el tiempo =====

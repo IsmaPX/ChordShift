@@ -132,11 +132,16 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(34, 197, 94, 0.15);
 }
-
 /* ===== SECTION: PRACTICE LIST (Biblioteca musical) ===== */
+@keyframes scrolling-staff {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50px); }
+}
+
 @utility practice-list-bg {
   background:
     linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, rgba(10, 20, 14, 0.95) 100%);
+  position: relative;
 }
 
 @utility practice-song-card {
@@ -145,11 +150,12 @@ body {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: linear-gradient(90deg, rgba(19, 32, 19, 0.7) 0%, rgba(15, 26, 15, 0.4) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.12);
-  border-radius: 14px;
-  transition: all 0.25s ease;
+  background: linear-gradient(90deg, rgba(19, 32, 19, 0.8) 0%, rgba(15, 26, 15, 0.6) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 .practice-song-card::before {
   content: '';
@@ -157,15 +163,16 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 4px;
   background: linear-gradient(180deg, transparent 0%, #22c55e 50%, transparent 100%);
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
 }
 .practice-song-card:hover {
-  background: linear-gradient(90deg, rgba(19, 32, 19, 0.95) 0%, rgba(20, 40, 20, 0.7) 100%);
-  border-color: rgba(34, 197, 94, 0.4);
-  transform: translateX(4px);
+  background: linear-gradient(90deg, rgba(20, 35, 20, 0.95) 0%, rgba(20, 40, 20, 0.8) 100%);
+  border-color: rgba(34, 197, 94, 0.5);
+  transform: translateX(6px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.15);
 }
 .practice-song-card:hover::before {
   opacity: 1;
@@ -177,73 +184,87 @@ body {
   height: 56px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at center, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.4) 18%, #0a0a0a 18%, #0a0a0a 22%, #1a1a1a 22%, #1a1a1a 100%);
-  border: 2px solid rgba(34, 197, 94, 0.3);
+    radial-gradient(circle at center, rgba(34, 197, 94, 0.5) 0%, rgba(34, 197, 94, 0.3) 15%, #0a0a0a 15%, #0a0a0a 25%, #1a1a1a 25%, #1a1a1a 100%);
+  border: 2px solid rgba(34, 197, 94, 0.4);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
+  box-shadow: 
+    inset 0 0 12px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(34, 197, 94, 0.3);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.practice-song-card:hover .practice-vinyl {
+  transform: rotate(45deg) scale(1.05);
+  box-shadow: 
+    inset 0 0 12px rgba(0, 0, 0, 0.8),
+    0 0 16px rgba(34, 197, 94, 0.5);
 }
 .practice-vinyl::after {
   content: '';
   position: absolute;
   inset: 4px;
   border-radius: 50%;
-  background: repeating-radial-gradient(circle, transparent 0px, transparent 2px, rgba(34, 197, 94, 0.05) 2px, rgba(34, 197, 94, 0.05) 3px);
+  background: repeating-radial-gradient(circle, transparent 0px, transparent 2px, rgba(34, 197, 94, 0.08) 2px, rgba(34, 197, 94, 0.08) 3px);
   pointer-events: none;
 }
 
 /* ===== SECTION: PRACTICE PLAYER (Concierto íntimo) ===== */
 @keyframes player-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.4; }
-  50% { transform: scale(1.15); opacity: 0.7; }
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.8; }
 }
 
 @keyframes player-ripple {
-  0% { transform: scale(0.8); opacity: 0.6; }
-  100% { transform: scale(2.4); opacity: 0; }
+  0% { transform: scale(0.8); opacity: 0.8; border-width: 2px; }
+  100% { transform: scale(2.8); opacity: 0; border-width: 0px; }
 }
 
 @utility player-bg {
   background:
-    radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0.95) 100%),
-    linear-gradient(180deg, #050505 0%, #0a1a0a 50%, #050505 100%);
+    radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.7) 60%, rgba(0, 0, 0, 0.98) 100%),
+    linear-gradient(180deg, #050505 0%, #0a1f0a 50%, #050505 100%);
+  position: relative;
+  overflow: hidden;
 }
 
 @utility player-stage {
   position: relative;
   background:
-    radial-gradient(ellipse 80% 60% at center top, rgba(34, 197, 94, 0.18) 0%, transparent 70%),
-    linear-gradient(180deg, rgba(10, 15, 10, 0.95) 0%, rgba(5, 10, 5, 0.95) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.25);
-  border-radius: 24px;
+    radial-gradient(ellipse 80% 60% at center top, rgba(34, 197, 94, 0.22) 0%, transparent 75%),
+    linear-gradient(180deg, rgba(15, 25, 15, 0.95) 0%, rgba(5, 10, 5, 0.98) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 28px;
   padding: 32px;
   box-shadow:
-    0 0 0 1px rgba(34, 197, 94, 0.05) inset,
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    0 0 80px rgba(34, 197, 94, 0.1);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 24px 64px rgba(0, 0, 0, 0.7),
+    0 0 100px rgba(34, 197, 94, 0.15);
+  backdrop-filter: blur(16px);
 }
 
 @utility player-spotlight {
   position: absolute;
-  width: 320px;
-  height: 320px;
+  width: 400px;
+  height: 400px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(34, 197, 94, 0.25) 0%, transparent 60%);
-  filter: blur(40px);
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, transparent 65%);
+  filter: blur(48px);
   pointer-events: none;
   animation: player-pulse 4s ease-in-out infinite;
+  mix-blend-mode: screen;
 }
 
 @utility player-ripple-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(34, 197, 94, 0.4);
-  animation: player-ripple 2.5s ease-out infinite;
+  border: 2px solid rgba(34, 197, 94, 0.6);
+  animation: player-ripple 3s ease-out infinite;
   pointer-events: none;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), inset 0 0 10px rgba(34, 197, 94, 0.2);
 }
 
 /* ===== SECTION: EAR TRAINING (Laboratorio de sonido) ===== */
@@ -467,12 +488,7 @@ body {
   margin-right: 12px;
 }
 
-/* ===== SECTION: MUSIC STAFF (Pentagrama con cursor amarillo) ===== */
-/* El cursor amarillo se anima vía @keyframes inyectados por
- * music-staff-keyframes (ver components/practice/MusicStaff/animation.ts).
- * La paleta del pentagrama respeta verde; la línea amarilla es el único
- * acento de otro color para reforzar su rol de "tiempo actual". */
-
+/* ===== SECTION: MUSIC STAFF (Pentagrama rediseñado - Glassmorphism & Plicas) ===== */
 @utility music-staff {
   position: relative;
   width: 100%;
@@ -481,146 +497,229 @@ body {
 @utility music-staff-track {
   position: relative;
   background:
-    radial-gradient(ellipse at center, rgba(34, 197, 94, 0.04) 0%, transparent 70%),
-    linear-gradient(180deg, rgba(10, 18, 10, 0.95) 0%, rgba(5, 10, 5, 0.95) 100%);
+    radial-gradient(ellipse at center, rgba(34, 197, 94, 0.05) 0%, transparent 80%),
+    linear-gradient(180deg, rgba(15, 25, 15, 0.6) 0%, rgba(5, 15, 5, 0.8) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
+/* ===== LÍNEAS DEL PENTAGRAMA ===== */
 @utility music-staff-line {
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(34, 197, 94, 0.25) 8%,
-    rgba(34, 197, 94, 0.35) 50%,
-    rgba(34, 197, 94, 0.25) 92%,
+    rgba(212, 175, 55, 0.2) 5%,
+    rgba(251, 191, 36, 0.6) 50%,
+    rgba(212, 175, 55, 0.2) 95%,
     transparent 100%);
-  box-shadow: 0 0 4px rgba(34, 197, 94, 0.15);
+  box-shadow: 
+    0 0 8px rgba(34, 197, 94, 0.3),
+    0 0 2px rgba(251, 191, 36, 0.4);
 }
 
 @utility music-staff-clef {
-  opacity: 0.7;
-  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.3));
+  opacity: 0.9;
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6));
 }
 
+/* ===== BARRAS DE COMPÁS ===== */
 @utility music-staff-bar {
   width: 1px;
   background: linear-gradient(180deg,
     transparent 0%,
-    rgba(34, 197, 94, 0.2) 20%,
-    rgba(34, 197, 94, 0.4) 50%,
-    rgba(34, 197, 94, 0.2) 80%,
+    rgba(212, 175, 55, 0.4) 20%,
+    rgba(251, 191, 36, 0.7) 50%,
+    rgba(212, 175, 55, 0.4) 80%,
     transparent 100%);
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.3);
 }
 .music-staff-bar--labeled {
   width: 2px;
   background: linear-gradient(180deg,
     transparent 0%,
-    rgba(34, 197, 94, 0.5) 30%,
-    rgba(34, 197, 94, 0.8) 50%,
-    rgba(34, 197, 94, 0.5) 70%,
+    rgba(251, 191, 36, 0.7) 30%,
+    rgba(251, 191, 36, 1) 50%,
+    rgba(251, 191, 36, 0.7) 70%,
     transparent 100%);
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
 }
 
 @utility music-staff-section-label {
-  color: #22c55e;
-  text-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+  color: #fde047;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8), 0 0 16px rgba(34, 197, 94, 0.4);
+  font-weight: 700;
+  background: rgba(10, 20, 10, 0.8);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  backdrop-filter: blur(4px);
 }
 
+/* ===== NOTAS CON PLICA ===== */
 @utility music-staff-note {
-  width: 16px;
-  height: 12px;
-  background: radial-gradient(ellipse, #4ade80 0%, #22c55e 70%);
+  position: relative;
+  width: 18px;
+  height: 13px;
+  background: radial-gradient(ellipse at 30% 30%, #16a34a 0%, #15803d 60%, #14532d 100%);
   border-radius: 50% / 60%;
-  transform: rotate(-18deg);
+  transform: rotate(-15deg);
   box-shadow:
-    0 0 6px rgba(34, 197, 94, 0.6),
-    inset 0 0 2px rgba(0, 0, 0, 0.4);
-  border: 1.5px solid rgba(34, 197, 94, 0.7);
-  animation: staff-note-bounce 2s ease-in-out infinite;
-  will-change: transform;
+    0 0 8px rgba(21, 128, 61, 0.6),
+    0 0 16px rgba(21, 128, 61, 0.3),
+    inset 0 0 4px rgba(0, 0, 0, 0.6),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  animation: staff-note-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  will-change: transform, filter;
+  transition: all 0.2s ease-out;
 }
-.music-staff-note--current {
-  width: 20px;
-  height: 15px;
-  background: radial-gradient(ellipse, #facc15 0%, #fbbf24 70%, #d97706 100%);
+
+/* Plica (Stem) de la nota */
+.music-staff-note::after {
+  content: '';
+  position: absolute;
+  width: 1.5px;
+  height: 35px;
+  background: linear-gradient(to bottom, #16a34a, #14532d);
+  box-shadow: 0 0 4px rgba(21, 128, 61, 0.5);
+  transition: all 0.2s ease-out;
+}
+
+/* Si la nota está en la mitad inferior del pentagrama (líneas 2, 3, 4), plica hacia arriba a la derecha */
+.music-staff-note-group[data-stem="up"] .music-staff-note::after {
+  bottom: 50%;
+  right: 1px;
+  transform: rotate(15deg); /* Contrarrestar rotación de la nota */
+  transform-origin: bottom center;
+}
+
+/* Si la nota está en la mitad superior del pentagrama (líneas 0, 1), plica hacia abajo a la izquierda */
+.music-staff-note-group[data-stem="down"] .music-staff-note::after {
+  top: 50%;
+  left: 1px;
+  transform: rotate(15deg);
+  transform-origin: top center;
+}
+
+/* Nota iluminada (cuando el cursor la cruza) */
+.music-staff-note--illuminated {
+  background: radial-gradient(ellipse at 30% 30%, #fde047 0%, #facc15 50%, #fbbf24 100%);
+  border-color: #fde047;
   box-shadow:
-    0 0 14px rgba(250, 204, 21, 0.9),
-    0 0 28px rgba(250, 204, 21, 0.5),
-    inset 0 0 3px rgba(0, 0, 0, 0.3);
-  border: 1.5px solid #fde047;
-  transform: rotate(-18deg) scale(1.2);
+    0 0 20px rgba(250, 204, 21, 0.95),
+    0 0 40px rgba(250, 204, 21, 0.6),
+    0 0 60px rgba(34, 197, 94, 0.4),
+    inset 0 0 6px rgba(255, 255, 255, 0.5);
+  transform: rotate(-15deg) scale(1.3);
+  filter: brightness(1.3);
+  z-index: 10;
+}
+
+.music-staff-note--illuminated::after {
+  background: linear-gradient(to bottom, #fde047, #facc15);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+}
+
+/* Nota actual (mismo acorde que se está reproduciendo) */
+.music-staff-note--current {
+  background: radial-gradient(ellipse at 30% 30%, #fef08a 0%, #fde047 50%, #facc15 100%);
+  border-color: #fef08a;
+  box-shadow:
+    0 0 16px rgba(250, 204, 21, 0.8),
+    0 0 32px rgba(250, 204, 21, 0.5),
+    inset 0 0 4px rgba(255, 255, 255, 0.4);
+}
+
+.music-staff-note--current::after {
+  background: linear-gradient(to bottom, #fef08a, #facc15);
 }
 
 @utility music-staff-note-label {
-  color: #8aa88a;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
-}
-.music-staff-note--current + .music-staff-note-label,
-.music-staff-note-group:has(.music-staff-note--current) .music-staff-note-label {
-  color: #facc15 !important;
-  text-shadow: 0 0 6px rgba(250, 204, 21, 0.6);
-  font-weight: 900;
+  color: #86efac;
+  text-shadow: 0 0 6px rgba(34, 197, 94, 0.8), 0 0 12px rgba(0, 0, 0, 1);
+  font-weight: 700;
+  transition: all 0.2s ease-out;
+  background: rgba(10, 20, 10, 0.6);
+  padding: 1px 4px;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
+.music-staff-note--current + .music-staff-note-label,
+.music-staff-note-group:has(.music-staff-note--current) .music-staff-note-label {
+  color: #fde047 !important;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.9), 0 0 16px rgba(0, 0, 0, 1);
+  border-color: rgba(250, 204, 21, 0.4);
+  font-weight: 800;
+  transform: translateX(-50%) scale(1.1);
+}
+
+.music-staff-note--illuminated + .music-staff-note-label,
+.music-staff-note-group:has(.music-staff-note--illuminated) .music-staff-note-label {
+  color: #fef08a !important;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 1), 0 0 24px rgba(34, 197, 94, 0.6);
+  border-color: rgba(250, 204, 21, 0.6);
+  font-weight: 900;
+  transform: translateX(-50%) scale(1.2);
+  z-index: 11;
+}
+
+/* ===== CURSOR DE PROGRESO TEMPORAL ===== */
 @utility music-staff-cursor {
-  /* Línea vertical amarilla de progreso temporal */
   background: linear-gradient(180deg,
-    #fde047 0%,
-    #facc15 50%,
-    #fbbf24 100%);
+    rgba(254, 240, 138, 0) 0%,
+    #fef08a 20%,
+    #fde047 50%,
+    #facc15 80%,
+    rgba(217, 119, 6, 0) 100%);
   box-shadow:
-    0 0 10px rgba(250, 204, 21, 0.85),
-    0 0 24px rgba(250, 204, 21, 0.45),
-    0 0 40px rgba(250, 204, 21, 0.2);
-  border-radius: 2px;
-  /* La animation-* se inyecta vía style inline desde animation.ts */
+    0 0 16px rgba(250, 204, 21, 0.95),
+    0 0 32px rgba(250, 204, 21, 0.7),
+    0 0 64px rgba(34, 197, 94, 0.4);
+  border-radius: 4px;
   will-change: transform;
-  z-index: 5;
+  z-index: 20;
 }
 
 @utility music-staff-cursor-head {
   position: absolute;
-  top: -6px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  background: radial-gradient(circle, #fde047 0%, #facc15 60%, #d97706 100%);
-  border-radius: 50%;
-  border: 1.5px solid #fef08a;
-  animation: staff-cursor-pulse 1.4s ease-in-out infinite;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  box-shadow:
+    0 0 20px rgba(255, 255, 255, 1),
+    0 0 40px rgba(250, 204, 21, 0.8);
+  animation: staff-cursor-glow-pulse 1.5s ease-in-out infinite;
   will-change: transform, box-shadow;
 }
 
 @utility music-staff-note-group {
   position: absolute;
+  transition: filter 0.15s ease-out;
 }
 
-/* Contenedor de notas alineado con el de líneas (mismo inset-y-*) para
- * compartir el sistema de coordenadas. top:0% de una nota = top:0% de la
- * primera línea del pentagrama (sin translateY(-50%) que desfasaba). */
+/* Contenedor de notas alineado con el de líneas */
 @utility music-staff-notes-container {
-  z-index: 1;
+  z-index: 2;
 }
 
-/* ===== TRUMPET MODE: ledger lines + válvula + nota ===== */
+/* ===== TRUMPET MODE: ledger lines doradas + válvulas + nota ===== */
 /* Cuando el pentagrama está en modo trompeta (data-instrument="trumpet"),
- * las notas se posicionan por pitch real. Esto requiere:
- *  - Ledger lines (líneas adicionales) para notas fuera del pentagrama
- *  - Diferenciación visual sutil de la cabeza de nota
- *  - Indicador de válvulas (○ ●) para la nota activa
- *  - El grupo de nota tiene posición absoluta respecto al pentagrama, y
- *    sus hijos (ledger, head, label, valves) se posicionan en torno a él. */
+ * las notas se posicionan por pitch real. Diseño rediseñado con temática dorada. */
 
 .music-staff-note-group--trumpet {
-  /* El grupo ya tiene `position: absolute` por .music-staff-note-group.
-   * Habilitamos un contexto de apilamiento para que las ledger lines
-   * queden exactamente alineadas con la cabeza de nota. */
   z-index: 2;
 }
 
 @utility music-staff-ledgers {
-  /* Contenedor de ledger lines. Centrado horizontalmente sobre la cabeza
-   * de la nota. El width coincide con el ancho de la nota (16-20px). */
   position: absolute;
   top: 0;
   left: 50%;
@@ -630,10 +729,8 @@ body {
   pointer-events: none;
 }
 
+/* ===== LEDGER LINES DORADAS ===== */
 @utility music-staff-ledger {
-  /* Línea horizontal corta que se dibuja a 1 unidad de pentagrama (25%
-   * del contenedor) de la anterior. Coincide en color/opacidad con las
-   * líneas principales del pentagrama. */
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -641,47 +738,274 @@ body {
   height: 1.5px;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(34, 197, 94, 0.4) 20%,
-    rgba(34, 197, 94, 0.65) 50%,
-    rgba(34, 197, 94, 0.4) 80%,
+    rgba(212, 175, 55, 0.5) 20%,
+    rgba(251, 191, 36, 0.8) 50%,
+    rgba(212, 175, 55, 0.5) 80%,
     transparent 100%);
-  box-shadow: 0 0 4px rgba(34, 197, 94, 0.25);
+  box-shadow: 
+    0 0 6px rgba(212, 175, 55, 0.4),
+    0 0 12px rgba(251, 191, 36, 0.2);
   border-radius: 1px;
 }
 
+/* ===== NOTA DE TROMPETA (dorada, instrumento de metal) ===== */
 @utility music-staff-note--trumpet {
-  /* Mantenemos la misma forma/rotación que la nota de piano/guitarra
-   * pero con un acento dorado sutil para reforzar que es la nota
-   * "tocada" por la trompeta (single pitch, no chord). */
-  background: radial-gradient(ellipse, #fbbf24 0%, #f59e0b 70%, #b45309 100%);
-  border-color: rgba(251, 191, 36, 0.8);
+  background: radial-gradient(ellipse at 30% 30%, #fde047 0%, #fbbf24 60%, #d97706 100%);
+  border-color: rgba(251, 191, 36, 0.9);
   box-shadow:
-    0 0 8px rgba(251, 191, 36, 0.55),
-    inset 0 0 2px rgba(0, 0, 0, 0.4);
+    0 0 10px rgba(251, 191, 36, 0.6),
+    0 0 20px rgba(251, 191, 36, 0.3),
+    inset 0 0 2px rgba(0, 0, 0, 0.3);
 }
-/* La cabeza de nota activa (--current) ya tiene su propio estilo dorado
- * brillante. No la duplicamos aquí. */
 
+.music-staff-note--trumpet.music-staff-note--illuminated {
+  background: radial-gradient(ellipse at 30% 30%, #fef08a 0%, #fde047 50%, #facc15 100%);
+  border-color: #fef08a;
+  box-shadow:
+    0 0 20px rgba(250, 204, 21, 0.95),
+    0 0 40px rgba(250, 204, 21, 0.6),
+    0 0 60px rgba(251, 191, 36, 0.4),
+    inset 0 0 4px rgba(255, 255, 255, 0.4);
+  transform: rotate(-18deg) scale(1.3);
+}
+
+/* ===== VÁLVULAS DORADAS ===== */
 @utility music-staff-valves {
-  /* Indicador de válvulas (○ ● ●) que aparece debajo de la nota activa
-   * en modo trompeta. Símbolos simples que coinciden con el archivo
-   * data/trumpetFingerings.ts. */
   color: #fde047;
-  text-shadow: 0 0 6px rgba(250, 204, 21, 0.7);
-  letter-spacing: 0.15em;
-  font-size: 11px;
+  text-shadow: 
+    0 0 8px rgba(250, 204, 21, 0.9),
+    0 0 16px rgba(251, 191, 36, 0.6);
+  letter-spacing: 0.2em;
+  font-size: 12px;
+font-weight: 700;
 }
 
-/* ===== SECTION: EXERCISE NOTES DISPLAY (Pills de notas) ===== */
-/* Muestra las notas de un ejercicio de ear training: 2 notas con flecha
- * (interval) o 3+ notas con puntos (triad, seventh_chord). La nota
- * activa se resalta en amarillo sincronizada con la reproducción. */
+/* ===== VIOLIN MODE: notas múltiples en pentagrama dorado ===== */
+/* Violín usa el mismo diseño que piano/guitarra pero con notas individuales
+ * posicionadas por pitch real (como trompeta, pero sin válvulas). */
+
+.music-staff-note-group--violin {
+  z-index: 2;
+}
+
+/* Las notas de violín usan las mismas clases que piano (.music-staff-note)
+ * pero se posicionan por pitch real usando noteToStaffPosition() */
+
+/* ===== FLUTE MODE: pentagrama dorado + diagrama de agujeros ===== */
+/* Flauta muestra las notas en el pentagrama + diagrama de agujeros debajo.
+ * El diagrama usa bordes dorados y agujeros activos con glow dorado. */
+
+@utility flute-fingering-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+@utility flute-fingering-title {
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #86efac;
+  text-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+@utility flute-fingering-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(10, 18, 10, 0.7) 0%, rgba(5, 10, 5, 0.7) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+}
+
+@utility flute-hole {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+@utility flute-hole-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  background: rgba(10, 18, 10, 0.8);
+  transition: all 0.2s ease-out;
+}
+
+.flute-hole-circle--closed {
+  background: radial-gradient(circle at 30% 30%, #fde047 0%, #fbbf24 60%, #d97706 100%);
+  border-color: #fde047;
+  box-shadow:
+    0 0 10px rgba(251, 191, 36, 0.7),
+    0 0 20px rgba(251, 191, 36, 0.4),
+    inset 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.flute-hole-circle--active.flute-hole-circle--closed {
+  background: radial-gradient(circle at 30% 30%, #fef08a 0%, #fde047 50%, #facc15 100%);
+  border-color: #fef08a;
+  box-shadow:
+    0 0 16px rgba(250, 204, 21, 0.95),
+    0 0 32px rgba(250, 204, 21, 0.6),
+    0 0 48px rgba(251, 191, 36, 0.4),
+    inset 0 0 6px rgba(255, 255, 255, 0.4);
+  transform: scale(1.2);
+}
+
+@utility flute-hole-connector {
+  width: 1px;
+  height: 6px;
+  background: linear-gradient(180deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+@utility flute-fingering-label {
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  color: #86efac;
+  text-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+}
+
+.flute-fingering-label--active {
+  color: #fde047 !important;
+  text-shadow: 
+    0 0 8px rgba(250, 204, 21, 0.9),
+    0 0 16px rgba(251, 191, 36, 0.6);
+  font-weight: 700;
+}
+
+/* ===== HARMONICA MODE: tablatura dorada de agujeros ===== */
+/* Armónica muestra 10 agujeros con indicadores de soplar/aspirar.
+ * Diseño rediseñado con bordes dorados y glow en agujeros activos. */
+
+@utility harmonica-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+@utility harmonica-title {
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #86efac;
+  text-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+@utility harmonica-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(10, 18, 10, 0.7) 0%, rgba(5, 10, 5, 0.7) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@utility harmonica-hole-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+@utility harmonica-arrow {
+  font-size: 8px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(134, 239, 172, 0.5);
+  transition: all 0.2s ease-out;
+}
+
+.harmonica-arrow--active {
+  color: #fde047;
+  text-shadow: 
+    0 0 8px rgba(250, 204, 21, 0.9),
+    0 0 16px rgba(251, 191, 36, 0.6);
+}
+
+@utility harmonica-hole {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
+  background: rgba(10, 18, 10, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-out;
+}
+
+@utility harmonica-hole-number {
+  font-size: 7px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: rgba(134, 239, 172, 0.4);
+  transition: all 0.2s ease-out;
+}
+
+.harmonica-hole--active {
+  border-color: #fde047;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.3) 0%, rgba(217, 119, 6, 0.2) 100%);
+  box-shadow:
+    0 0 14px rgba(251, 191, 36, 0.8),
+    0 0 28px rgba(251, 191, 36, 0.5),
+    inset 0 0 8px rgba(251, 191, 36, 0.2);
+  transform: scale(1.15);
+}
+
+.harmonica-hole--active .harmonica-hole-number {
+  color: #fde047;
+  text-shadow: 0 0 6px rgba(250, 204, 21, 0.8);
+}
+
+@utility harmonica-separator {
+  width: 1px;
+  height: 6px;
+  background: rgba(212, 175, 55, 0.2);
+  align-self: stretch;
+}
+
+@utility harmonica-info {
+  display: flex;
+  gap: 10px;
+  font-size: 9px;
+  font-family: 'Courier New', monospace;
+}
+
+.harmonica-info span {
+  color: #86efac;
+  transition: color 0.2s ease-out;
+}
+
+.harmonica-info span--active {
+  color: #fde047 !important;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+  font-weight: 600;
+}
+
+.harmonica-info span--bend {
+  color: rgba(134, 239, 172, 0.5);
+}
+
+/* ===== SECTION: EXERCISE NOTES DISPLAY (Pills de notas - diseño dorado) ===== */
+/* Muestra las notas de un ejercicio de ear training con diseño dorado/verde. */
 
 @utility eartraining-notes {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -690,70 +1014,78 @@ body {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 16px;
-  background: linear-gradient(180deg, rgba(10, 18, 10, 0.6) 0%, rgba(5, 10, 5, 0.6) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  border-radius: 12px;
+  gap: 10px;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, rgba(10, 18, 10, 0.7) 0%, rgba(5, 10, 5, 0.7) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 14px;
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.1),
+    inset 0 0 40px rgba(212, 175, 55, 0.05);
 }
 
 @utility eartraining-notes-item {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 @utility eartraining-note-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  height: 36px;
-  padding: 0 14px;
+  min-width: 52px;
+  height: 38px;
+  padding: 0 16px;
   font-family: 'Courier New', monospace;
   font-size: 16px;
   font-weight: 700;
-  color: #4ade80;
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.04) 100%);
-  border: 1.5px solid rgba(34, 197, 94, 0.4);
-  border-radius: 8px;
+  color: #86efac;
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.03) 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
   letter-spacing: 0.5px;
   box-shadow:
-    inset 0 1px 0 rgba(34, 197, 94, 0.15),
-    0 0 6px rgba(34, 197, 94, 0.1);
-  transition: all 0.2s ease;
+    inset 0 1px 0 rgba(34, 197, 94, 0.1),
+    0 0 8px rgba(212, 175, 55, 0.15);
+  transition: all 0.2s ease-out;
 }
+
 .eartraining-note-pill--active {
-  color: #facc15;
-  background: linear-gradient(180deg, rgba(250, 204, 21, 0.25) 0%, rgba(251, 191, 36, 0.12) 100%);
-  border-color: rgba(250, 204, 21, 0.8);
+  color: #fde047;
+  background: linear-gradient(180deg, rgba(250, 204, 21, 0.25) 0%, rgba(251, 191, 36, 0.15) 100%);
+  border-color: rgba(250, 204, 21, 0.9);
   box-shadow:
-    inset 0 1px 0 rgba(250, 204, 21, 0.3),
-    0 0 14px rgba(250, 204, 21, 0.6);
+    inset 0 1px 0 rgba(250, 204, 21, 0.4),
+    0 0 16px rgba(250, 204, 21, 0.7),
+    0 0 32px rgba(251, 191, 36, 0.4);
   animation: eartraining-note-pulse 0.8s ease-in-out infinite;
+  transform: scale(1.05);
 }
+
 .eartraining-note-pill--past {
-  color: #6b8e6b;
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.04) 0%, rgba(34, 197, 94, 0.01) 100%);
-  border-color: rgba(34, 197, 94, 0.18);
-  opacity: 0.55;
+  color: rgba(134, 239, 172, 0.5);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.03) 0%, rgba(34, 197, 94, 0.01) 100%);
+  border-color: rgba(212, 175, 55, 0.15);
+  opacity: 0.5;
 }
 
 @utility eartraining-note-separator {
-  color: rgba(34, 197, 94, 0.5);
+  color: rgba(212, 175, 55, 0.5);
   font-weight: 700;
   user-select: none;
+  text-shadow: 0 0 4px rgba(212, 175, 55, 0.3);
 }
 .eartraining-note-separator--arrow {
-  color: #4ade80;
-  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.4));
+  color: #facc15;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.5));
 }
 .eartraining-note-separator--dot {
   font-size: 24px;
   line-height: 1;
-  color: rgba(34, 197, 94, 0.55);
+  color: rgba(212, 175, 55, 0.6);
 }
 
 @utility eartraining-notes-caption {
@@ -761,6 +1093,7 @@ body {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #8aa88a;
+  color: #86efac;
   text-align: center;
+  text-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
 }

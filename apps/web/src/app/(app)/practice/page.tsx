@@ -88,8 +88,8 @@ export function PracticePage() {
   return (
     <div className="practice-list-bg -m-4 sm:-m-6 p-4 sm:p-6 min-h-[calc(100vh-80px)]">
       {/* Fondo decorativo: partitura sutil */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.04]" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <div className="fixed inset-0 pointer-events-none opacity-[0.04]" aria-hidden="true" style={{ animation: 'scrolling-staff 15s linear infinite' }}>
+        <svg width="100%" height="200%" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="staff-lines" x="0" y="0" width="200" height="60" patternUnits="userSpaceOnUse">
               <line x1="0" y1="10" x2="200" y2="10" stroke="#22c55e" strokeWidth="1" />
@@ -236,22 +236,40 @@ export function PracticePage() {
                       <Music2 className="text-accent relative z-10" size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-text-primary font-medium truncate">{song.title}</h3>
-                      <p className="text-text-secondary text-sm truncate">
-                        {song.artist || t('practice.unknownArtist')}
-                        {style ? ` · ${style.name}` : ''}
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-text-primary font-bold truncate text-lg">{song.title}</h3>
+                        {style && (
+                          <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-accent/10 text-accent border border-accent/20">
+                            {style.name}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-text-secondary text-sm truncate flex items-center gap-2">
+                        <span>{song.artist || t('practice.unknownArtist')}</span>
+                        <span className="w-1 h-1 rounded-full bg-accent/40" />
+                        <span className="flex items-center gap-1 opacity-60">
+                          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="0" y="4" width="2" height="4" rx="1" fill="currentColor" />
+                            <rect x="3" y="2" width="2" height="8" rx="1" fill="currentColor" />
+                            <rect x="6" y="0" width="2" height="12" rx="1" fill="currentColor" />
+                            <rect x="9" y="3" width="2" height="6" rx="1" fill="currentColor" />
+                            <rect x="12" y="5" width="2" height="2" rx="1" fill="currentColor" />
+                          </svg>
+                        </span>
                       </p>
                     </div>
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-6">
                       <div className="text-right hidden sm:block">
-                        <p className="text-text-secondary text-xs uppercase tracking-wider">{t('practice.key')}</p>
-                        <p className="text-text-primary font-bold text-lg">{song.key_signature || '—'}</p>
+                        <p className="text-text-secondary text-[10px] uppercase tracking-widest mb-0.5">{t('practice.key')}</p>
+                        <p className="text-accent font-bold font-mono bg-accent/5 px-2 py-1 rounded border border-accent/10">{song.key_signature || '—'}</p>
                       </div>
                       <div className="text-right hidden sm:block">
-                        <p className="text-text-secondary text-xs uppercase tracking-wider">BPM</p>
-                        <p className="text-text-primary font-bold text-lg">{song.bpm || '—'}</p>
+                        <p className="text-text-secondary text-[10px] uppercase tracking-widest mb-0.5">BPM</p>
+                        <p className="text-text-primary font-bold font-mono">{song.bpm || '—'}</p>
                       </div>
-                      <ChevronRight className="text-accent/60 group-hover:text-accent" size={22} />
+                      <div className="w-8 h-8 rounded-full bg-bg-primary/50 flex items-center justify-center border border-accent/10 group-hover:bg-accent group-hover:border-accent transition-colors">
+                        <ChevronRight className="text-accent group-hover:text-white" size={18} />
+                      </div>
                     </div>
                   </Link>
                 </motion.div>
