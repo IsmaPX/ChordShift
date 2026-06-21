@@ -129,3 +129,21 @@ export function transposeOctaveUp(note: string): string | null {
   const [, name, octaveStr] = match
   return `${name}${parseInt(octaveStr, 10) + 1}`
 }
+
+import type { VoiceType } from './types'
+
+export function classifyVoiceType(noteName?: string): VoiceType {
+  if (!noteName) return 'chord'
+  const match = /^([A-G][#b]?)(-?\d+)$/.exec(noteName.trim())
+  if (!match) return 'chord'
+  const octave = parseInt(match[2], 10)
+  if (octave < 4) return 'bass'
+  if (octave >= 5) return 'melody'
+  return 'chord'
+}
+
+export function classifyVoiceByPosition(position: number): VoiceType {
+  if (position < 1.5) return 'bass'
+  if (position < 2.5) return 'melody'
+  return 'chord'
+}

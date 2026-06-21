@@ -81,3 +81,45 @@ export interface StaffTimeline {
   /** Tiempo actual formateado mm:ss. */
   currentLabel: string
 }
+
+export type VoiceType = 'melody' | 'bass' | 'chord' | 'left-hand' | 'right-hand'
+
+export interface VoiceConfig {
+  color: string
+  glowColor: string
+  labelColor: string
+  borderColor: string
+}
+
+export const VOICE_COLORS: Record<VoiceType, VoiceConfig> = {
+  melody: {
+    color: '#f472b6',
+    glowColor: 'rgba(244, 114, 182, 0.8)',
+    labelColor: '#fce7f3',
+    borderColor: 'rgba(244, 114, 182, 0.6)',
+  },
+  bass: {
+    color: '#60a5fa',
+    glowColor: 'rgba(96, 165, 250, 0.8)',
+    labelColor: '#dbeafe',
+    borderColor: 'rgba(96, 165, 250, 0.6)',
+  },
+  chord: {
+    color: '#a78bfa',
+    glowColor: 'rgba(167, 139, 250, 0.8)',
+    labelColor: '#ede9fe',
+    borderColor: 'rgba(167, 139, 250, 0.6)',
+  },
+  'left-hand': {
+    color: '#34d399',
+    glowColor: 'rgba(52, 211, 153, 0.8)',
+    labelColor: '#d1fae5',
+    borderColor: 'rgba(52, 211, 153, 0.6)',
+  },
+  'right-hand': {
+    color: '#fbbf24',
+    glowColor: 'rgba(251, 191, 36, 0.8)',
+    labelColor: '#fef3c7',
+    borderColor: 'rgba(251, 191, 36, 0.6)',
+  },
+}
