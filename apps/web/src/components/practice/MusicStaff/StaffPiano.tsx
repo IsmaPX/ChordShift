@@ -121,33 +121,37 @@ export function StaffPiano({
         />
       </div>
 
-      {/* Brace neón + barra de sistema */}
-      <div className="flex items-stretch gap-0 -my-1">
-        <div className="w-1.5 bg-gradient-to-b from-anime-pink via-anime-purple to-anime-blue rounded-full ml-6 shrink-0 shadow-[0_0_12px_rgba(255,110,199,0.5)]" />
-        <div className="flex-1 border-t border-dashed border-anime-pink/15" />
-        <div className="flex items-center mr-4 gap-1">
-          <span className="text-[8px] font-mono text-anime-pink/40 uppercase tracking-wider">
-            {Math.round(timeline.totalSeconds)}s
-          </span>
+      {/* Brace neón + barra de sistema — solo si hay notas graves */}
+      {bassNotes.length > 0 && (
+        <div className="flex items-stretch gap-0 -my-1">
+          <div className="w-1.5 bg-gradient-to-b from-anime-pink via-anime-purple to-anime-blue rounded-full ml-6 shrink-0 shadow-[0_0_12px_rgba(255,110,199,0.5)]" />
+          <div className="flex-1 border-t border-dashed border-anime-pink/15" />
+          <div className="flex items-center mr-4 gap-1">
+            <span className="text-[8px] font-mono text-anime-pink/40 uppercase tracking-wider">
+              {Math.round(timeline.totalSeconds)}s
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ── Pentagrama inferior (Clave de Fa) ── */}
-      <div className="piano-staff-system">
-        <SingleStaff
-          notes={bassNotes.map(n => ({ ...n, line: toBassStaffPosition(n.line), originalIndex: n.originalIndex }))}
-          beatMarks={beatMarks}
-          cursorStyle={cursorStyle}
-          resetKey={resetKey}
-          clef="bass"
-          label="Pentagrama Grave"
-          height="h-28"
-          inset="inset-y-2"
-          hideCursor
-          illuminatedNoteIndex={illuminatedNoteIndex}
-          isPlaying={timeline.currentSeconds > 0}
-        />
-      </div>
+      {/* ── Pentagrama inferior (Clave de Fa) — solo si hay notas graves ── */}
+      {bassNotes.length > 0 && (
+        <div className="piano-staff-system">
+          <SingleStaff
+            notes={bassNotes.map(n => ({ ...n, line: toBassStaffPosition(n.line), originalIndex: n.originalIndex }))}
+            beatMarks={beatMarks}
+            cursorStyle={cursorStyle}
+            resetKey={resetKey}
+            clef="bass"
+            label="Pentagrama Grave"
+            height="h-28"
+            inset="inset-y-2"
+            hideCursor
+            illuminatedNoteIndex={illuminatedNoteIndex}
+            isPlaying={timeline.currentSeconds > 0}
+          />
+        </div>
+      )}
 
       {/* ── Teclas de piano decorativas ── */}
       <div className="flex items-center gap-0.5 px-2 py-1 mx-6 rounded-b-lg bg-bg-card/60 border border-anime-pink/10 border-t-0 overflow-hidden">
