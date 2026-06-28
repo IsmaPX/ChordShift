@@ -29,6 +29,8 @@ export interface MusicStaffProps {
   isPlaying: boolean
   /** BPM de la canción (afecta la velocidad de la línea). */
   bpm: number
+  /** Estilo musical o tema de la canción. */
+  styleId?: string
   /**
    * Instrumento activo. Cuando es `trumpet`, el pentagrama se renderiza
    * adaptado a trompeta (notas individuales por pitch + válvulas).

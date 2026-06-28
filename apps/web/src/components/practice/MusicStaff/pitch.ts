@@ -131,6 +131,7 @@ export function transposeOctaveUp(note: string): string | null {
 }
 
 import type { VoiceType } from './types'
+import type { InstrumentName } from '@/types/music'
 
 export function classifyVoiceType(noteName?: string): VoiceType {
   if (!noteName) return 'chord'
@@ -147,3 +148,91 @@ export function classifyVoiceByPosition(position: number): VoiceType {
   if (position < 2.5) return 'melody'
   return 'chord'
 }
+
+/**
+ * Lógica Anti-Vacío: Genera notas del acorde dinámicamente
+ * si un instrumento no tiene notas predefinidas para el acorde.
+ */
+export function getFallbackNotesForChord(chordName: string, instrument: InstrumentName): string[] {
+  // Limpiar el acorde para extraer la fundamental (ej: D/F# -> D, Am7 -> Am, Csus4 -> Csus4)
+  const baseChord = chordName.split('/')[0].trim()
+  const match = /^([A-G][#b]?)(.*)$/.exec(baseChord)
+  if (!match) {
+    // Si no es parseable, default a Do mayor
+    return instrument === 'bass' ? ['C3'] : ['C4', 'E4', 'G4']
+  }
+
+  const root = match[1]
+  const suffix = match[2]
+
+  // Determinar la octava adecuada según el instrumento
+  let defaultOctave = 4
+  if (instrument === 'bass') defaultOctave = 2
+  else if (instrument === 'guitar') defaultOctave = 3
+  else if (instrument === 'flute' || instrument === 'violin') defaultOctave = 5
+
+  // Notas diatónicas ordenadas para buscar terceras/quintas
+  const notesOrder = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+  const rootIndex = notesOrder.indexOf(root)
+
+  if (rootIndex === -1) {
+    return [`${root}${defaultOctave}`]
+  }
+
+  // Si es bajo, solo mostramos la fundamental
+  if (instrument === 'bass') {
+    return [`${root}${defaultOctave}`]
+  }
+
+  // Si es trompeta, solo mostramos la fundamental transportada a una zona cómoda
+  if (instrument === 'trumpet') {
+    return [`${root}4`]
+  }
+
+  // Batería usa mapeos fijos de percusión
+  if (instrument === 'drums') {
+    return ['C4', 'E4', 'G4'] // Mapeado a bombo/caja/hi-hat en StaffDrums
+  }
+
+  // Generar tercera y quinta según el sufijo
+  let thirdOffset = 4 // Mayor por defecto
+  let fifthOffset = 7
+
+  if (suffix.includes('m') && !suffix.includes('maj')) {
+    thirdOffset = 3 // Menor
+  }
+  if (suffix.includes('dim')) {
+    thirdOffset = 3
+    fifthOffset = 6 // Disminuida
+  }
+  if (suffix.includes('aug')) {
+    fifthOffset = 8 // Aumentada
+  }
+  if (suffix.includes('sus2')) {
+    thirdOffset = 2
+  }
+  if (suffix.includes('sus4') || suffix.includes('sus')) {
+    thirdOffset = 5
+  }
+
+  const getNoteNameWithOctave = (offset: number): string => {
+    const idx = (rootIndex + offset) % 12
+    const octaveOffset = Math.floor((rootIndex + offset) / 12)
+    return `${notesOrder[idx]}${defaultOctave + octaveOffset}`
+  }
+
+  const notes = [
+    `${root}${defaultOctave}`,
+    getNoteNameWithOctave(thirdOffset),
+    getNoteNameWithOctave(fifthOffset),
+  ]
+
+  // Si es de viento/melódico (flauta, violín), preferimos solo 1 o 2 notas para no saturar
+  if (instrument === 'flute' || instrument === 'violin') {
+    return [notes[0], notes[2]]
+  }
+
+  // Si es guitarra o piano, mostramos el acorde completo de 3 notas
+  return notes
+}
+

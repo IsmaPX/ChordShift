@@ -74,7 +74,12 @@ export function StaffPiano({
   const currentNote = notes.find(n => n.isCurrent)
 
   return (
-    <div className={cn('flex flex-col gap-1 piano-instrument', className)} data-instrument="piano">
+    <div
+      className={cn('flex flex-col gap-1 piano-instrument', className)}
+      data-testid="music-staff"
+      data-version="music-staff-v1.1"
+      data-instrument="piano"
+    >
       {/* ── Header: indicadores de voz + info ── */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
@@ -98,8 +103,10 @@ export function StaffPiano({
             </div>
           )}
           <div className="flex items-center gap-1 text-[10px] font-mono text-anime-pink/50">
-            <span className="text-[8px] font-mono text-anime-pink/40 uppercase tracking-wider">
-              {timeline.currentLabel} / {timeline.totalLabel}
+            <span className="text-[8px] font-mono text-anime-pink/40 uppercase tracking-wider flex items-center gap-1">
+              <span>{timeline.currentLabel}</span>
+              <span>/</span>
+              <span>{timeline.totalLabel}</span>
             </span>
           </div>
         </div>
@@ -284,8 +291,8 @@ function SingleStaff({
               <div
                 className={cn(
                   'piano-staff-note transition-all duration-200',
-                  n.isCurrent && 'piano-staff-note--current',
-                  illuminatedNoteIndex === idx && 'piano-staff-note--illuminated'
+                  n.isCurrent && 'piano-staff-note--current music-staff-note--current',
+                  illuminatedNoteIndex === idx && 'piano-staff-note--illuminated music-staff-note--illuminated'
                 )}
                 style={{
                   background: illuminatedNoteIndex === idx
@@ -299,6 +306,8 @@ function SingleStaff({
                     : `0 0 8px ${colors.glowColor}, 0 0 16px ${colors.glowColor}40`,
                 }}
                 data-testid="music-staff-note-head"
+                data-chord={n.chord.chord}
+                data-note={n.noteName ?? ''}
               />
 
               {/* Label de nota con color matching */}
@@ -341,7 +350,7 @@ function SingleStaff({
       {!hideCursor && (
         <div
           key={resetKey}
-          className="piano-staff-cursor absolute top-0 bottom-0 pointer-events-none"
+          className="piano-staff-cursor music-staff-cursor absolute top-0 bottom-0 pointer-events-none"
           style={{ left: '48px', width: '3px', ...cursorStyle }}
           aria-hidden="true"
         >
